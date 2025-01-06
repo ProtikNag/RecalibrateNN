@@ -10,16 +10,17 @@ from src.concept_dataset import ConceptDataset
 
 def train_cav(concept_activations, random_activations):
     """
-    Train a logistic regression model to separate concept and random activations
+    Train a logistic regression model to separate concept and random activations.
+    Returns a normalized CAV vector.
     """
-
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
 
     clf = LogisticRegression(random_state=0).fit(X, y)
-    clf.fit(X, y)
+    cav_vector = clf.coef_.squeeze()
+    cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 
-    return clf.coef_.squeeze()
+    return cav_vector
 
 
 def compute_tcav_score(model, layer_name, cav_vector, inputs, target_class):
@@ -44,6 +45,8 @@ def compute_tcav_score(model, layer_name, cav_vector, inputs, target_class):
     tcav_score = (projections > 0).float().mean().item()
 
     extractor.unregister_hook()
+    del gradients
+
     return tcav_score
 
 
@@ -78,19 +81,19 @@ def tcav_pipeline(
     extractor = ActivationExtractor(model, layer_name)
     extractor.register_hook()
 
-    with torch.no_grad():
-        for imgs in concept_loader:
-            imgs = imgs.to(device)
-            _ = extractor(imgs)  # Perform forward pass to populate activations
-            activations = extractor.activations.cpu().view(imgs.size(0), -1).numpy()
-            print(f"Shape of concept activations: {activations.shape}")
-            concept_activations.append(activations)
 
-        for imgs in random_loader:
-            imgs = imgs.to(device)
-            _ = extractor(imgs)  # Perform forward pass to populate activations
-            activations = extractor.activations.cpu().view(imgs.size(0), -1).numpy()
-            random_activations.append(activations)
+    for imgs in concept_loader:
+        imgs = imgs.to(device)
+        _ = extractor(imgs)  # Perform forward pass to populate activations
+        activations = extractor.activations.cpu().view(imgs.size(0), -1).detach().numpy()
+        print(f"Shape of concept activations: {activations.shape}")
+        concept_activations.append(activations)
+
+    for imgs in random_loader:
+        imgs = imgs.to(device)
+        _ = extractor(imgs)  # Perform forward pass to populate activations
+        activations = extractor.activations.cpu().view(imgs.size(0), -1).detach().numpy()
+        random_activations.append(activations)
 
     extractor.unregister_hook()
 
