@@ -66,7 +66,7 @@ Ensure the required datasets are available in the data/ folder:
 To evaluate TCAV scores before and after retraining:
 
 ```aiignore
-python retrain_comparison.py
+python retrain_nn_new_version.py
 ```
 
 This script:
