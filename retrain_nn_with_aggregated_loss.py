@@ -12,8 +12,8 @@ from sklearn.svm import LinearSVC
 from torchvision import transforms
 
 # Configuration
-LEARNING_RATE = 1e-4
-EPOCHS = 30
+LEARNING_RATE = 1e-3
+EPOCHS = 5
 BATCH_SIZE = 32
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 LAYER_NAME = "inception4a"
@@ -25,7 +25,7 @@ VALIDATION_FOLDER = "./data/dataset/valid_zebra"
 K = 340  # ImageNet class index for zebra
 
 # Weight balancing
-LAMBDA_ALIGN = 0.5
+LAMBDA_ALIGN = 1.0
 LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
 
 SEED = 0
@@ -191,11 +191,18 @@ for epoch in range(EPOCHS):
         # Classification loss
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
 
+        h_k = outputs[:, K]  # Logit of target class (zebra)
+        grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
+        grad_flat = grad.view(grad.size(0), -1)  # Flatten gradient
 
-        f_l_flat = f_l.view(f_l.size(0), -1)  # [batch_size, num_features]
-        norm_f_l = torch.norm(f_l_flat, dim=1, keepdim=True)  # [batch_size, 1]
-        cos_sim = (f_l_flat @ cav_vector) / (norm_f_l + 1e-8)  # [batch_size]
-        alignment_loss = -torch.mean(torch.abs(cos_sim))
+        # Alignment loss: maximize the positive directional derivative
+        alignment_loss = -torch.mean(torch.relu(grad_flat @ cav_vector))
+
+
+        # f_l_flat = f_l.view(f_l.size(0), -1)  # [batch_size, num_features]
+        # norm_f_l = torch.norm(f_l_flat, dim=1, keepdim=True)  # [batch_size, 1]
+        # cos_sim = (f_l_flat @ cav_vector) / (norm_f_l + 1e-8)  # [batch_size]
+        # alignment_loss = -torch.mean(torch.abs(cos_sim))
 
         # Total loss
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
@@ -204,7 +211,7 @@ for epoch in range(EPOCHS):
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+        # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
         optimizer.step()
 
     avg_loss = total_loss / len(dataset_loader)
