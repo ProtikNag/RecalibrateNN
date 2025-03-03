@@ -6,22 +6,32 @@ from torchvision import models
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 from sklearn.svm import LinearSVC
 from torchvision import transforms
 
 # Configuration
-LEARNING_RATE = 0.001
-EPOCHS = 15
-BATCH_SIZE = 8
+LEARNING_RATE = 1e-4
+EPOCHS = 30
+BATCH_SIZE = 32
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 LAYER_NAME = "inception4a"
 CONCEPT_FOLDER = "./data/concept/striped"
 RANDOM_FOLDER = "./data/random"
 DATASET_FOLDER = "./data/dataset/zebra"
 RESULTS_PATH = "./results/retrained_model.pth"
+VALIDATION_FOLDER = "./data/dataset/valid_zebra"
 K = 340  # ImageNet class index for zebra
-LAMBDA_ALIGN = 1.0
+
+# Weight balancing
+LAMBDA_ALIGN = 0.5
+LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
+
+SEED = 0
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
 
 # 1. Custom Dataset Class
 class ConceptDataset(Dataset):
@@ -41,15 +51,6 @@ class ConceptDataset(Dataset):
             image = self.transform(image)
         return image
 
-# 2. CAV Training Function
-# def train_cav(concept_activations, random_activations):
-#     """Train a linear SVM to compute the Concept Activation Vector (CAV)."""
-#     X = np.vstack([concept_activations, random_activations])
-#     y = np.hstack([np.ones(concept_activations.shape[0]), np.zeros(random_activations.shape[0])])
-#     clf = LinearSVC()
-#     clf.fit(X, y)
-#     cav = clf.coef_[0]
-#     return cav
 
 def train_cav(concept_activations, random_activations):
     """
@@ -74,37 +75,6 @@ model.train()
 for name, param in model.named_parameters():
     param.requires_grad = (LAYER_NAME in name)
 
-# Define the remaining model after the target layer
-class RemainingModel(nn.Module):
-    """Submodel containing layers after inception4a."""
-    def __init__(self, original_model):
-        super(RemainingModel, self).__init__()
-        self.inception4b = original_model.inception4b
-        self.inception4c = original_model.inception4c
-        self.inception4d = original_model.inception4d
-        self.inception4e = original_model.inception4e
-        self.maxpool4 = original_model.maxpool4
-        self.inception5a = original_model.inception5a
-        self.inception5b = original_model.inception5b
-        self.avgpool = original_model.avgpool
-        self.dropout = original_model.dropout
-        self.fc = original_model.fc
-
-    def forward(self, x):
-        x = self.inception4b(x)
-        x = self.inception4c(x)
-        x = self.inception4d(x)
-        x = self.inception4e(x)
-        x = self.maxpool4(x)
-        x = self.inception5a(x)
-        x = self.inception5b(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.dropout(x)
-        x = self.fc(x)
-        return x
-
-remaining_model = RemainingModel(model).to(DEVICE)
 
 # Data Preparation
 transform = transforms.Compose([
@@ -175,6 +145,33 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
 original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, K)
 print(f"Original TCAV Score: {original_tcav:.4f}")
 
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            img_path = os.path.join(folder, filename)
+            images.append(Image.open(img_path).convert('RGB'))
+    return images
+
+def evaluate_zebra_accuracy(model, images, zebra_idx):
+    model.eval()
+    correct = 0
+    total = 0
+    for img in images:
+        x = transform(img).unsqueeze(0).to(DEVICE)
+        with torch.no_grad():
+            outputs = model(x)
+            predicted_class = outputs.argmax(dim=1).item()
+        if predicted_class == zebra_idx:
+            correct += 1
+        total += 1
+    return (correct / total) * 100 if total > 0 else 0
+
+zebra_images = load_images_from_folder(VALIDATION_FOLDER)
+zebra_idx = K
+acc_before = evaluate_zebra_accuracy(model, zebra_images, zebra_idx)
+print(f"Accuracy on zebra class before recalibration: {acc_before:.2f}%")
+
 # Optimizer
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE)
 
@@ -194,12 +191,6 @@ for epoch in range(EPOCHS):
         # Classification loss
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
 
-        # # Alignment loss using directional derivative
-        # h_k = outputs[:, K]
-        # grad = torch.autograd.grad(h_k.sum(), f_l, create_graph=True)[0]
-        # grad_flat = grad.view(grad.size(0), -1)
-        # S = (grad_flat * cav_vector).sum(dim=1)
-        # alignment_loss = torch.mean(torch.relu(-S))  # Encourage S > 0
 
         f_l_flat = f_l.view(f_l.size(0), -1)  # [batch_size, num_features]
         norm_f_l = torch.norm(f_l_flat, dim=1, keepdim=True)  # [batch_size, 1]
@@ -207,12 +198,13 @@ for epoch in range(EPOCHS):
         alignment_loss = -torch.mean(torch.abs(cos_sim))
 
         # Total loss
-        loss = classification_loss + LAMBDA_ALIGN * alignment_loss
+        loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
         total_loss += loss.item()
 
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
         optimizer.step()
 
     avg_loss = total_loss / len(dataset_loader)
@@ -223,6 +215,8 @@ for epoch in range(EPOCHS):
 os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
 torch.save(model.state_dict(), RESULTS_PATH)
 print(f"Model saved at {RESULTS_PATH}")
+acc_after = evaluate_zebra_accuracy(model, zebra_images, zebra_idx)
+print(f"Accuracy on zebra class after recalibration: {acc_after:.2f}%")
 
 # Compute retrained TCAV score
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, K)
