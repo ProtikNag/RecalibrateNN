@@ -12,8 +12,8 @@ from sklearn.svm import LinearSVC
 from torchvision import transforms
 
 # Configuration
-LEARNING_RATE = 1e-3
-EPOCHS = 5
+LEARNING_RATE = 1e-4
+EPOCHS = 20
 BATCH_SIZE = 32
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 LAYER_NAME = "inception4a"
@@ -211,7 +211,7 @@ for epoch in range(EPOCHS):
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
-        # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
         optimizer.step()
 
     avg_loss = total_loss / len(dataset_loader)
