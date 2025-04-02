@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from sklearn.svm import LinearSVC
 
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Auto parse class folders
 def get_class_folder_dicts(base_dir):
