@@ -1,120 +1,118 @@
-# RecalibrateNN: Improving TCAV Interpretability
+# RecalibrateNN
 
+`RecalibrateNN` is a PyTorch-based project designed to recalibrate a pre-trained neural network (GoogleNet) for binary classification, with a focus on aligning model predictions with a specific concept (e.g., "stripes" for zebra classification) using Concept Activation Vectors (CAVs) and TCAV (Testing with CAVs) scores. The project fine-tunes a specific layer of the model to balance classification accuracy and concept alignment, making it a useful tool for interpretability and controlled model adjustment experiments.
 
-## Overview
+This README provides a step-by-step guide to understanding, setting up, and running the project, as well as instructions for customizing it for your own experiments.
 
-RecalibrateNN is a project that implements Testing with Concept Activation Vectors (TCAV) to interpret deep learning models using human-friendly concepts. This repository allows users to analyze, retrain, and compare TCAV scores for a given model, focusing on concept alignment with latent representations.
-
-
-Data: https://drive.google.com/drive/folders/1GlOk6IfEFc7Ny686z3GdlTZXKEpnvmgl?usp=sharing
-
-## Features
-
-* Extracts layer activations from deep neural networks.
-* Computes Concept Activation Vectors (CAVs) using logistic regression.
-* Evaluates the TCAV score to measure conceptual sensitivity.
-* Retrains a neural network to improve alignment with desired concepts.
-* Compares TCAV scores before and after retraining.
-
-## Repository Structure
+## Project Structure
 
 ```
-RecalibrateNN
-├── data
-│   ├── concept            # Concept images for TCAV computation
-│   │   ├── dotted
-│   │   ├── striped
-│   │   ├── zigzagged
-│   ├── dataset            # Dataset used for model evaluation
-│   │   ├── zebra
-│   ├── random             # Random images for control comparisons
-├── results                # Stores results from experiments
-│   ├── retrained_model.pth
-│   ├── tcav_score.csv
-├── src                    # Core implementation
-│   ├── activation_extractor.py  # Extracts activations from target layers
-│   ├── calculate_cav.py   # Trains and computes CAV vectors
-│   ├── concept_dataset.py # Dataset loader for concept images
-│   ├── tcav_pipeline.py   # Pipeline for executing TCAV process
-├── .gitignore             # Ignore unnecessary files
-├── main.py                # Entry point for running experiments
-├── requirements.txt       # Required dependencies
-├── retrain_comparison.py  # Main script for retraining and comparison
-├── retrain_nn.py          # Model retraining script
-├── retrain_nn_new_version.py  # Alternative retraining implementation
+RecalibrateNN/
+├── data                   
+├── results               
+├── .gitignore              
+├── config.py               
+├── custom_dataloader.py    
+├── main.py                 
+├── README.md               
+├── requirements.txt        
+└── utils.py                
 ```
 
 
-## Setup
+## Purpose
 
-Ensure you have Python 3.8+ installed. Run the following command to install dependencies:
+The project aims to:
+1. Fine-tune a pre-trained GoogleNet model for binary classification (e.g., zebra vs. non-zebra).
+2. Use CAVs to represent a concept (e.g., "stripes") and align the model's intermediate layer activations with this concept.
+3. Evaluate the model's performance using accuracy and TCAV scores before and after recalibration.
+4. Provide a framework for experimenting with concept-based model adjustments.
 
+## Prerequisites
+
+- Python 3.8+
+- A CUDA-enabled GPU (optional but recommended for faster training; CPU fallback is available)
+- Basic familiarity with PyTorch and deep learning concepts
+
+## Setup Instructions
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/RecalibrateNN.git
+cd RecalibrateNN
+```
+
+### 2. Install Dependencies
+Install the required Python packages listed in `requirements.txt`:
 ```aiignore
 pip install -r requirements.txt
 ```
 
-## Prepare Data
+The key dependencies include:
+* `torch` and `torchvision` for model training and image processing
+* `numpy` for numerical operations
+* `matplotlib` for plotting loss curves
+* `scikit-learn` for training CAVs with LinearSVC
+* `Pillow` for image loading
 
-Ensure the required datasets are available in the data/ folder:
+### 3. Preparing the Data
 
-* Concept Data: Images that define the concept (e.g., striped, dotted, zigzagged).
+The `data/` folder is not included in the repository due to size constraints. You’ll need to set it up manually for binary classification. Here’s how:
 
-* Dataset: Target class images (e.g., zebra).
+Directory Structure
+Create the following structure under RecalibrateNN/data/:
 
-* Random Data: Unrelated images for CAV training.
+```
+data/ 
+├── binary_classification/
+│   ├── class1/
+│   │   ├── train/       
+│   │   └── valid/       
+│   └── class2/          
+│       ├── train/       
+│       └── valid/       
+├── concept/ 
+│  ├── stripes_fake/    
+│  └── random/         
 
-## Running the Experiment
-
-To evaluate TCAV scores before and after retraining:
-
-```aiignore
-python retrain_nn_new_version.py
 ```
 
-This script:
+### 4. Verify Configuration
 
-* Loads a pre-trained GoogLeNet model.
+Open config.py and adjust paths or hyperparameters if needed:
 
-* Extracts activations from the selected layer (inception5b).
+* `BINARY_CLASSIFICATION_BASE`: Set to `"./data/binary_classification/"`.
+* `CONCEPT_FOLDER`: Set to `"./data/concept/stripes_fake"`.
+* `RANDOM_FOLDER`: Set to `"./data/concept/random"`.
+* `ZEBRA_CLASS_NAME`: Set to the name of your positive class (e.g., "zebra").
+* `RESULTS_PATH`: Where the retrained model will be saved (default: `"./results/retrained_model.pth"`).
+* `Hyperparameters` like `LEARNING_RATE`, `EPOCHS`, `BATCH_SIZE`, `LAMBDA_ALIGN`, etc., can be tuned for your experiment.
 
-* Computes the initial TCAV score.
+### 5. Running the Project
 
-* Trains the model with a latent space alignment loss.
+Command \
+Run the main script:
 
-* Computes the final TCAV score after retraining.
-
-* Saves the retrained model.
-
-
-## Expected Outputs
-
-* Console Output: Displays TCAV scores before and after retraining.
-
-* Loss Curve: Plots loss reduction over training epochs.
-
-* TCAV Score Comparison: Bar chart of initial vs. final TCAV scores.
-
-* Model Checkpoint: Stored in results/retrained_model.pth.
-
-## Key Components
-
-### Activation Extraction
-Extracts activations from a chosen layer:
-```aiignore
-from src.activation_extractor import ActivationExtractor
-extractor = ActivationExtractor(model, 'inception5b')
-extractor.register_hook()
-features = extractor.forward(images)
-extractor.unregister_hook()
+```bash
+python main.py
 ```
 
-### Compute CAVs
+### 6. File Details
 
-Trains a logistic regression model to separate concept vs. random activations:
+`config.py`
+* Defines hyperparameters, model, and paths.
+* Sets random seeds for reproducibility.
 
-```aiignore
-from src.calculate_cav import train_cav
-cav_vector = train_cav(concept_activations, random_activations)
-```
+``main.py``
+* Core script for data loading, CAV computation, training, and evaluation.
+* Implements the recalibration logic with a custom loss function.
 
+`custom_dataloader.py`
+* MultiClassImageDataset: Loads binary classification images with labels.
+* ConceptDataset: Loads concept/random images without labels.
 
+`utils.py`
+* get_class_folder_dicts: Parses class folders automatically.
+* train_cav: Trains the CAV using LinearSVC.
+* cosine_similarity_loss: Computes alignment loss.
+* evaluate_accuracy: Calculates model accuracy.
