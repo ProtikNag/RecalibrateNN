@@ -12,20 +12,20 @@ from sklearn.svm import LinearSVC
 from torchvision import transforms
 
 # Configuration
-LEARNING_RATE = 1e-1
+LEARNING_RATE = 1e-2
 EPOCHS = 10
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 LAYER_NAME = "inception4a"
 CONCEPT_FOLDER = "./data/concept/stripes_fake"
 RANDOM_FOLDER = "./data/concept/random"
-DATASET_FOLDER = "./data/zebra_fake/train"
-VALIDATION_FOLDER = "./data/zebra_fake/valid"
+DATASET_FOLDER = "./data/zebra_fake/train/zebra"
+VALIDATION_FOLDER = "./data/zebra_fake/valid/zebra"
 RESULTS_PATH = "./results/retrained_model.pth"
 K = 340  # ImageNet class index for zebra
 
 # Weight balancing
-LAMBDA_ALIGN = 0.9
+LAMBDA_ALIGN = 0.8
 LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
 
 SEED = 0
@@ -50,6 +50,7 @@ class ConceptDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image
+
 
 
 def train_cav(concept_activations, random_activations):
@@ -158,7 +159,6 @@ def evaluate_accuracy(model, data_loader, zebra_idx):
             imgs = imgs.to(DEVICE)
             outputs = model(imgs)
             predicted = outputs.argmax(dim=1)
-            print("Predicted: ", predicted)
             correct += (predicted == zebra_idx).sum().item()
             total += imgs.size(0)
     return (correct / total) * 100 if total > 0 else 0
@@ -170,25 +170,35 @@ print(f"Accuracy on zebra class before recalibration: {acc_before:.2f}%")
 # Optimizer
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE)
 
+def set_batchnorm_eval(module):
+    if isinstance(module, nn.BatchNorm2d) or isinstance(module, nn.BatchNorm1d):
+        module.eval()
+
+def set_dropout_eval(module):
+    if isinstance(module, nn.Dropout):
+        module.eval()
+
 # Training Loop
 loss_history = []
 for epoch in range(EPOCHS):
     model.train()
+
+    # freeze model layers except the target layer
+    for name, param in model.named_parameters():
+        param.requires_grad = (LAYER_NAME in name)
+
+    model.apply(set_batchnorm_eval) # freeze batchnorm layers
+    model.apply(set_dropout_eval)   # freeze dropout layers
+
     total_loss = 0.0
 
     for idx, imgs in enumerate(dataset_loader):
-        if idx > 0:
-            for name, param in model.named_parameters():
-                param.requires_grad = (LAYER_NAME in name)
-
         imgs = imgs.to(DEVICE)
         labels = torch.full((imgs.size(0),), K, device=DEVICE, dtype=torch.long)
 
         optimizer.zero_grad()
         outputs = model(imgs)
-        # Predicted class labels
         predicted_labels = outputs.argmax(dim=1)
-        print(f"Predicted labels (batch {epoch + 1}): {predicted_labels}")
         f_l = activation[LAYER_NAME]
 
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
@@ -198,6 +208,9 @@ for epoch in range(EPOCHS):
         grad_flat = grad.view(grad.size(0), -1)
 
         alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+
+        print("Alignment loss: ", alignment_loss)
+        print("Classification loss: ", classification_loss)
 
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
         total_loss += loss.item()
