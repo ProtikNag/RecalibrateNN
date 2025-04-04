@@ -99,7 +99,7 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
     return scores.float().mean().item()
 
 
-original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, ZEBRA_IDX)
+original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, ZEBRA_IDX)
 print(f"Original TCAV Score (Zebra): {original_tcav:.4f}")
 acc_before = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy before recalibration: {acc_before:.2f}%")
@@ -158,7 +158,7 @@ print(f"Model saved at {RESULTS_PATH}")
 acc_after = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy after recalibration: {acc_after:.2f}%")
 
-retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, ZEBRA_IDX)
+retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, ZEBRA_IDX)
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 
 # Plot loss
