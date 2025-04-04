@@ -1,0 +1,7 @@
+Overall Accuracy: 0.9195 (80/87)
+Overall Precision (macro): 0.4598
+Overall Recall (macro): 0.5000
+Overall F1-score (macro): 0.4790
+
+Class: tiger — Correct: 80 / 80
+Class: zebra — Correct: 0 / 7
