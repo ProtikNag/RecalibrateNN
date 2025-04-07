@@ -7,6 +7,12 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from PIL import Image
+import random
+import numpy as np
+import torch
+import torch.nn as nn
+from torchvision import models
 
 from config import (
     LEARNING_RATE,
@@ -22,6 +28,7 @@ from config import (
     ZEBRA_CLASS_NAME,
     LAMBDA_ALIGN,
     LAMBDA_CLS,
+    NUM_CLASSES
 )
 from custom_dataloader import ConceptDataset, MultiClassImageDataset
 from utils import get_class_folder_dicts, train_cav, cosine_similarity_loss, evaluate_accuracy
@@ -65,15 +72,29 @@ def verify_data():
         logger.info(f"Number of images in {folder}: {num_images}")
 
 
-def evaluate_and_save_predictions(model, train_folders, valid_folders, transform, output_csv_path):
+def evaluate_and_save_predictions(model, train_folders, valid_folders, transform, output_csv_path, model_weightpath ='/home/srikanth/model_train/googlenet_three_classes.pth'):
+    print(train_folders, valid_folders)
+    
+    model = models.googlenet(weights=models.GoogLeNet_Weights.IMAGENET1K_V1)
+    model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)  # replace final FC layer
+    model = model.to(DEVICE)
+    # 2. Load trained weights
+    model.load_state_dict(torch.load(model_weightpath, map_location=DEVICE))
     model.eval()
-    all_folders = train_folders + valid_folders
+    all_folders =  train_folders + valid_folders 
     results = []
+    logger.info(f"Computing the as is predictions of each class ")
     with torch.no_grad():
         for folder in all_folders:
             for img_name in os.listdir(folder):
                 img_path = os.path.join(folder, img_name)
                 img = plt.imread(img_path)
+                img = Image.fromarray(img)
+                # Prepare data
+                transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                ])
                 img = transform(img).unsqueeze(0).to(DEVICE)
                 outputs = model(img)
                 probabilities = torch.softmax(outputs, dim=1)
@@ -86,12 +107,12 @@ def evaluate_and_save_predictions(model, train_folders, valid_folders, transform
                     "Predicted Class": predicted_class,
                     "Confidence (%)": f"{confidence_percentage:.2f}"
                 })
-            # Write results to CSV
-            with open(output_csv_path, mode='w', newline='') as csv_file:
-                fieldnames = ["Image", "Folder", "Predicted Class", "Confidence (%)"]
-                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(results)
+                # Write results to CSV
+                with open(output_csv_path, mode='w', newline='') as csv_file:
+                  fieldnames = ["Image", "Folder", "Predicted Class", "Confidence (%)"]
+                  writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                  writer.writeheader()
+                  writer.writerows(results)
     logger.info(f"Predictions saved to {output_csv_path}")
 
 # Configure logging
@@ -113,10 +134,21 @@ transform = transforms.Compose([
 ])
 
 train_folders, valid_folders, class_names = get_class_folder_dicts(BINARY_CLASSIFICATION_BASE)
-evaluate_and_save_predictions(MODEL, train_folders, valid_folders, transform, 'predictions.csv')
+
+
+train_folders, valid_folders, class_names = get_class_folder_dicts(BINARY_CLASSIFICATION_BASE)
+folder_list_train = list(train_folders.keys())
+folder_list_valid = list(valid_folders.keys())
+logger.info(f"Training folders: {folder_list_train}")
+logger.info(f"Validation folders: {folder_list_valid}")
+
+
+evaluate_and_save_predictions(MODEL, folder_list_train, folder_list_valid, transform, 'as_is_predictions.csv')
 
 NUM_CLASSES = len(class_names)
 ZEBRA_IDX = class_names.index(ZEBRA_CLASS_NAME)
+print(ZEBRA_IDX)
+logger.info(f"Index of clas name: {ZEBRA_IDX}")
 
 train_dataset = MultiClassImageDataset(train_folders, transform=transform)
 val_dataset = MultiClassImageDataset(valid_folders, transform=transform)
@@ -139,7 +171,6 @@ activation = {}
 def get_activation(name):
     def hook(model, input, output):
         activation[name] = output
-
     return hook
 
 
@@ -243,10 +274,8 @@ logger.info(f"Model saved at {RESULTS_PATH}")
 
 acc_after = evaluate_accuracy(model, validation_loader)
 logger.info(f"Accuracy after recalibration: {acc_after:.2f}%")
-
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, ZEBRA_IDX)
 logger.info(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
-
 # Plot loss
 plt.figure(figsize=(8, 6))
 plt.plot(range(EPOCHS), loss_history, marker='o')
@@ -257,3 +286,5 @@ plt.grid(True)
 plt.show()
 plt.savefig('loss_curve.png')
 logger.info("Training completed and loss curve plotted.")
+
+evaluate_and_save_predictions(model, folder_list_train, folder_list_valid, transform, 'tobe_is_predictions.csv',model_weightpath = RESULTS_PATH)
