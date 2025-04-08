@@ -1,7 +1,56 @@
-Overall Accuracy: 0.9195 (80/87)
-Overall Precision (macro): 0.4598
-Overall Recall (macro): 0.5000
-Overall F1-score (macro): 0.4790
+LAMBDA_CLASSIFICATIN = 0.01
+LAMBDA_TCAV = 0.99
 
-Class: tiger — Correct: 80 / 80
-Class: zebra — Correct: 0 / 7
+=== Before Recalibration ===
+Overall Accuracy: 0.9278 (90/97)
+Overall Precision (macro): 0.9230
+Overall Recall (macro): 0.8173
+Overall F1-score (macro): 0.8581
+
+Class: 0 — Correct: 79 / 80
+Class: 1 — Correct: 11 / 17
+
+=== After Recalibration ===
+Overall Accuracy: 0.9381 (91/97)
+Overall Precision (macro): 0.9651
+Overall Recall (macro): 0.8235
+Overall F1-score (macro): 0.8748
+
+Class: 0 — Correct: 80 / 80
+Class: 1 — Correct: 11 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.9278 (90/97)
+Overall Precision (macro): 0.9230
+Overall Recall (macro): 0.8173
+Overall F1-score (macro): 0.8581
+
+Class: 0 — Correct: 79 / 80
+Class: 1 — Correct: 11 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.9381 (91/97)
+Overall Precision (macro): 0.9651
+Overall Recall (macro): 0.8235
+Overall F1-score (macro): 0.8748
+
+Class: 0 — Correct: 80 / 80
+Class: 1 — Correct: 11 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.9278 (90/97)
+Overall Precision (macro): 0.9230
+Overall Recall (macro): 0.8173
+Overall F1-score (macro): 0.8581
+
+Class: 0 — Correct: 79 / 80
+Class: 1 — Correct: 11 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.9381 (91/97)
+Overall Precision (macro): 0.9651
+Overall Recall (macro): 0.8235
+Overall F1-score (macro): 0.8748
+
+Class: 0 — Correct: 80 / 80
+Class: 1 — Correct: 11 / 17
