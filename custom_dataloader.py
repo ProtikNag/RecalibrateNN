@@ -24,7 +24,7 @@ class MultiClassImageDataset(Dataset):
         return image, label
 
 
-# ConceptDataset (unchanged)
+# ConceptDataset
 class ConceptDataset(Dataset):
     def __init__(self, folder_path, transform=None):
         self.folder_path = folder_path
