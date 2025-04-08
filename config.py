@@ -25,5 +25,5 @@ MODEL = training_biased_model(
 )
 LAYER_NAME = "conv_block4"
 TARGET_CLASS_NAME = "zebra"
-LAMBDA_ALIGN = 0.75
+LAMBDA_ALIGN = 0.5
 LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
