@@ -78,7 +78,7 @@ def evaluate_model_on_validation_set(model, val_folders, class_names, batch_size
 
 def training_biased_model(
         model,
-        data_path="./data/binary_classification/",
+        data_path="./data/multi_class_classification/",
         epochs=10,
         batch_size=32,
         learning_rate=1e-3,
