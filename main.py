@@ -199,6 +199,8 @@ print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 stat = {
     "Lambda Classification": LAMBDA_CLS,
     "Lambda Alignment": LAMBDA_ALIGN,
+    "TCAV Before": original_tcav,
+    "TCAV After": retrained_tcav,
     "Accuracy Before": acc_before,
     "Accuracy After": acc_after,
     "Precision Before": precision_before,
