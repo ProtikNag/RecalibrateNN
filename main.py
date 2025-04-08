@@ -124,11 +124,18 @@ model.apply(set_dropout_eval)
 params_to_train = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, params_to_train), lr=LEARNING_RATE)
 
+# Recalibrate using only Zebra images
+zebra_datapath = {
+    os.path.join(CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_NAME, 'train'): 1
+}
+zebra_dataset = MultiClassImageDataset(zebra_datapath, transform=transform)
+zebra_loader = DataLoader(zebra_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
 # Training loop
 loss_history = []
 for epoch in range(EPOCHS):
     total_loss = 0.0
-    for imgs, labels in dataset_loader:
+    for imgs, labels in zebra_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         optimizer.zero_grad()
         outputs = model(imgs)
@@ -146,7 +153,7 @@ for epoch in range(EPOCHS):
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=7)
         optimizer.step()
 
-    avg_loss = total_loss / len(dataset_loader)
+    avg_loss = total_loss / len(zebra_loader)
     loss_history.append(avg_loss)
     print(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.7f}")
 
@@ -168,4 +175,6 @@ plt.xlabel('Epoch')
 plt.ylabel('Total Loss')
 plt.title('Loss Curve over Epochs')
 plt.grid(True)
-plt.show()
+loss_plot_path = os.path.join("results", "training_loss_after.pdf")
+plt.savefig(loss_plot_path)
+plt.close()
