@@ -141,7 +141,7 @@ def training_biased_model(
 
     # Final evaluation
     model.eval()
-    evaluate_model_on_validation_set(model, val_folders=val_folders, class_names=class_names,
-                                     batch_size=batch_size, device=device)
+    # evaluate_model_on_validation_set(model, val_folders=val_folders, class_names=class_names,
+    #                                  batch_size=batch_size, device=device)
 
     return model
