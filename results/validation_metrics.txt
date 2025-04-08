@@ -1,36 +1,36 @@
 
 === New Evaluation ===
-Overall Accuracy: 0.9175 (89/97)
-Overall Precision (macro): 0.9138
-Overall Recall (macro): 0.7879
-Overall F1-score (macro): 0.8330
-
-Class: 0 — Correct: 79 / 80
-Class: 1 — Correct: 10 / 17
-
-=== New Evaluation ===
-Overall Accuracy: 0.8969 (87/97)
-Overall Precision (macro): 0.8429
-Overall Recall (macro): 0.7754
-Overall F1-score (macro): 0.8028
-
-Class: 0 — Correct: 77 / 80
-Class: 1 — Correct: 10 / 17
-
-=== New Evaluation ===
 Overall Accuracy: 0.9278 (90/97)
-Overall Precision (macro): 0.9598
-Overall Recall (macro): 0.7941
-Overall F1-score (macro): 0.8494
+Overall Precision: 0.9598
+Overall Recall: 0.7941
+Overall F1-score: 0.8494
 
 Class: 0 — Correct: 80 / 80
 Class: 1 — Correct: 10 / 17
 
 === New Evaluation ===
 Overall Accuracy: 0.8969 (87/97)
-Overall Precision (macro): 0.8301
-Overall Recall (macro): 0.7985
-Overall F1-score (macro): 0.8129
+Overall Precision: 0.8301
+Overall Recall: 0.7985
+Overall F1-score: 0.8129
+
+Class: 0 — Correct: 76 / 80
+Class: 1 — Correct: 11 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.9278 (90/97)
+Overall Precision: 0.9598
+Overall Recall: 0.7941
+Overall F1-score: 0.8494
+
+Class: 0 — Correct: 80 / 80
+Class: 1 — Correct: 10 / 17
+
+=== New Evaluation ===
+Overall Accuracy: 0.8969 (87/97)
+Overall Precision: 0.8301
+Overall Recall: 0.7985
+Overall F1-score: 0.8129
 
 Class: 0 — Correct: 76 / 80
 Class: 1 — Correct: 11 / 17

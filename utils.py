@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import os
+from matplotlib import pyplot as plt
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -39,17 +39,6 @@ def cosine_similarity_loss(grad, cav_vector):
     cosine_similarity = torch.sum(grad_norm * cav_norm, dim=1)
     return torch.mean(1 - torch.abs(cosine_similarity))
 
-
-# def evaluate_accuracy(model, loader):
-#     model.eval()
-#     correct, total = 0, 0
-#     with torch.no_grad():
-#         for imgs, labels in loader:
-#             imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
-#             preds = model(imgs).argmax(dim=1)
-#             correct += (preds == labels).sum().item()
-#             total += labels.size(0)
-#     return 100.0 * correct / total if total > 0 else 0.0
 
 
 def evaluate_accuracy(model, loader):
@@ -97,9 +86,9 @@ def evaluate_accuracy(model, loader):
     with open(results_path, 'a') as f:
         f.write("\n=== New Evaluation ===\n")
         f.write(f"Overall Accuracy: {acc:.4f} ({sum(class_correct_counts.values())}/{len(all_labels)})\n")
-        f.write(f"Overall Precision (macro): {precision:.4f}\n")
-        f.write(f"Overall Recall (macro): {recall:.4f}\n")
-        f.write(f"Overall F1-score (macro): {f1:.4f}\n\n")
+        f.write(f"Overall Precision: {precision:.4f}\n")
+        f.write(f"Overall Recall: {recall:.4f}\n")
+        f.write(f"Overall F1-score: {f1:.4f}\n\n")
         for class_name in class_names:
             correct = class_correct_counts[class_name]
             total = class_total_counts[class_name]
@@ -107,3 +96,41 @@ def evaluate_accuracy(model, loader):
 
     print(f"Validation metrics and class counts appended to {results_path}")
     return 100.0 * acc
+
+
+def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs):
+    # plot total loss
+    plt.figure(figsize=(8, 6))
+    plt.plot(range(epochs), total_loss_history, marker='o', label='Total Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss Value')
+    plt.title('Total Loss over Epochs')
+    plt.grid(True)
+    plt.tight_layout()
+    total_loss_plot_path = os.path.join("results", "total_loss.pdf")
+    plt.savefig(total_loss_plot_path)
+    plt.close()
+
+    # plot classification loss
+    plt.figure(figsize=(8, 6))
+    plt.plot(range(epochs), cls_loss_history, marker='x', label='Classification Loss', color='orange')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss Value')
+    plt.title('Classification Loss over Epochs')
+    plt.grid(True)
+    plt.tight_layout()
+    cls_loss_plot_path = os.path.join("results", "classification_loss.pdf")
+    plt.savefig(cls_loss_plot_path)
+    plt.close()
+
+    # plot alignment loss
+    plt.figure(figsize=(8, 6))
+    plt.plot(range(epochs), align_loss_history, marker='s', label='Alignment Loss', color='green')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss Value')
+    plt.title('Alignment Loss over Epochs')
+    plt.grid(True)
+    plt.tight_layout()
+    align_loss_plot_path = os.path.join("results", "alignment_loss.pdf")
+    plt.savefig(align_loss_plot_path)
+    plt.close()

@@ -4,9 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from sklearn.utils import TargetTags
 from torch.utils.data import DataLoader
-from torchgen.utils import Target
 from torchvision import transforms
 
 from config import (
@@ -25,7 +23,7 @@ from config import (
     LAMBDA_CLS,
 )
 from custom_dataloader import ConceptDataset, MultiClassImageDataset
-from utils import get_class_folder_dicts, train_cav, cosine_similarity_loss, evaluate_accuracy
+from utils import get_class_folder_dicts, train_cav, cosine_similarity_loss, evaluate_accuracy, plot_loss_figure
 
 # Prepare data
 transform = transforms.Compose([
@@ -135,14 +133,23 @@ target_class_dataset = MultiClassImageDataset(target_class_datapath, transform=t
 target_class_loader = DataLoader(target_class_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Training loop
-loss_history = []
+total_loss_history = []
+cls_loss_history = []
+align_loss_history = []
+
 for epoch in range(EPOCHS):
-    total_loss = 0.0
+    total_loss_epoch = 0.0
+    cls_loss_epoch = 0.0
+    align_loss_epoch = 0.0
+
     for imgs, labels in target_class_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         optimizer.zero_grad()
         outputs = model(imgs)
+
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
+
+        # alignment loss via cosine similarity
         f_l = activation[LAYER_NAME]
         h_k = outputs[:, TARGET_IDX]
         grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
@@ -150,15 +157,27 @@ for epoch in range(EPOCHS):
         # S = torch.matmul(grad_flat, cav_vector)
         # alignment_loss = -S.mean()
         alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
-        total_loss += loss.item()
+
+        # accumulate loss
+        total_loss_epoch += loss.item()
+        cls_loss_epoch += classification_loss.item()
+        align_loss_epoch += alignment_loss.item()
+
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=7)
         optimizer.step()
 
-    avg_loss = total_loss / len(target_class_loader)
-    loss_history.append(avg_loss)
-    print(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.7f}")
+    n_batches = len(target_class_loader)
+    total_loss_history.append(total_loss_epoch / n_batches)
+    cls_loss_history.append(cls_loss_epoch / n_batches)
+    align_loss_history.append(align_loss_epoch / n_batches)
+
+    print(f"Epoch {epoch + 1}/{EPOCHS}, "
+          f"Total Loss: {total_loss_history[-1]:.7f}, "
+          f"Cls Loss: {cls_loss_history[-1]:.7f}, "
+          f"Align Loss: {align_loss_history[-1]:.7f}")
 
 # Save model
 os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
@@ -171,13 +190,4 @@ print(f"Accuracy after recalibration: {acc_after:.2f}%")
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 
-# Plot loss
-plt.figure(figsize=(8, 6))
-plt.plot(range(EPOCHS), loss_history, marker='o')
-plt.xlabel('Epoch')
-plt.ylabel('Total Loss')
-plt.title('Loss Curve over Epochs')
-plt.grid(True)
-loss_plot_path = os.path.join("results", "training_loss_after.pdf")
-plt.savefig(loss_plot_path)
-plt.close()
+plot_loss_figure(total_loss_history, cls_loss_history, align_loss_history, EPOCHS)
