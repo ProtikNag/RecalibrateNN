@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
@@ -23,7 +22,14 @@ from config import (
     LAMBDA_CLS,
 )
 from custom_dataloader import ConceptDataset, MultiClassImageDataset
-from utils import get_class_folder_dicts, train_cav, cosine_similarity_loss, evaluate_accuracy, plot_loss_figure
+from utils import (
+    get_class_folder_dicts,
+    train_cav,
+    cosine_similarity_loss,
+    evaluate_accuracy,
+    plot_loss_figure,
+    save_statistics
+)
 
 # Prepare data
 transform = transforms.Compose([
@@ -101,7 +107,7 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
 
 original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Original TCAV Score (Zebra): {original_tcav:.4f}")
-acc_before = evaluate_accuracy(model, validation_loader)
+acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy before recalibration: {acc_before:.2f}%")
 
 
@@ -184,10 +190,25 @@ os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
 torch.save(model.state_dict(), RESULTS_PATH)
 print(f"Model saved at {RESULTS_PATH}")
 
-acc_after = evaluate_accuracy(model, validation_loader)
+acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy after recalibration: {acc_after:.2f}%")
 
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 
+stat = {
+    "Lambda Classification": LAMBDA_CLS,
+    "Lambda Alignment": LAMBDA_ALIGN,
+    "Accuracy Before": acc_before,
+    "Accuracy After": acc_after,
+    "Precision Before": precision_before,
+    "Precision After": precision_after,
+    "Recall Before": recall_before,
+    "Recall After": recall_after,
+    "F1 Before": f1_before,
+    "F1 After": f1_after,
+}
+
 plot_loss_figure(total_loss_history, cls_loss_history, align_loss_history, EPOCHS)
+save_statistics(stat)
+
