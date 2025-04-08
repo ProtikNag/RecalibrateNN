@@ -4,7 +4,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from sklearn.utils import TargetTags
 from torch.utils.data import DataLoader
+from torchgen.utils import Target
 from torchvision import transforms
 
 from config import (
@@ -33,7 +35,7 @@ transform = transforms.Compose([
 
 train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
 NUM_CLASSES = len(class_names)
-ZEBRA_IDX = class_names.index(TARGET_CLASS_NAME)
+TARGET_IDX = class_names.index(TARGET_CLASS_NAME)
 
 train_dataset = MultiClassImageDataset(train_folders, transform=transform)
 val_dataset = MultiClassImageDataset(valid_folders, transform=transform)
@@ -99,7 +101,7 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
     return scores.float().mean().item()
 
 
-original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, ZEBRA_IDX)
+original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Original TCAV Score (Zebra): {original_tcav:.4f}")
 acc_before = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy before recalibration: {acc_before:.2f}%")
@@ -125,23 +127,24 @@ params_to_train = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, params_to_train), lr=LEARNING_RATE)
 
 # Recalibrate using only Zebra images
-zebra_datapath = {
-    os.path.join(CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_NAME, 'train'): 1
+label = [train_folders[path] for path in train_folders.keys() if TARGET_CLASS_NAME in path][0] # target images label while original training
+target_class_datapath = {
+    os.path.join(CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_NAME, 'train'): label
 }
-zebra_dataset = MultiClassImageDataset(zebra_datapath, transform=transform)
-zebra_loader = DataLoader(zebra_dataset, batch_size=BATCH_SIZE, shuffle=True)
+target_class_dataset = MultiClassImageDataset(target_class_datapath, transform=transform)
+target_class_loader = DataLoader(target_class_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Training loop
 loss_history = []
 for epoch in range(EPOCHS):
     total_loss = 0.0
-    for imgs, labels in zebra_loader:
+    for imgs, labels in target_class_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         optimizer.zero_grad()
         outputs = model(imgs)
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
         f_l = activation[LAYER_NAME]
-        h_k = outputs[:, ZEBRA_IDX]
+        h_k = outputs[:, TARGET_IDX]
         grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
         grad_flat = grad.view(grad.size(0), -1)
         # S = torch.matmul(grad_flat, cav_vector)
@@ -153,7 +156,7 @@ for epoch in range(EPOCHS):
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=7)
         optimizer.step()
 
-    avg_loss = total_loss / len(zebra_loader)
+    avg_loss = total_loss / len(target_class_loader)
     loss_history.append(avg_loss)
     print(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.7f}")
 
@@ -165,7 +168,7 @@ print(f"Model saved at {RESULTS_PATH}")
 acc_after = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy after recalibration: {acc_after:.2f}%")
 
-retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, ZEBRA_IDX)
+retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 
 # Plot loss
