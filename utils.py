@@ -4,6 +4,7 @@ import torch
 from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from matplotlib import pyplot as plt
+import csv
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -82,20 +83,12 @@ def evaluate_accuracy(model, loader):
             class_correct_counts[class_name] += 1
 
     # Append to results file
-    results_path = os.path.join("results", "validation_metrics.txt")
-    with open(results_path, 'a') as f:
-        f.write("\n=== New Evaluation ===\n")
-        f.write(f"Overall Accuracy: {acc:.4f} ({sum(class_correct_counts.values())}/{len(all_labels)})\n")
-        f.write(f"Overall Precision: {precision:.4f}\n")
-        f.write(f"Overall Recall: {recall:.4f}\n")
-        f.write(f"Overall F1-score: {f1:.4f}\n\n")
-        for class_name in class_names:
-            correct = class_correct_counts[class_name]
-            total = class_total_counts[class_name]
-            f.write(f"Class: {class_name} — Correct: {correct} / {total}\n")
+    for class_name in class_names:
+        correct = class_correct_counts[class_name]
+        total = class_total_counts[class_name]
+        print(f"Class: {class_name} — Correct: {correct} / {total}\n")
 
-    print(f"Validation metrics and class counts appended to {results_path}")
-    return 100.0 * acc
+    return acc, precision, recall, f1
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs):
@@ -134,3 +127,17 @@ def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, e
     align_loss_plot_path = os.path.join("results", "alignment_loss.pdf")
     plt.savefig(align_loss_plot_path)
     plt.close()
+
+
+def save_statistics(stat, filename="results/statistics.csv"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    file_exists = os.path.isfile(filename)
+
+    with open(filename, mode='a', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=stat.keys())
+
+        # Write header only if file doesn't exist
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(stat)
