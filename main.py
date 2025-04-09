@@ -130,14 +130,7 @@ model.apply(set_dropout_eval)
 params_to_train = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, params_to_train), lr=LEARNING_RATE)
 
-# Recalibrate using only Zebra images
-label = [train_folders[path] for path in train_folders.keys() if TARGET_CLASS_NAME in path][0] # target images label while original training
-target_class_datapath = {
-    os.path.join(CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_NAME, 'train'): label
-}
-target_class_dataset = MultiClassImageDataset(target_class_datapath, transform=transform)
-target_class_loader = DataLoader(target_class_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
+# Recalibrate using both zebra and tiger images - but with tiger images won't calculate alignment loss
 # Training loop
 total_loss_history = []
 cls_loss_history = []
@@ -148,7 +141,7 @@ for epoch in range(EPOCHS):
     cls_loss_epoch = 0.0
     align_loss_epoch = 0.0
 
-    for imgs, labels in target_class_loader:
+    for imgs, labels in dataset_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         optimizer.zero_grad()
         outputs = model(imgs)
@@ -162,7 +155,13 @@ for epoch in range(EPOCHS):
         grad_flat = grad.view(grad.size(0), -1)
         # S = torch.matmul(grad_flat, cav_vector)
         # alignment_loss = -S.mean()
-        alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+        # Mask for selecting only target class samples
+        target_mask = (labels == TARGET_IDX)
+        if target_mask.sum() > 0:
+            target_grads = grad_flat[target_mask]
+            alignment_loss = cosine_similarity_loss(target_grads, cav_vector)
+        else:
+            alignment_loss = torch.tensor(0.0, device=DEVICE)
 
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
 
@@ -175,7 +174,7 @@ for epoch in range(EPOCHS):
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=7)
         optimizer.step()
 
-    n_batches = len(target_class_loader)
+    n_batches = len(dataset_loader)
     total_loss_history.append(total_loss_epoch / n_batches)
     cls_loss_history.append(cls_loss_epoch / n_batches)
     align_loss_history.append(align_loss_epoch / n_batches)
