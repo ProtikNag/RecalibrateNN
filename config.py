@@ -14,7 +14,7 @@ RANDOM_FOLDER = "./data/concept/random"
 CLASSIFICATION_DATA_BASE_PATH = "./data/multi_class_classification/"
 RESULTS_PATH = "./results/retrained_model.pth"
 
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-2
 EPOCHS = 15
 BATCH_SIZE = 64
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
