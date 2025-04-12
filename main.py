@@ -157,12 +157,16 @@ for epoch in range(EPOCHS):
 
         # alignment loss via cosine similarity
         f_l = activation[LAYER_NAME]
-        h_k = outputs[:, TARGET_IDX]
-        grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
-        grad_flat = grad.view(grad.size(0), -1)
-        # S = torch.matmul(grad_flat, cav_vector)
-        # alignment_loss = -S.mean()
-        alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+        # h_k = outputs[:, TARGET_IDX]
+        # grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
+        # grad_flat = grad.view(grad.size(0), -1)
+        # # S = torch.matmul(grad_flat, cav_vector)
+        # # alignment_loss = -S.mean()
+        # alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+
+        activation_flat = f_l.view(f_l.size(0), -1)
+        activation_norm = activation_flat / activation_flat.norm(dim=1, keepdim=True)
+        alignment_loss = torch.mean(1 - torch.abs(torch.sum(activation_norm * cav_vector, dim=1)))
 
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
 
@@ -180,15 +184,15 @@ for epoch in range(EPOCHS):
     cls_loss_history.append(cls_loss_epoch / n_batches)
     align_loss_history.append(align_loss_epoch / n_batches)
 
-    print(f"Epoch {epoch + 1}/{EPOCHS}, "
-          f"Total Loss: {total_loss_history[-1]:.7f}, "
-          f"Cls Loss: {cls_loss_history[-1]:.7f}, "
-          f"Align Loss: {align_loss_history[-1]:.7f}")
-
 # Save model
 os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
 torch.save(model.state_dict(), RESULTS_PATH)
 print(f"Model saved at {RESULTS_PATH}")
+
+# print all the losses
+for i in range(EPOCHS):
+    print(f"Epoch {i}: Training Loss: {total_loss_history[i]:.3f} \
+    Classification Loss: {cls_loss_history[i]:.4f} Alignment Loss: {align_loss_history[i]:.4f}")
 
 acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model, validation_loader)
 print(f"Accuracy after recalibration: {acc_after:.2f}%")
@@ -211,6 +215,6 @@ stat = {
     "F1 After": f1_after,
 }
 
-plot_loss_figure(total_loss_history, cls_loss_history, align_loss_history, EPOCHS)
+plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, EPOCHS)
 save_statistics(stat)
 
