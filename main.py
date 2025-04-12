@@ -150,16 +150,21 @@ for epoch in range(EPOCHS):
 
         # alignment loss via cosine similarity
         f_l = activation[LAYER_NAME]
-        h_k = outputs[:, TARGET_IDX]
-        grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
-        grad_flat = grad.view(grad.size(0), -1)
+        activation_flat = f_l.view(f_l.size(0), -1)
+        # h_k = outputs[:, TARGET_IDX]
+        # grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
+        # grad_flat = grad.view(grad.size(0), -1)
         # S = torch.matmul(grad_flat, cav_vector)
         # alignment_loss = -S.mean()
         # Mask for selecting only target class samples
         target_mask = (labels == TARGET_IDX)
         if target_mask.sum() > 0:
-            target_grads = grad_flat[target_mask]
-            alignment_loss = cosine_similarity_loss(target_grads, cav_vector)
+            # target_grads = grad_flat[target_mask]
+            # alignment_loss = cosine_similarity_loss(target_grads, cav_vector)
+            target_activations = activation_flat[target_mask]
+            activation_norm = target_activations / target_activations.norm(dim=1, keepdim=True)
+            cav_norm = cav_vector / cav_vector.norm()
+            alignment_loss = torch.mean(1 - torch.abs(torch.sum(activation_norm * cav_norm, dim=1)))
         else:
             alignment_loss = torch.tensor(0.0, device=DEVICE)
 
@@ -179,11 +184,6 @@ for epoch in range(EPOCHS):
     cls_loss_history.append(cls_loss_epoch / n_batches)
     align_loss_history.append(align_loss_epoch / n_batches)
 
-    print(f"Epoch {epoch + 1}/{EPOCHS}, "
-          f"Total Loss: {total_loss_history[-1]:.7f}, "
-          f"Cls Loss: {cls_loss_history[-1]:.7f}, "
-          f"Align Loss: {align_loss_history[-1]:.7f}")
-
 # Save model
 os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
 torch.save(model.state_dict(), RESULTS_PATH)
@@ -194,6 +194,11 @@ print(f"Accuracy after recalibration: {acc_after:.2f}%")
 
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, validation_loader, TARGET_IDX)
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
+
+# print the losses
+for i in range(EPOCHS):
+    print(f"Epoch {i} ", f"Total Loss: {total_loss_history[i]:.7f}, ", \
+          f"Cls Loss: {cls_loss_history[i]:.7f}, ", f"Align Loss: {align_loss_history[i]:.7f}")
 
 stat = {
     "Lambda Classification": LAMBDA_CLS,
