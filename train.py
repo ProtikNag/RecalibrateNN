@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 def training_biased_model(
         model,
         data_path="./data/multi_class_classification/",
-        epochs=10,
+        epochs=15,
         batch_size=32,
         learning_rate=1e-3,
         device='cuda' if torch.cuda.is_available() else 'cpu'
