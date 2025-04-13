@@ -28,7 +28,7 @@ def get_class_folder_dicts(base_dir):
 def train_cav(concept_activations, random_activations):
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
-    clf = LinearSVC().fit(X, y)
+    clf = LinearSVC(max_iter=2000).fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
     return cav_vector
