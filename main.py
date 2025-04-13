@@ -134,12 +134,16 @@ for epoch in range(EPOCHS):
         outputs = model(imgs)
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
         f_l = activation[LAYER_NAME]
-        h_k = outputs[:, ZEBRA_IDX]
-        grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
-        grad_flat = grad.view(grad.size(0), -1)
+        # h_k = outputs[:, ZEBRA_IDX]
+        # grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
+        # grad_flat = grad.view(grad.size(0), -1)
         # S = torch.matmul(grad_flat, cav_vector)
         # alignment_loss = -S.mean()
-        alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+        # alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
+
+        activation_flat = f_l.view(f_l.size(0), -1)
+        activation_norm = activation_flat / activation_flat.norm(dim=1, keepdim=True)
+        alignment_loss = torch.mean(1 - torch.abs(torch.sum(activation_norm * cav_vector, dim=1)))
         loss = LAMBDA_ALIGN * alignment_loss + LAMBDA_CLS * classification_loss
         total_loss += loss.item()
         loss.backward()
