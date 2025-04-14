@@ -121,11 +121,11 @@ for epoch in range(EPOCHS):
 
         def alignment(acts, cav):
             acts_norm = acts / acts.norm(dim=1, keepdim=True)
-            return torch.mean(1 - torch.abs(torch.sum(acts_norm * cav, dim=1)))
+            return -torch.mean(torch.sum(acts_norm * cav, dim=1))
 
         align_loss_1 = alignment(f_l[mask_1], cav_1) if mask_1.any() else torch.tensor(0.0, device=DEVICE)
         align_loss_2 = alignment(f_l[mask_2], cav_2) if mask_2.any() else torch.tensor(0.0, device=DEVICE)
-        align_loss = align_loss_1 + align_loss_2
+        align_loss = 0.0 * align_loss_1 + align_loss_2
 
         loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
 
@@ -177,5 +177,5 @@ stats = {
     "F1 After": f1_after,
 }
 
-plot_loss_figure(loss_history["total"], loss_history["cls"], loss_history["align"], EPOCHS)
+plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS)
 save_statistics(stats)

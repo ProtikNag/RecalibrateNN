@@ -14,6 +14,7 @@ def get_class_folder_dicts(base_dir):
     classes = sorted([d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))])
     train_class_folders = {}
     valid_class_folders = {}
+
     for idx, class_name in enumerate(classes):
         class_path = os.path.join(base_dir, class_name)
         train_folder = os.path.join(class_path, 'train')
@@ -22,7 +23,19 @@ def get_class_folder_dicts(base_dir):
             train_class_folders[train_folder] = idx
         if os.path.exists(valid_folder):
             valid_class_folders[valid_folder] = idx
+
     return train_class_folders, valid_class_folders, classes
+
+
+def get_orthogonal_vector(cav_vector):
+    cav_vector = cav_vector / np.linalg.norm(cav_vector)
+    random_vector = np.random.randn(*cav_vector.shape)
+    projection = np.dot(random_vector, cav_vector) * cav_vector
+    orthogonal_vector = random_vector - projection
+    orthogonal_vector /= np.linalg.norm(orthogonal_vector)
+    # dot_product = np.dot(orthogonal_vector, cav_vector)
+
+    return orthogonal_vector
 
 
 def train_cav(concept_activations, random_activations):
@@ -31,15 +44,9 @@ def train_cav(concept_activations, random_activations):
     clf = LinearSVC(max_iter=2000).fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
+    # cav_vector = get_orthogonal_vector(cav_vector)
+
     return cav_vector
-
-
-def cosine_similarity_loss(grad, cav_vector):
-    grad_norm = grad / grad.norm(dim=1, keepdim=True)
-    cav_norm = cav_vector / cav_vector.norm()  # Ensure CAV is unit norm
-    cosine_similarity = torch.sum(grad_norm * cav_norm, dim=1)
-    return torch.mean(1 - torch.abs(cosine_similarity))
-
 
 
 def evaluate_accuracy(model, loader):
@@ -72,7 +79,8 @@ def evaluate_accuracy(model, loader):
     f1 = f1_score(all_labels, all_preds, average='macro', zero_division=0)
 
     # Class-wise stats
-    class_names = loader.dataset.class_names if hasattr(loader.dataset, "class_names") else [str(i) for i in sorted(set(all_labels))]
+    class_names = loader.dataset.class_names if hasattr(loader.dataset, "class_names") else [str(i) for i in
+                                                                                             sorted(set(all_labels))]
     class_correct_counts = {name: 0 for name in class_names}
     class_total_counts = {name: 0 for name in class_names}
 
