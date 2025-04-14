@@ -27,5 +27,5 @@ MODEL = training_biased_model(
 LAYER_NAME = "conv_block4"
 TARGET_CLASS_1 = "tiger"
 TARGET_CLASS_2 = "zebra"
-LAMBDA_ALIGN = 0.75
+LAMBDA_ALIGN = 0.2
 LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
