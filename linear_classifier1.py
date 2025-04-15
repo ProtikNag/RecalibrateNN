@@ -8,11 +8,13 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-
-# Configuration
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-LAYER_NAME = "inception4a"
-BATCH_SIZE = 64
+from config import (LAYER_NAME, 
+                    BATCH_SIZE, 
+                    DEVICE, 
+                    MODEL,
+                    CONCEPT_FOLDER, 
+                    RANDOM_FOLDER,
+                    CONCEPT_FOLDER_FAKE)
 
 # Dataset Class
 class ConceptDataset(Dataset):
@@ -32,7 +34,7 @@ class ConceptDataset(Dataset):
         return image
 
 # Model Preparation
-model = models.googlenet(weights=models.GoogLeNet_Weights.IMAGENET1K_V1).to(DEVICE)
+model = MODEL
 model.eval()
 
 # Activation hook
@@ -51,9 +53,9 @@ transform = transforms.Compose([
 ])
 
 # Load Datasets
-stripes_fake_dataset = ConceptDataset("./data/concept/stripes_fake", transform=transform)
-stripes_dataset = ConceptDataset("./data/concept/striped", transform=transform)
-random_dataset = ConceptDataset("./data/concept/random", transform=transform)
+stripes_fake_dataset = ConceptDataset(CONCEPT_FOLDER_FAKE, transform=transform)
+stripes_dataset = ConceptDataset(CONCEPT_FOLDER, transform=transform)
+random_dataset = ConceptDataset(RANDOM_FOLDER, transform=transform)
 
 # Dataloaders
 stripes_fake_loader = DataLoader(stripes_fake_dataset, batch_size=BATCH_SIZE, shuffle=True)

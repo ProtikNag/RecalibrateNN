@@ -8,7 +8,7 @@ SEED = 0
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
-
+IMAGE_SIZE = 224
 LEARNING_RATE = 1e-3
 EPOCHS = 10
 BATCH_SIZE = 64
@@ -17,7 +17,8 @@ NUM_CLASSES = 2
 MODEL = models.googlenet(weights=models.GoogLeNet_Weights.IMAGENET1K_V1).to(DEVICE)
 MODEL.fc = nn.Linear(MODEL.fc.in_features, NUM_CLASSES).to(DEVICE)
 LAYER_NAME = "inception4a"
-CONCEPT_FOLDER = "./data/concept/stripes_fake"
+CONCEPT_FOLDER = "./data/concept/striped"
+CONCEPT_FOLDER_FAKE = "./data/concept/stripes_fake"
 RANDOM_FOLDER = "./data/concept/random"
 BINARY_CLASSIFICATION_BASE = "./data/binary_classification/"
 RESULTS_PATH = "./results/retrained_model.pth"

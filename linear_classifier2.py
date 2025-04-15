@@ -8,9 +8,14 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# Configuration
-IMAGE_SIZE = 224
-BATCH_SIZE = 64
+from config import (LAYER_NAME,
+                    IMAGE_SIZE, 
+                    BATCH_SIZE, 
+                    DEVICE, 
+                    MODEL,
+                    CONCEPT_FOLDER, 
+                    RANDOM_FOLDER,
+                    CONCEPT_FOLDER_FAKE)
 
 # Custom Dataset Class
 class ImageDataset(Dataset):
@@ -37,9 +42,9 @@ transform = transforms.Compose([
 ])
 
 # Load Datasets
-stripes_fake_dataset = ImageDataset("./data/concept/stripes_fake", label=1, transform=transform)
-stripes_dataset = ImageDataset("./data/concept/striped", label=1, transform=transform)
-random_dataset = ImageDataset("./data/concept/random", label=0, transform=transform)
+stripes_fake_dataset = ImageDataset(CONCEPT_FOLDER_FAKE, label=1, transform=transform)
+stripes_dataset = ImageDataset(CONCEPT_FOLDER, label=1, transform=transform)
+random_dataset = ImageDataset(RANDOM_FOLDER, label=0, transform=transform)
 
 # Combine Datasets
 def prepare_data(stripes_dataset, random_dataset):
