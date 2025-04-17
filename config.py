@@ -2,7 +2,8 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision import models
+#from torchvision import models
+from torchvision import transforms
 
 SEED = 0
 random.seed(SEED)
@@ -10,18 +11,25 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 IMAGE_SIZE = 224
 LEARNING_RATE = 1e-3
-EPOCHS = 10
-BATCH_SIZE = 64
+EPOCHS = 2 
+BATCH_SIZE = 32
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-NUM_CLASSES = 2
-MODEL = models.googlenet(weights=models.GoogLeNet_Weights.IMAGENET1K_V1).to(DEVICE)
+NUM_CLASSES = 3
+MODEL_PATH = "/home/srikanth/trained_models/pytorch/googlenet/googlenet_model.pth"
+# Load the model
+MODEL = torch.load(MODEL_PATH).to(DEVICE)
 MODEL.fc = nn.Linear(MODEL.fc.in_features, NUM_CLASSES).to(DEVICE)
 LAYER_NAME = "inception4a"
-CONCEPT_FOLDER = "./data/concept/striped"
-CONCEPT_FOLDER_FAKE = "./data/concept/stripes_fake"
-RANDOM_FOLDER = "./data/concept/random"
-BINARY_CLASSIFICATION_BASE = "./data/binary_classification/"
-RESULTS_PATH = "./results/retrained_model.pth"
-ZEBRA_CLASS_NAME = "zebra"
+TRANSFORMS = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)), transforms.ToTensor(),])
+CONCEPT_FOLDER = "/home/srikanth/data_folder/dataset/data/concept/stripes_fake"
+CONCEPT_FOLDER_FAKE = "/home/srikanth/data_folder/dataset/data/concept/stripes_fake"
+RANDOM_FOLDER = "/home/srikanth/data_folder/dataset/data/concept/random"
+BINARY_CLASSIFICATION_BASE = "/home/srikanth/data_folder/dataset/data/binary_classification/"
+RESULTS_PATH = "./results/"
+TARGET_CLASS_NAME = "zebra"
+# These are tunable parameters 
+#Lower the better 
 LAMBDA_ALIGN = 0.75
 LAMBDA_CLS = 1.0 - LAMBDA_ALIGN
+
+RESULTS_FILE_NAME = f"retrained_L{LAMBDA_ALIGN}_{TARGET_CLASS_NAME}_Layer{LAYER_NAME}.pth"

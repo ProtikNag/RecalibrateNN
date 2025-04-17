@@ -1,5 +1,4 @@
 import os
-import logging
 import numpy as np
 import torch
 import torch.nn as nn
@@ -18,24 +17,17 @@ from config import (
     CONCEPT_FOLDER,
     RANDOM_FOLDER,
     BINARY_CLASSIFICATION_BASE,
-    RESULTS_PATH,
-    ZEBRA_CLASS_NAME,
+    TARGET_CLASS_NAME,
     LAMBDA_ALIGN,
-    LAMBDA_CLS
+    LAMBDA_CLS,
+    RESULTS_PATH,
+    RESULTS_FILE_NAME
+    
 )
 from custom_dataloader import ConceptDataset, MultiClassImageDataset
 from utils import get_class_folder_dicts, train_cav, cosine_similarity_loss, evaluate_accuracy
 
-# Configure logging
-logging.basicConfig(
-    filename='audit_log.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logging.info("Program started.")
-
 # Prepare data
-logging.info("Preparing datasets and data loaders.")
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -43,7 +35,7 @@ transform = transforms.Compose([
 
 train_folders, valid_folders, class_names = get_class_folder_dicts(BINARY_CLASSIFICATION_BASE)
 NUM_CLASSES = len(class_names)
-ZEBRA_IDX = class_names.index(ZEBRA_CLASS_NAME)
+ZEBRA_IDX = class_names.index(TARGET_CLASS_NAME)
 
 train_dataset = MultiClassImageDataset(train_folders, transform=transform)
 val_dataset = MultiClassImageDataset(valid_folders, transform=transform)
@@ -56,7 +48,6 @@ concept_loader = DataLoader(concept_dataset, batch_size=BATCH_SIZE, shuffle=True
 random_loader = DataLoader(random_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load model
-logging.info("Loading model.")
 model = MODEL
 model.train()
 
@@ -74,7 +65,6 @@ def get_activation(name):
 model.get_submodule(LAYER_NAME).register_forward_hook(get_activation(LAYER_NAME))
 
 # Compute CAV
-logging.info("Computing CAV vector.")
 concept_activations, random_activations = [], []
 model.eval()
 with torch.no_grad():
@@ -92,8 +82,6 @@ concept_activations = np.vstack(concept_activations)
 random_activations = np.vstack(random_activations)
 cav_vector = train_cav(concept_activations, random_activations)
 cav_vector = torch.tensor(cav_vector, dtype=torch.float32, device=DEVICE)
-
-logging.info("CAV vector computed successfully.")
 
 
 def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
@@ -114,11 +102,8 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
 
 
 original_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, ZEBRA_IDX)
-logging.info(f"Original TCAV Score (Zebra): {original_tcav:.4f}")
 print(f"Original TCAV Score (Zebra): {original_tcav:.4f}")
-
 acc_before = evaluate_accuracy(model, validation_loader)
-logging.info(f"Accuracy before recalibration: {acc_before:.2f}%")
 print(f"Accuracy before recalibration: {acc_before:.2f}%")
 
 
@@ -142,7 +127,6 @@ params_to_train = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, params_to_train), lr=LEARNING_RATE)
 
 # Training loop
-logging.info("Starting training loop.")
 loss_history = []
 for epoch in range(EPOCHS):
     total_loss = 0.0
@@ -152,6 +136,12 @@ for epoch in range(EPOCHS):
         outputs = model(imgs)
         classification_loss = nn.CrossEntropyLoss()(outputs, labels)
         f_l = activation[LAYER_NAME]
+        # h_k = outputs[:, ZEBRA_IDX]
+        # grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0]
+        # grad_flat = grad.view(grad.size(0), -1)
+        # S = torch.matmul(grad_flat, cav_vector)
+        # alignment_loss = -S.mean()
+        # alignment_loss = cosine_similarity_loss(grad_flat, cav_vector)
 
         activation_flat = f_l.view(f_l.size(0), -1)
         activation_norm = activation_flat / activation_flat.norm(dim=1, keepdim=True)
@@ -164,21 +154,17 @@ for epoch in range(EPOCHS):
 
     avg_loss = total_loss / len(dataset_loader)
     loss_history.append(avg_loss)
-    logging.info(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.7f}")
     print(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.7f}")
 
 # Save model
 os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
-torch.save(model.state_dict(), RESULTS_PATH)
-logging.info(f"Model saved at {RESULTS_PATH}")
+torch.save(model.state_dict(), f"{RESULTS_PATH}/{RESULTS_FILE_NAME}")
 print(f"Model saved at {RESULTS_PATH}")
 
 acc_after = evaluate_accuracy(model, validation_loader)
-logging.info(f"Accuracy after recalibration: {acc_after:.2f}%")
 print(f"Accuracy after recalibration: {acc_after:.2f}%")
 
 retrained_tcav = compute_tcav_score(model, LAYER_NAME, cav_vector, dataset_loader, ZEBRA_IDX)
-logging.info(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 print(f"Retrained TCAV Score (Zebra): {retrained_tcav:.4f}")
 
 # Plot loss
@@ -189,5 +175,3 @@ plt.ylabel('Total Loss')
 plt.title('Loss Curve over Epochs')
 plt.grid(True)
 plt.show()
-
-logging.info("Program finished.")
