@@ -1,0 +1,137 @@
+2025-04-17 16:39:49,487 - INFO - Program started.
+2025-04-17 16:41:22,157 - INFO - Program started.
+2025-04-17 16:43:32,387 - INFO - Program started.
+2025-04-17 16:45:28,511 - INFO - Program started.
+2025-04-17 16:46:39,109 - INFO - Program started.
+2025-04-17 16:46:39,109 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 16:46:39,112 - INFO - Loaded  datasets and data loaders.
+2025-04-17 16:46:39,112 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 16:46:39,112 - INFO - Loading pre-trained model.
+2025-04-17 16:46:39,137 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 16:46:39,137 - INFO - Computing CAV vector.
+2025-04-17 16:48:57,116 - INFO - Program started.
+2025-04-17 16:48:57,116 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 16:48:57,119 - INFO - Loaded  datasets and data loaders.
+2025-04-17 16:48:57,119 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 16:48:57,119 - INFO - Loading pre-trained model.
+2025-04-17 16:48:57,145 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 16:48:57,145 - INFO - Computing CAV vector.
+2025-04-17 16:49:03,078 - INFO - CAV vector computed successfully.
+2025-04-17 16:51:18,951 - INFO - Program started.
+2025-04-17 16:51:18,951 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 16:51:18,955 - INFO - Loaded  datasets and data loaders.
+2025-04-17 16:51:18,955 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 16:51:18,955 - INFO - Loading pre-trained model.
+2025-04-17 16:51:18,979 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 16:51:18,980 - INFO - Computing CAV vector.
+2025-04-17 16:51:24,652 - INFO - CAV vector computed successfully.
+2025-04-17 16:51:32,101 - INFO - Program started.
+2025-04-17 16:51:32,102 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 16:51:32,105 - INFO - Loaded  datasets and data loaders.
+2025-04-17 16:51:32,105 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 16:51:32,105 - INFO - Loading pre-trained model.
+2025-04-17 16:51:32,130 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 16:51:32,130 - INFO - Computing CAV vector.
+2025-04-17 16:51:37,865 - INFO - CAV vector computed successfully.
+2025-04-17 16:51:53,157 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 16:51:54,434 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 16:51:54,441 - INFO - Starting training loop.
+2025-04-17 16:52:09,853 - INFO - Epoch 1/10, Loss: 0.4207915
+2025-04-17 18:56:55,962 - INFO - Program started.
+2025-04-17 18:56:55,962 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 18:56:55,965 - INFO - Loaded  datasets and data loaders.
+2025-04-17 18:56:55,965 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 18:56:55,965 - INFO - Loading pre-trained model.
+2025-04-17 18:56:55,990 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 18:56:55,990 - INFO - Computing CAV vector.
+2025-04-17 18:57:01,823 - INFO - CAV vector computed successfully.
+2025-04-17 18:57:17,311 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 18:57:18,620 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 18:57:18,623 - INFO - Starting training loop.
+2025-04-17 18:57:34,147 - INFO - Epoch 1/10, Loss: 0.4207915
+2025-04-17 18:59:20,888 - INFO - Program started.
+2025-04-17 18:59:20,888 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 18:59:20,891 - INFO - Loaded  datasets and data loaders.
+2025-04-17 18:59:20,891 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 18:59:20,891 - INFO - Loading pre-trained model.
+2025-04-17 18:59:20,917 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 18:59:20,917 - INFO - Computing CAV vector.
+2025-04-17 18:59:26,683 - INFO - CAV vector computed successfully.
+2025-04-17 18:59:41,941 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 18:59:43,257 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 18:59:43,262 - INFO - Starting training loop.
+2025-04-17 18:59:58,862 - INFO - Epoch 1/10, Loss: 0.4207915
+2025-04-17 19:00:14,384 - INFO - Epoch 2/10, Loss: 0.2902289
+2025-04-17 19:00:30,015 - INFO - Epoch 3/10, Loss: 0.2721909
+2025-04-17 19:00:45,627 - INFO - Epoch 4/10, Loss: 0.2609060
+2025-04-17 19:01:01,077 - INFO - Epoch 5/10, Loss: 0.2527676
+2025-04-17 19:01:16,879 - INFO - Epoch 6/10, Loss: 0.2474172
+2025-04-17 19:01:32,374 - INFO - Epoch 7/10, Loss: 0.2433911
+2025-04-17 19:01:47,805 - INFO - Epoch 8/10, Loss: 0.2411034
+2025-04-17 19:02:03,379 - INFO - Epoch 9/10, Loss: 0.2384573
+2025-04-17 19:02:19,783 - INFO - Epoch 10/10, Loss: 0.2358940
+2025-04-17 19:02:19,948 - INFO - Program finished.
+2025-04-17 19:07:10,852 - INFO - Program started.
+2025-04-17 19:07:10,852 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 19:07:10,855 - INFO - Loaded  datasets and data loaders.
+2025-04-17 19:07:10,855 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 19:07:10,855 - INFO - Loading pre-trained model.
+2025-04-17 19:07:11,014 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 19:07:11,014 - INFO - Computing CAV vector.
+2025-04-17 19:07:17,016 - INFO - CAV vector computed successfully.
+2025-04-17 19:07:33,003 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 19:07:34,291 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 19:07:34,297 - INFO - Starting training loop.
+2025-04-17 19:07:50,022 - INFO - Epoch 1/10, Loss: 0.4207915
+2025-04-17 19:08:05,723 - INFO - Epoch 2/10, Loss: 0.2902289
+2025-04-17 19:08:21,306 - INFO - Epoch 3/10, Loss: 0.2721909
+2025-04-17 19:08:37,277 - INFO - Epoch 4/10, Loss: 0.2609060
+2025-04-17 19:08:52,895 - INFO - Epoch 5/10, Loss: 0.2527676
+2025-04-17 19:09:08,633 - INFO - Epoch 6/10, Loss: 0.2474172
+2025-04-17 19:09:24,346 - INFO - Epoch 7/10, Loss: 0.2433911
+2025-04-17 19:09:39,892 - INFO - Epoch 8/10, Loss: 0.2411034
+2025-04-17 19:09:55,366 - INFO - Epoch 9/10, Loss: 0.2384573
+2025-04-17 19:10:11,014 - INFO - Epoch 10/10, Loss: 0.2358940
+2025-04-17 19:10:11,105 - INFO - Program finished.
+2025-04-17 19:31:28,810 - INFO - Program started.
+2025-04-17 19:31:28,811 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 19:31:28,814 - INFO - Loaded  datasets and data loaders.
+2025-04-17 19:31:28,814 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 19:31:28,814 - INFO - Loading pre-trained model.
+2025-04-17 19:31:28,841 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 19:31:28,841 - INFO - Computing CAV vector.
+2025-04-17 19:31:34,638 - INFO - CAV vector computed successfully.
+2025-04-17 19:31:50,063 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 19:31:51,374 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 19:31:51,379 - INFO - Starting training loop.
+2025-04-17 19:32:06,837 - INFO - Epoch 1/2, Loss: 0.4207915
+2025-04-17 19:32:22,434 - INFO - Epoch 2/2, Loss: 0.2902289
+2025-04-17 19:32:22,520 - INFO - Program finished.
+2025-04-17 19:36:13,776 - INFO - Program started.
+2025-04-17 19:36:13,776 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 19:36:13,779 - INFO - Loaded  datasets and data loaders.
+2025-04-17 19:36:13,779 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 19:36:13,779 - INFO - Loading pre-trained model.
+2025-04-17 19:36:13,805 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 19:36:13,805 - INFO - Computing CAV vector.
+2025-04-17 19:36:19,538 - INFO - CAV vector computed successfully.
+2025-04-17 19:36:34,924 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 19:36:36,213 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 19:36:36,218 - INFO - Starting training loop.
+2025-04-17 19:36:51,867 - INFO - Epoch 1/2, Loss: 0.4207915
+2025-04-17 19:37:07,247 - INFO - Epoch 2/2, Loss: 0.2902289
+2025-04-17 19:37:07,361 - INFO - Program finished.
+2025-04-17 19:38:07,833 - INFO - Program started.
+2025-04-17 19:38:07,833 - INFO - Preparing datasets and data loaing datasets 
+2025-04-17 19:38:07,836 - INFO - Loaded  datasets and data loaders.
+2025-04-17 19:38:07,836 - INFO - Training dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/train': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/train': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/train': 2} and validation dataset folder {'/home/srikanth/data_folder/dataset/data/binary_classification/deer/valid': 0, '/home/srikanth/data_folder/dataset/data/binary_classification/horse/valid': 1, '/home/srikanth/data_folder/dataset/data/binary_classification/zebra/valid': 2}
+2025-04-17 19:38:07,836 - INFO - Loading pre-trained model.
+2025-04-17 19:38:07,861 - INFO - Model LoadedProceeding to start TCAV based recalibration.
+2025-04-17 19:38:07,861 - INFO - Computing CAV vector.
+2025-04-17 19:38:13,547 - INFO - CAV vector computed successfully.
+2025-04-17 19:38:29,023 - INFO - Original TCAV Score (Zebra): 0.6372
+2025-04-17 19:38:30,333 - INFO - Accuracy before recalibration: 40.83%
+2025-04-17 19:38:30,338 - INFO - Starting training loop.
+2025-04-17 19:38:46,055 - INFO - Epoch 1/2, Loss: 0.4207915
+2025-04-17 19:39:01,624 - INFO - Epoch 2/2, Loss: 0.2902289
+2025-04-17 19:39:01,712 - INFO - Program finished.
