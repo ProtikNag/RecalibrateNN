@@ -7,12 +7,15 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torchsummary import summary
 
 from config import (
     LEARNING_RATE,
     EPOCHS,
+    IMAGE_SIZE,
     BATCH_SIZE,
     MODEL_PATH,
+    MODEL_WEIGHTS,
     DEVICE,
     MODEL,
     LAYER_NAME,
@@ -34,6 +37,7 @@ import argparse
 # Configure logging
 logging.basicConfig(
     filename='audit_log.log',
+    filemode='w',  # Set filemode to 'w' to overwrite the file
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -71,43 +75,6 @@ def set_batchnorm_eval(module):
 def set_dropout_eval(module):
     if isinstance(module, nn.Dropout):
         module.eval()
-
-def argumentparser():
-    parser = argparse.ArgumentParser(description="TCAV-based model recalibration")
-
-    # Add arguments
-    parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for optimizer")
-    parser.add_argument("--epochs", type=int, default=EPOCHS, help="Number of training epochs")
-    parser.add_argument("--batch_size", type=int, default=BATCH_SIZE, help="Batch size for data loaders")
-    parser.add_argument("--device", type=str, default=DEVICE, help="Device to run the model on (e.g., 'cpu' or 'cuda')")
-    parser.add_argument("--layer_name", type=str, default=LAYER_NAME, help="Layer name for TCAV computation")
-    parser.add_argument("--concept_folder", type=str, default=CONCEPT_FOLDER, help="Path to concept images folder")
-    parser.add_argument("--random_folder", type=str, default=RANDOM_FOLDER, help="Path to random images folder")
-    parser.add_argument("--binary_classification_base", type=str, default=BINARY_CLASSIFICATION_BASE, help="Base path for binary classification dataset")
-    parser.add_argument("--results_path", type=str, default=RESULTS_PATH, help="Path to save the recalibrated model")
-    parser.add_argument("--target_class_name", type=str, default=TARGET_CLASS_NAME, help="Class name for Zebra")
-    parser.add_argument("--lambda_align", type=float, default=LAMBDA_ALIGN, help="Weight for alignment loss")
-    parser.add_argument("--lambda_cls", type=float, default=LAMBDA_CLS, help="Weight for classification loss")
-    args = parser.parse_args()
-    # Override config values with parsed arguments
-    LEARNING_RATE = args.learning_rate
-    EPOCHS = args.epochs
-    BATCH_SIZE = args.batch_size
-    DEVICE = args.device
-    LAYER_NAME = args.layer_name
-    CONCEPT_FOLDER = args.concept_folder
-    RANDOM_FOLDER = args.random_folder
-    BINARY_CLASSIFICATION_BASE = args.binary_classification_base
-    RESULTS_PATH = args.results_path
-    TARGET_CLASS_NAME = args.target_class_name
-    LAMBDA_ALIGN = args.lambda_align
-    LAMBDA_CLS = args.lambda_cls
-    # Log all parsed arguments
-    logging.info("Parsed arguments:")
-    for arg, value in vars(args).items():
-        logging.info(f"{arg}: {value}")
-    # Parse arguments
-    return 
 
 def loaddataset(train_folders, valid_folder, transform):
     train_dataset = MultiClassImageDataset(train_folders, transform=transform)
@@ -224,15 +191,55 @@ def recalibrate_network(model, dataset_loader, cav_vector, activation, layer_nam
     return model
 
 
-
 if(__name__ == "__main__"):
+    # For some reason i am unable to add the argument parser to a function hence leaving it as is for now in main 
     # Parse arguments
-    #argumentparser()
+    #parser = argumentparser()
+    parser = argparse.ArgumentParser(description="TCAV-based model recalibration")
+    # Add arguments
+    parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for optimizer")
+    parser.add_argument("--epochs", type=int, default=EPOCHS, help="Number of training epochs")
+    parser.add_argument("--batch_size", type=int, default=BATCH_SIZE, help="Batch size for data loaders")
+    parser.add_argument("--device", type=str, default=DEVICE, help="Device to run the model on (e.g., 'cpu' or 'cuda')")
+    parser.add_argument("--layer_name", type=str, default=LAYER_NAME, help="Layer name for TCAV computation")
+    parser.add_argument("--concept_folder", type=str, default=CONCEPT_FOLDER, help="Path to concept images folder")
+    parser.add_argument("--random_folder", type=str, default=RANDOM_FOLDER, help="Path to random images folder")
+    parser.add_argument("--binary_classification_base", type=str, default=BINARY_CLASSIFICATION_BASE, help="Base path for binary classification dataset")
+    parser.add_argument("--results_path", type=str, default=RESULTS_PATH, help="Path to save the recalibrated model")
+    parser.add_argument("--target_class_name", type=str, default=TARGET_CLASS_NAME, help="Class name for Zebra")
+    parser.add_argument("--lambda_align", type=float, default=LAMBDA_ALIGN, help="Weight for alignment loss")
+    parser.add_argument("--lambda_cls", type=float, default=LAMBDA_CLS, help="Weight for classification loss")
+    args = parser.parse_args()
+    # Override config values with parsed arguments
+    LEARNING_RATE = args.learning_rate
+    EPOCHS = args.epochs
+    BATCH_SIZE = args.batch_size
+    DEVICE = args.device
+    LAYER_NAME = args.layer_name
+    CONCEPT_FOLDER = args.concept_folder
+    RANDOM_FOLDER = args.random_folder
+    BINARY_CLASSIFICATION_BASE = args.binary_classification_base
+    RESULTS_PATH = args.results_path
+    TARGET_CLASS_NAME = args.target_class_name
+    LAMBDA_ALIGN = args.lambda_align
+    LAMBDA_CLS = args.lambda_cls
+    # Log all parsed arguments
+    logging.info("Parsed arguments:")
+    for arg, value in vars(args).items():
+        logging.info(f"{arg}: {value}")
+
     # Prepare data
     logging.info("Preparing datasets and data loaing datasets ")
     transforms = TRANSFORMS
     model = MODEL
-    
+    model.to(DEVICE)
+    summary(model, input_size=(3, IMAGE_SIZE, IMAGE_SIZE))
+
+    #Loading only model weights was causing some error did not debug it for now
+    #MODEL.fc = nn.Linear(MODEL.fc.in_features, NUM_CLASSES).to(DEVICE)
+    #MODEL.load_state_dict(torch.load(MODEL_PATH))
+    logging.info(f"Model loaded in {DEVICE}")
+
     train_folders, valid_folders, class_names = get_class_folder_dicts(BINARY_CLASSIFICATION_BASE)
     if(NUM_CLASSES != len(class_names)):
         raise ValueError(f"Number of classes in dataset ({len(class_names)}) does not match expected number ({NUM_CLASSES}).")
@@ -244,15 +251,14 @@ if(__name__ == "__main__"):
     TARGET_IDX = class_names.index(TARGET_CLASS_NAME)
     # Load model
     logging.info("Loading pre-trained model.")
-    
-    model = torch.load(MODEL_PATH, map_location=DEVICE)
     logging.info("Model LoadedProceeding to start TCAV based recalibration.")
     model, cav_vector, activation = cav_score_calculation(model, dataset_loader, LAYER_NAME)
     retrained_model = recalibrate_network(model, dataset_loader, cav_vector, activation, LAYER_NAME)
     # Save model
     os.makedirs(os.path.dirname(RESULTS_PATH), exist_ok=True)
+    filefullpath = f"{RESULTS_PATH}/{RESULTS_FILE_NAME}"
     
-    torch.save(retrained_model, f"{RESULTS_PATH}/{RESULTS_FILE_NAME}")
+    torch.save(retrained_model.state_dict(), filefullpath)
     logging.info(f"Model saved at {RESULTS_PATH}")
     print(f"Model saved at {RESULTS_PATH}")
 
