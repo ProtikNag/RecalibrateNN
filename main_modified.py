@@ -200,7 +200,7 @@ if(__name__ == "__main__"):
     parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for optimizer")
     parser.add_argument("--epochs", type=int, default=EPOCHS, help="Number of training epochs")
     parser.add_argument("--batch_size", type=int, default=BATCH_SIZE, help="Batch size for data loaders")
-    parser.add_argument("--device", type=str, default=DEVICE, help="Device to run the model on (e.g., 'cpu' or 'cuda')")
+    #parser.add_argument("--device", type=str, default=DEVICE, help="Device to run the model on (e.g., 'cpu' or 'cuda')")
     parser.add_argument("--layer_name", type=str, default=LAYER_NAME, help="Layer name for TCAV computation")
     parser.add_argument("--concept_folder", type=str, default=CONCEPT_FOLDER, help="Path to concept images folder")
     parser.add_argument("--random_folder", type=str, default=RANDOM_FOLDER, help="Path to random images folder")
@@ -208,7 +208,6 @@ if(__name__ == "__main__"):
     parser.add_argument("--results_path", type=str, default=RESULTS_PATH, help="Path to save the recalibrated model")
     parser.add_argument("--target_class_name", type=str, default=TARGET_CLASS_NAME, help="Class name for Zebra")
     parser.add_argument("--lambda_align", type=float, default=LAMBDA_ALIGN, help="Weight for alignment loss")
-    parser.add_argument("--lambda_cls", type=float, default=LAMBDA_CLS, help="Weight for classification loss")
     args = parser.parse_args()
     # Override config values with parsed arguments
     LEARNING_RATE = args.learning_rate
@@ -222,11 +221,13 @@ if(__name__ == "__main__"):
     RESULTS_PATH = args.results_path
     TARGET_CLASS_NAME = args.target_class_name
     LAMBDA_ALIGN = args.lambda_align
-    LAMBDA_CLS = args.lambda_cls
+    LAMBDA_CLS = 1 - LAMBDA_ALIGN
     # Log all parsed arguments
     logging.info("Parsed arguments:")
     for arg, value in vars(args).items():
         logging.info(f"{arg}: {value}")
+    #OTher parameters that were not parsed but useful can be written here
+    
 
     # Prepare data
     logging.info("Preparing datasets and data loaing datasets ")
