@@ -28,7 +28,6 @@ def get_class_folder_dicts(base_dir):
 
 
 def get_orthogonal_vector(cav_vector):
-    cav_vector = cav_vector / np.linalg.norm(cav_vector)
     random_vector = np.random.randn(*cav_vector.shape)
     projection = np.dot(random_vector, cav_vector) * cav_vector
     orthogonal_vector = random_vector - projection
@@ -38,13 +37,15 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations):
+def train_cav(concept_activations, random_activations, orthogonal=True):
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
     clf = LinearSVC(max_iter=2000).fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
-    # cav_vector = get_orthogonal_vector(cav_vector)
+
+    if orthogonal:
+        cav_vector = get_orthogonal_vector(cav_vector)
 
     return cav_vector
 

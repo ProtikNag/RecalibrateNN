@@ -3,9 +3,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.nn.functional import cosine_similarity
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+import utils
 from config import (
     LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, MODEL, LAYER_NAME,
     CONCEPT_FOLDER_1, CONCEPT_FOLDER_2, RANDOM_FOLDER,
@@ -51,7 +53,7 @@ model.get_submodule(LAYER_NAME).register_forward_hook(get_activation(LAYER_NAME)
 
 # Compute two CAV vectors
 
-def compute_cav(loader_positive, loader_random):
+def compute_cav(loader_positive, loader_random, orthogonal=False):
     pos_acts, rnd_acts = [], []
     model.eval()
     with torch.no_grad():
@@ -65,11 +67,11 @@ def compute_cav(loader_positive, loader_random):
             rnd_acts.append(activation[LAYER_NAME].view(imgs.size(0), -1).cpu().numpy())
     pos_acts = np.vstack(pos_acts)
     rnd_acts = np.vstack(rnd_acts)
-    cav = train_cav(pos_acts, rnd_acts)
+    cav = train_cav(pos_acts, rnd_acts, orthogonal)
     return torch.tensor(cav, dtype=torch.float32, device=DEVICE)
 
-cav_vector_1 = compute_cav(concept_loader_1, random_loader)
-cav_vector_2 = compute_cav(concept_loader_2, random_loader)
+cav_vector_1 = compute_cav(concept_loader_1, random_loader, orthogonal=False)
+cav_vector_2 = compute_cav(concept_loader_2, random_loader, orthogonal=False)
 
 def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, k):
     model.eval()
@@ -114,18 +116,17 @@ for epoch in range(EPOCHS):
         cls_loss = nn.CrossEntropyLoss()(outputs, labels)
 
         f_l = activation[LAYER_NAME].view(imgs.size(0), -1)
-        cav_1 = cav_vector_1 / cav_vector_1.norm()
-        cav_2 = cav_vector_2 / cav_vector_2.norm()
 
         mask_1, mask_2 = (labels == TARGET_IDX_1), (labels == TARGET_IDX_2)
 
         def alignment(acts, cav):
             acts_norm = acts / acts.norm(dim=1, keepdim=True)
-            return -torch.mean(torch.sum(acts_norm * cav, dim=1))
+            cosine_similarity = torch.abs(torch.matmul(acts_norm, cav))
+            return -torch.mean(cosine_similarity)
 
-        align_loss_1 = alignment(f_l[mask_1], cav_1) if mask_1.any() else torch.tensor(0.0, device=DEVICE)
-        align_loss_2 = alignment(f_l[mask_2], cav_2) if mask_2.any() else torch.tensor(0.0, device=DEVICE)
-        align_loss = 0.0 * align_loss_1 + align_loss_2
+        align_loss_1 = alignment(f_l[mask_1], cav_vector_1) if mask_1.any() else torch.tensor(0.0, device=DEVICE)
+        align_loss_2 = alignment(f_l[mask_2], cav_vector_2) if mask_2.any() else torch.tensor(0.0, device=DEVICE)
+        align_loss = align_loss_1 + align_loss_2
 
         loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
 
