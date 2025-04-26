@@ -24,8 +24,8 @@ class MultiClassImageDataset(Dataset):
         return image, label
 
 
-# ConceptDataset
-class ConceptDataset(Dataset):
+# SingleClassDataLoader
+class SingleClassDataLoader(Dataset):
     def __init__(self, folder_path, transform=None):
         self.folder_path = folder_path
         self.transform = transform

@@ -40,7 +40,7 @@ def get_orthogonal_vector(cav_vector):
 def train_cav(concept_activations, random_activations, orthogonal=True):
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
-    clf = LinearSVC(max_iter=2000).fit(X, y)
+    clf = LinearSVC(max_iter=1500).fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 
@@ -98,6 +98,23 @@ def evaluate_accuracy(model, loader):
         print(f"Class: {class_name} — Correct: {correct} / {total}\n")
 
     return acc, precision, recall, f1
+
+
+def compute_avg_confidence(model, loader, idx_1, idx_2):
+    model.eval()
+    confidences_1 = []
+    confidences_2 = []
+    with torch.no_grad():
+        for imgs, _ in loader:
+            imgs = imgs.to(DEVICE)
+            outputs = model(imgs)
+            probs = torch.softmax(outputs, dim=1)
+            preds = outputs.argmax(dim=1)
+            confidences_1 += probs[preds == idx_1, idx_1].tolist()
+            confidences_2 += probs[preds == idx_2, idx_2].tolist()
+    avg_conf_1 = np.mean(confidences_1) if confidences_1 else 0.0
+    avg_conf_2 = np.mean(confidences_2) if confidences_2 else 0.0
+    return avg_conf_1, avg_conf_2
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs):
