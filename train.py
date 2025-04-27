@@ -1,5 +1,6 @@
 import os
-
+import random
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -10,7 +11,14 @@ from torchvision import transforms
 from custom_dataloader import MultiClassImageDataset
 from model import DeepCNN
 from utils import get_class_folder_dicts
-from config import CLASSIFICATION_DATA_BASE_PATH, NUM_CLASSES, DEVICE
+
+SEED = 0
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+
+NUM_CLASSES = 2
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 def training_biased_model(

@@ -1,17 +1,15 @@
-import os
+import copy
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.nn.functional import cosine_similarity
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torchvision import transforms
 from config import (
     LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, LAYER_NAMES,
-    CONCEPT_FOLDER_1, CONCEPT_FOLDER_2, RANDOM_FOLDER,
-    CLASSIFICATION_DATA_BASE_PATH, RESULTS_PATH, MODEL_CHECKPOINT_PATH,
-    TARGET_CLASS_1, TARGET_CLASS_2, NUM_CLASSES,
+    CONCEPT_FOLDER_1, CONCEPT_FOLDER_2, RANDOM_FOLDER, MODEL,
+    CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_1, TARGET_CLASS_2,
     LAMBDA_ALIGNS, TARGET_CLASS_1_FOLDER, TARGET_CLASS_2_FOLDER,
 )
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
@@ -20,7 +18,6 @@ from utils import (
     evaluate_accuracy, plot_loss_figure, save_statistics,
     compute_avg_confidence
 )
-from model import DeepCNN
 
 # Data preparation
 transform = transforms.Compose([
@@ -111,29 +108,26 @@ def main():
             print(f"LAMBDA_ALIGN = {LAMBDA_ALIGN}")
             LAMBDA_CLS = round((1.0 - LAMBDA_ALIGN), 2)
 
-            model = DeepCNN(num_classes=NUM_CLASSES)
-            model.load_state_dict(torch.load(MODEL_CHECKPOINT_PATH, map_location=DEVICE, weights_only=True))
-            model.to(DEVICE)
-
-            model.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+            model_trained = copy.deepcopy(MODEL).to(DEVICE)
+            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
 
             # Compute two CAV vectors
-            cav_vector_1 = compute_cav(model, concept_loader_1, random_loader, layer_name, orthogonal=False)
-            cav_vector_2 = compute_cav(model, concept_loader_2, random_loader, layer_name, orthogonal=False)
-            cav_vector_2_orthogonal = compute_cav(model, concept_loader_2, random_loader, layer_name, orthogonal=True)
+            cav_vector_1 = compute_cav(model_trained, concept_loader_1, random_loader, layer_name, orthogonal=False)
+            cav_vector_2 = compute_cav(model_trained, concept_loader_2, random_loader, layer_name, orthogonal=False)
+            cav_vector_2_orthogonal = compute_cav(model_trained, concept_loader_2, random_loader, layer_name, orthogonal=True)
 
             # Compute original TCAV scores
-            original_tcav_1 = compute_tcav_score(model, layer_name, cav_vector_1, target_class_1_dataset, TARGET_IDX_1)
-            original_tcav_2 = compute_tcav_score(model, layer_name, cav_vector_2, target_class_2_dataset, TARGET_IDX_2)
-            acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model, validation_loader)
-            avg_conf_1_before, avg_conf_2_before = compute_avg_confidence(model, validation_loader, TARGET_IDX_1, TARGET_IDX_2)
+            original_tcav_1 = compute_tcav_score(model_trained, layer_name, cav_vector_1, target_class_1_dataset, TARGET_IDX_1)
+            original_tcav_2 = compute_tcav_score(model_trained, layer_name, cav_vector_2, target_class_2_dataset, TARGET_IDX_2)
+            acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+            avg_conf_1_before, avg_conf_2_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_1, TARGET_IDX_2)
 
             # Model training prep
-            model.train()
-            for name, param in model.named_parameters():
+            model_trained.train()
+            for name, param in model_trained.named_parameters():
                 param.requires_grad = (layer_name in name)
-            model.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
-            optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE)
+            model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+            optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
 
             # Training loop
             loss_history = {"total": [], "cls": [], "align": []}
@@ -147,7 +141,7 @@ def main():
 
                     optimizer.zero_grad()
 
-                    outputs = model(imgs)
+                    outputs = model_trained(imgs)
                     cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                     f_l = activation[layer_name].view(imgs.size(0), -1)
 
@@ -157,7 +151,7 @@ def main():
                         cosine_similarity = F.cosine_similarity(acts, cav.unsqueeze(0), dim=1)
                         return -torch.mean(cosine_similarity)
 
-                    align_loss_1 = alignment(f_l[mask_1], cav_vector_2_orthogonal) if mask_1.any() else torch.tensor(
+                    align_loss_1 = alignment(f_l[mask_1], cav_vector_1) if mask_1.any() else torch.tensor(
                         0.0,
                         device=DEVICE
                     )
@@ -170,7 +164,7 @@ def main():
                     loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
 
                     loss.backward()
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=7)
+                    torch.nn.utils.clip_grad_norm_(model_trained.parameters(), max_norm=7)
                     optimizer.step()
 
                     total_loss_epoch += loss.item()
@@ -185,15 +179,13 @@ def main():
                 print(f"Epoch {epoch + 1}/{EPOCHS} | Total: {loss_history['total'][-1]:.6f}, "
                       f"Cls: {loss_history['cls'][-1]:.6f}, Align: {loss_history['align'][-1]:.6f}")
 
-            # Save model
-            os.makedirs(os.path.dirname(MODEL_CHECKPOINT_PATH), exist_ok=True)
-            torch.save(model.state_dict(), MODEL_CHECKPOINT_PATH)
 
+            model_trained.eval()
             # Post-training evaluation
-            acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model, validation_loader)
-            retrained_tcav_1 = compute_tcav_score(model, layer_name, cav_vector_1, target_class_1_dataset, TARGET_IDX_1)
-            retrained_tcav_2 = compute_tcav_score(model, layer_name, cav_vector_2, target_class_2_dataset, TARGET_IDX_2)
-            avg_conf_1_after, avg_conf_2_after = compute_avg_confidence(model, validation_loader, TARGET_IDX_1, TARGET_IDX_2)
+            acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
+            retrained_tcav_1 = compute_tcav_score(model_trained, layer_name, cav_vector_1, target_class_1_dataset, TARGET_IDX_1)
+            retrained_tcav_2 = compute_tcav_score(model_trained, layer_name, cav_vector_2, target_class_2_dataset, TARGET_IDX_2)
+            avg_conf_1_after, avg_conf_2_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_1, TARGET_IDX_2)
 
             # Save stats
             stats = {
