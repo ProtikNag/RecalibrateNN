@@ -117,6 +117,7 @@ def main():
             cav_vector_2_orthogonal = compute_cav(model_trained, concept_loader_2, random_loader, layer_name, orthogonal=True)
 
             # Compute original TCAV scores
+
             original_tcav_1 = compute_tcav_score(model_trained, layer_name, cav_vector_1, target_class_1_dataset, TARGET_IDX_1)
             original_tcav_2 = compute_tcav_score(model_trained, layer_name, cav_vector_2, target_class_2_dataset, TARGET_IDX_2)
             acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
@@ -151,7 +152,7 @@ def main():
                         cosine_similarity = F.cosine_similarity(acts, cav.unsqueeze(0), dim=1)
                         return -torch.mean(cosine_similarity)
 
-                    align_loss_1 = alignment(f_l[mask_1], cav_vector_1) if mask_1.any() else torch.tensor(
+                    align_loss_1 = alignment(f_l[mask_1], cav_vector_2_orthogonal) if mask_1.any() else torch.tensor(
                         0.0,
                         device=DEVICE
                     )

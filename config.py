@@ -25,9 +25,10 @@ NUM_CLASSES = 2
 MODEL = DeepCNN(num_classes=NUM_CLASSES)
 MODEL.load_state_dict(torch.load(MODEL_CHECKPOINT_PATH, map_location=DEVICE, weights_only=True))
 MODEL.to(DEVICE)
-LAYER_NAMES = ["conv_block3.0", "conv_block4.0", "fc.0"]
+# LAYER_NAMES = ["conv_block3.0", "conv_block4.0", "fc.0"]
+LAYER_NAMES = ["conv_block4.0"]
 TARGET_CLASS_1 = "tiger"
 TARGET_CLASS_2 = "zebra"
-LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0, 1.01, 0.1)]
+LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0, 1.01, 0.5)]
 
 
