@@ -22,7 +22,7 @@ from config import (
     CONCEPT_FOLDER,
     RANDOM_FOLDER,
     NUM_CLASSES,
-    BINARY_CLASSIFICATION_BASE,
+    MULTICLASS_CLASSIFICATION_BASE,
     RESULTS_PATH,
     RESULTS_FILE_NAME,
     TARGET_CLASS_NAME,
@@ -204,7 +204,7 @@ if(__name__ == "__main__"):
     parser.add_argument("--layer_name", type=str, default=LAYER_NAME, help="Layer name for TCAV computation")
     parser.add_argument("--concept_folder", type=str, default=CONCEPT_FOLDER, help="Path to concept images folder")
     parser.add_argument("--random_folder", type=str, default=RANDOM_FOLDER, help="Path to random images folder")
-    parser.add_argument("--binary_classification_base", type=str, default=BINARY_CLASSIFICATION_BASE, help="Base path for binary classification dataset")
+    parser.add_argument("--binary_classification_base", type=str, default=MULTICLASS_CLASSIFICATION_BASE, help="Base path for binary classification dataset")
     parser.add_argument("--results_path", type=str, default=RESULTS_PATH, help="Path to save the recalibrated model")
     parser.add_argument("--target_class_name", type=str, default=TARGET_CLASS_NAME, help="Class name for Zebra")
     parser.add_argument("--lambda_align", type=float, default=LAMBDA_ALIGN, help="Weight for alignment loss")

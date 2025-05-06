@@ -16,7 +16,7 @@ from config import (
     LAYER_NAME,
     CONCEPT_FOLDER,
     RANDOM_FOLDER,
-    BINARY_CLASSIFICATION_BASE,
+    MULTICLASS_CLASSIFICATION_BASE,
     TARGET_CLASS_NAME,
     LAMBDA_ALIGN,
     LAMBDA_CLS,
@@ -33,7 +33,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-train_folders, valid_folders, class_names = get_class_folder_dicts(BINARY_CLASSIFICATION_BASE)
+train_folders, valid_folders, class_names = get_class_folder_dicts(MULTICLASS_CLASSIFICATION_BASE)
 NUM_CLASSES = len(class_names)
 ZEBRA_IDX = class_names.index(TARGET_CLASS_NAME)
 
