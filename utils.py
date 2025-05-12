@@ -100,21 +100,28 @@ def evaluate_accuracy(model, loader):
     return acc, precision, recall, f1
 
 
-def compute_avg_confidence(model, loader, idx_1, idx_2):
+def compute_avg_confidence(model, loader, target_idx_list):
     model.eval()
-    confidences_1 = []
-    confidences_2 = []
+    class_confidences = {idx: [] for idx in target_idx_list}
+
     with torch.no_grad():
         for imgs, _ in loader:
             imgs = imgs.to(DEVICE)
             outputs = model(imgs)
             probs = torch.softmax(outputs, dim=1)
             preds = outputs.argmax(dim=1)
-            confidences_1 += probs[preds == idx_1, idx_1].tolist()
-            confidences_2 += probs[preds == idx_2, idx_2].tolist()
-    avg_conf_1 = np.mean(confidences_1) if confidences_1 else 0.0
-    avg_conf_2 = np.mean(confidences_2) if confidences_2 else 0.0
-    return avg_conf_1, avg_conf_2
+
+            for idx in target_idx_list:
+                confs = probs[preds == idx, idx]
+                class_confidences[idx] += confs.tolist()
+
+    avg_confidences = {
+        idx: (np.mean(confs) if confs else 0.0)
+        for idx, confs in class_confidences.items()
+    }
+
+    # Return as a list aligned with input index order
+    return [avg_confidences[idx] for idx in target_idx_list]
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs):
