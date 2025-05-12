@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
-from config import (
+from new_config import (
     LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, LAYER_NAMES,
     RANDOM_FOLDER, MODEL, CONCEPT_FOLDER,
     CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST,
@@ -128,7 +128,7 @@ def main():
                         mask = (labels == target_idx)
                         if mask.any():
                             cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
-                            align_loss += -torch.mean(cosine_similarity)
+                            align_loss += torch.abs(-torch.mean(cosine_similarity))
 
                     loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
                     loss.backward()
