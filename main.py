@@ -96,6 +96,8 @@ def main():
         tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                        for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
 
+        print(f"TCAV Score: {tcav_before}")
+
         acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
         avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
 
@@ -123,7 +125,7 @@ def main():
                     cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                     f_l = activation[layer_name].view(imgs.size(0), -1)
 
-                    align_loss = 0.0
+                    align_loss = torch.tensor(0.0)
                     for i, target_idx in enumerate(TARGET_IDX_LIST):
                         mask = (labels == target_idx)
                         if mask.any():
@@ -173,6 +175,8 @@ def main():
 
             plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS)
             save_statistics(stats)
+
+            print(tcav_after)
 
 
 if __name__ == "__main__":

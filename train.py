@@ -11,13 +11,14 @@ from torchvision import transforms
 from custom_dataloader import MultiClassImageDataset
 from model import DeepCNN
 from utils import get_class_folder_dicts
+from new_config import get_num_classes
 
 SEED = 0
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 
-NUM_CLASSES = 2
+NUM_CLASSES = get_num_classes('./data/multi_class_classification/')
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
@@ -26,9 +27,9 @@ def training_biased_model(
         data_path="./data/multi_class_classification/",
         max_epochs=50,
         batch_size=32,
-        learning_rate=1e-3,
+        learning_rate=1e-4,
         device='cuda' if torch.cuda.is_available() else 'cpu',
-        early_stopping_patience=3,
+        early_stopping_patience=10,
         lr_decay_step=3,
         lr_decay_gamma=0.5,
         loss_delta=1e-3
