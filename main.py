@@ -15,7 +15,7 @@ from datetime import datetime
 import argparse
 from new_config import (
     get_num_classes, getbasemodel_imagesize, getmodel_layers, override_parameters,
-    RESULTS_PATH, BASE_MODEL, LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, LAYER_NAMES,
+    IMAGE_SIZE, RESULTS_PATH, BASE_MODEL, LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, LAYER_NAMES,
     RANDOM_FOLDER, MODEL, CONCEPT_FOLDER,
     CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST,
     LAMBDA_ALIGNS
@@ -38,9 +38,11 @@ logging.basicConfig(
 
 logging.info("Script started.")
 
+MODEL_PATH, IMAGE_SIZE  = getbasemodel_imagesize(BASE_MODEL)
+
 # Data preparation
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
     transforms.ToTensor(),
 ])
 
@@ -102,7 +104,7 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
     for imgs in dataset_loader:
         imgs = imgs.to(DEVICE)
         with torch.enable_grad():
-            outputs = model(imgs)
+            outputs = model(imgs)             
             f_l = activation[layer_name]
             h_k = outputs[:, target_idx]
             grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()
@@ -159,7 +161,10 @@ def main():
                     for imgs, labels in dataset_loader:
                         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
                         optimizer.zero_grad()
-                        outputs = model_trained(imgs)
+                        if(BASE_MODEL == 'inception_v3'):
+                          outputs, aux_logits = model_trained(imgs)
+                        else:
+                          outputs = model_trained(imgs)
                         cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                         f_l = activation[layer_name].view(imgs.size(0), -1)
 
@@ -245,6 +250,7 @@ if __name__ == "__main__":
     
     # Override the model name if provided
     if args.model_name:
+        BASE_MODEL = args.model_name.strip().lower()
         MODEL_PATH, MODEL , LAYER_NAMES, TRANSFORMS = override_parameters(args.model_name)
         logging.info(f"Model overridden with: {args.model_name}")
         logging.info(f"Model path: {MODEL_PATH}")

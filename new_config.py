@@ -9,7 +9,7 @@ import torch.nn as nn
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-BASE_MODEL = "resnet50"
+BASE_MODEL = "inception_v3"
 
 CLASSIFICATION_DATA_BASE_PATH = "/home/multiclass_classification"
 TARGET_CLASS_LIST = ["deer","horse", "zebra"]
@@ -26,7 +26,7 @@ RESULTS_PATH = './results/' + BASE_MODEL + '/'
 
 ##Hyper parameters
 LEARNING_RATE = 1e-3
-EPOCHS = 1
+EPOCHS = 15
 BATCH_SIZE = 64
 LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0, 1.01, 0.10)]
 
