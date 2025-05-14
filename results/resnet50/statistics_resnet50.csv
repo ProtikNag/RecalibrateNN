@@ -1,0 +1,7 @@
+Layer Name,Lambda Classification,Lambda Alignment,Accuracy Before,Accuracy After,Precision Before,Precision After,Recall Before,Recall After,F1 Before,F1 After,TCAV Before (deer),TCAV After (deer),Avg Conf deer Before,Avg Conf deer After,TCAV Before (horse),TCAV After (horse),Avg Conf horse Before,Avg Conf horse After,TCAV Before (zebra),TCAV After (zebra),Avg Conf zebra Before,Avg Conf zebra After
+layer4.2.conv3,1.0,0.0,0.894,0.942,0.875,0.928,0.891,0.946,0.881,0.936,0.0,0.0,0.51,0.866,0.932,0.335,0.487,0.916,1.0,1.0,0.536,0.94
+layer4.2.conv3,1.0,0.0,0.894,0.942,0.875,0.928,0.891,0.946,0.881,0.936,0.0,0.0,0.51,0.866,0.932,0.335,0.487,0.916,1.0,1.0,0.536,0.94
+layer4.2.conv3,0.9,0.1,0.894,0.942,0.875,0.944,0.891,0.926,0.881,0.934,0.0,0.0,0.51,0.831,0.932,0.234,0.487,0.899,1.0,1.0,0.536,0.95
+layer4.2.conv3,0.8,0.2,0.894,0.928,0.875,0.914,0.891,0.923,0.881,0.917,0.0,0.0,0.51,0.857,0.932,0.237,0.487,0.885,1.0,1.0,0.536,0.951
+layer4.2.conv3,0.7,0.3,0.894,0.946,0.875,0.94,0.891,0.937,0.881,0.938,0.0,0.0,0.51,0.859,0.932,0.086,0.487,0.92,1.0,1.0,0.536,0.947
+layer4.2.conv3,0.6,0.4,0.894,0.93,0.875,0.916,0.891,0.928,0.881,0.92,0.0,0.024,0.51,0.845,0.932,0.023,0.487,0.884,1.0,1.0,0.536,0.947

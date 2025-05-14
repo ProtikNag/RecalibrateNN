@@ -124,7 +124,9 @@ def compute_avg_confidence(model, loader, target_idx_list):
     return [avg_confidences[idx] for idx in target_idx_list]
 
 
-def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs):
+def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs , 
+                     classification_loss = "./results/classification_loss.pdf" , 
+                     alignment_loss = "./results/alignment_loss.pdf", total_loss = "./results/total_loss.pdf"):
     # plot total loss
     plt.figure(figsize=(8, 6))
     plt.plot(range(epochs), total_loss_history, marker='o', label='Total Loss')
@@ -133,7 +135,7 @@ def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, e
     plt.title('Total Loss over Epochs')
     plt.grid(True)
     plt.tight_layout()
-    total_loss_plot_path = os.path.join("results", "total_loss.pdf")
+    total_loss_plot_path = total_loss
     plt.savefig(total_loss_plot_path)
     plt.close()
 
@@ -145,7 +147,7 @@ def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, e
     plt.title('Classification Loss over Epochs')
     plt.grid(True)
     plt.tight_layout()
-    cls_loss_plot_path = os.path.join("results", "classification_loss.pdf")
+    cls_loss_plot_path = classification_loss
     plt.savefig(cls_loss_plot_path)
     plt.close()
 
@@ -157,7 +159,7 @@ def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, e
     plt.title('Alignment Loss over Epochs')
     plt.grid(True)
     plt.tight_layout()
-    align_loss_plot_path = os.path.join("results", "alignment_loss.pdf")
+    align_loss_plot_path = alignment_loss
     plt.savefig(align_loss_plot_path)
     plt.close()
 

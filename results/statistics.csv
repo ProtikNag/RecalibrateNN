@@ -1,5 +1,0 @@
-Layer Name,Lambda Classification,Lambda Alignment,Accuracy Before,Accuracy After,Precision Before,Precision After,Recall Before,Recall After,F1 Before,F1 After,TCAV Before (tiger),TCAV After (tiger),Avg Conf tiger Before,Avg Conf tiger After,TCAV Before (zebra),TCAV After (zebra),Avg Conf zebra Before,Avg Conf zebra After
-conv_block4.0,1.0,0.0,0.928,0.918,0.96,0.914,0.794,0.788,0.849,0.833,0.401,0.314,0.998,1.0,1.0,1.0,0.927,0.958
-conv_block4.0,0.5,0.5,0.928,0.928,0.96,0.96,0.794,0.794,0.849,0.849,0.401,1.0,0.998,0.998,1.0,0.0,0.927,0.986
-conv_block4.0,0.0,1.0,0.928,0.825,0.96,0.412,0.794,0.5,0.849,0.452,0.401,1.0,0.998,1.0,1.0,0.0,0.927,0.0
-features.26,1.0,0.0,0.291,0.983,0.373,0.992,0.617,0.961,0.397,0.975,0.875,1.0,0.806,0.979,0.354,1.0,0.441,0.988,1.0,0.842,0.948,0.98
