@@ -17,18 +17,24 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 
-NUM_CLASSES = 2
+def get_num_classes(base_path):
+    return len([
+        name for name in os.listdir(base_path)
+        if os.path.isdir(os.path.join(base_path, name))
+    ])
+
+NUM_CLASSES = get_num_classes('./data/multi_class_classification_1/')
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 def training_biased_model(
         model,
-        data_path="./data/multi_class_classification/",
+        data_path="./data/multi_class_classification_1/",
         max_epochs=50,
         batch_size=32,
-        learning_rate=1e-3,
+        learning_rate=1e-4,
         device='cuda' if torch.cuda.is_available() else 'cpu',
-        early_stopping_patience=3,
+        early_stopping_patience=10,
         lr_decay_step=3,
         lr_decay_gamma=0.5,
         loss_delta=1e-3
@@ -159,5 +165,13 @@ def training_biased_model(
 
 if __name__ == "__main__":
     model = DeepCNN(NUM_CLASSES).to(DEVICE)
-    trained_model = training_biased_model(model)
-    torch.save(trained_model.state_dict(), "./model_weights/imbalanced_model.pth")
+    trained_model = training_biased_model(model, data_path="./data/multi_class_classification_1/")
+    torch.save(trained_model.state_dict(), "./model_weights/imbalanced_model_1.pth")
+
+    model = DeepCNN(NUM_CLASSES).to(DEVICE)
+    trained_model = training_biased_model(model, data_path="./data/multi_class_classification_2/")
+    torch.save(trained_model.state_dict(), "./model_weights/imbalanced_model_2.pth")
+
+    model = DeepCNN(NUM_CLASSES).to(DEVICE)
+    trained_model = training_biased_model(model, data_path="./data/multi_class_classification_3/")
+    torch.save(trained_model.state_dict(), "./model_weights/imbalanced_model_3.pth")

@@ -10,12 +10,13 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 
 CLASSIFICATION_DATA_BASE_PATH = "./data/multi_class_classification/"
-TARGET_CLASS_LIST = ["tiger", "zebra"]
+TARGET_CLASS_LIST = ["deer", "horse", "zebra"]
 TARGET_FOLDER_LIST = [os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train") for class_name in TARGET_CLASS_LIST]
 
 CONCEPT_FOLDER = [
-    "./data/concept/fur_texture",          # for tiger
-    "./data/concept/stripes_fake"          # for zebra
+    "./data/concept/deer/coat",             # for deer - Coat
+    "./data/concept/horse/horse_skin",      # for horse
+    "./data/concept/zebra/stripes"          # for zebra
 ]
 RANDOM_FOLDER = "./data/concept/random"
 RESULTS_PATH = "./results/retrained_model.pth"
@@ -25,7 +26,7 @@ LEARNING_RATE = 1e-3
 EPOCHS = 15
 BATCH_SIZE = 32
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-NUM_CLASSES = 2
+NUM_CLASSES = 3
 MODEL = DeepCNN(num_classes=NUM_CLASSES)
 MODEL.load_state_dict(torch.load(INITIAL_MODEL_PATH, map_location=DEVICE, weights_only=True))
 MODEL.to(DEVICE)

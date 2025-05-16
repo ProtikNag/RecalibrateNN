@@ -74,7 +74,7 @@ def get_activation(layer_name):
         activation[layer_name] = output
         output_shape[layer_name] = output.shape
         #This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
-        print(f"Verify the output shape : Big shape means slower convergence Layername = {layer_name} , output.shape : {output.shape}")  
+        print(f"Verify the output shape : Big shape means slower convergence Layername = {layer_name} , output.shape : {output.shape}")
     return hook
 
 
@@ -104,13 +104,14 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
     for imgs in dataset_loader:
         imgs = imgs.to(DEVICE)
         with torch.enable_grad():
-            outputs = model(imgs)             
+            outputs = model(imgs)
             f_l = activation[layer_name]
             h_k = outputs[:, target_idx]
-            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()             # check the documentation for the default values
             grad_flat = grad.view(grad.size(0), -1)
-            S = (grad_flat * cav_vector).sum(dim=1)
-            scores.append(S > 0)
+            grad_norm = F.normalize(grad_flat, p=2, dim=1)
+            S = (grad_norm * cav_vector).sum(dim=1)
+            scores.append(S > 0)                                    # additional logging for sensitivity analysis
     scores = torch.cat(scores)
     logging.info(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
     print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
@@ -223,19 +224,19 @@ def main():
                     stats[f"TCAV After ({class_name})"] = round(tcav_after[i], 3)
                     stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
                     stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
-                
+
 
                 classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                 alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                 total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
-                plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS, 
+                plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
                                  classificationloss_filename, alignmentloss_filename,total_loss)
                 statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
                 save_statistics(stats , statistic_filename )
                 logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
                 modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
-                torch.save(model_trained.state_dict(),modelsave_filename) 
-                
+                torch.save(model_trained.state_dict(),modelsave_filename)
+
     except Exception as e:
         logging.error(f"Error in main function: {e}")
         raise
@@ -246,8 +247,8 @@ if __name__ == "__main__":
     # Argument parser to override the model name
     parser = argparse.ArgumentParser(description="Override model name")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
-    args = parser.parse_args()   
-    
+    args = parser.parse_args()
+
     # Override the model name if provided
     if args.model_name:
         BASE_MODEL = args.model_name.strip().lower()
