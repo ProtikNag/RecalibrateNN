@@ -12,9 +12,9 @@ from model import DeepCNN
 CLASS_NAMES = ["deer", "horse", "zebra"]
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 IMAGE_SIZE = 224
-MODEL_PATH = "./model_weights/imbalanced_model.pth"
+MODEL_PATH = "./model_weights/imbalanced_model_1.pth"
 TARGET_LAYER = "conv_block4.0"  # Use a conv layer, not a linear one
-CLASSIFICATION_DATA_BASE_PATH = "./data/multi_class_classification"
+CLASSIFICATION_DATA_BASE_PATH = "./data/multi_class_classification_1"
 
 # Load model
 model = DeepCNN(num_classes=len(CLASS_NAMES))

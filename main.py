@@ -78,10 +78,11 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
             outputs = model(imgs)
             f_l = activation[layer_name]
             h_k = outputs[:, target_idx]
-            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()             # check the documentation for the default values
             grad_flat = grad.view(grad.size(0), -1)
-            S = (grad_flat * cav_vector).sum(dim=1)
-            scores.append(S > 0)
+            grad_norm = F.normalize(grad_flat, p=2, dim=1)
+            S = (grad_norm * cav_vector).sum(dim=1)
+            scores.append(S > 0)                                    # additional logging for sensitivity analysis
     scores = torch.cat(scores)
     return scores.float().mean().item()
 
@@ -92,19 +93,19 @@ def main():
         model_trained = copy.deepcopy(MODEL).to(DEVICE)
         model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
 
-        cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
+        cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]          # have to do the normalization to the concept loader and the random loader as well
         tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                        for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
 
         print(f"TCAV Score: {tcav_before}")
 
-        acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+        acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)            # fix it for nan values
         avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
 
         for LAMBDA_ALIGN in LAMBDA_ALIGNS:
             LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
             model_trained = copy.deepcopy(MODEL).to(DEVICE)
-            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))                        # remove the hook
 
             # Freeze all but target layer
             model_trained.train()
@@ -127,10 +128,12 @@ def main():
 
                     align_loss = torch.tensor(0.0)
                     for i, target_idx in enumerate(TARGET_IDX_LIST):
+                        if target_idx != 0:
+                            continue
                         mask = (labels == target_idx)
                         if mask.any():
                             cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
-                            align_loss += torch.abs(-torch.mean(cosine_similarity))
+                            align_loss += (1-torch.mean(torch.abs(cosine_similarity)))            # merge it to the feature_1 branch
 
                     loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
                     loss.backward()
@@ -181,3 +184,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# add some more try catch block where needed
+# logging more information

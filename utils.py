@@ -37,10 +37,10 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations, orthogonal=True):
+def train_cav(concept_activations, random_activations, orthogonal=False):            # changed the default value to False
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
-    clf = LinearSVC(max_iter=1500).fit(X, y)
+    clf = LinearSVC(max_iter=1500).fit(X, y)                                                 # Try out SGDClassifier / LogisticRegression
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 
