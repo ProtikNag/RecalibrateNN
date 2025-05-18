@@ -5,8 +5,46 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from matplotlib import pyplot as plt
 import csv
+import torch.nn as nn
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
+# Dynamically determine the number of classes
+def get_num_classes(base_path):
+    return len([
+        name for name in os.listdir(base_path)
+        if os.path.isdir(os.path.join(base_path, name))
+    ])
+
+
+# Get base model image size
+def get_base_model_image_size(base_model_path):
+    if 'inception' in base_model_path:
+        image_size = 299
+    else:
+        image_size = 224
+
+    return image_size
+
+
+def get_model_weight_path(base_model):
+    base_model_path = os.path.join("./model_weights", base_model + ".pth")
+    if not os.path.exists(base_model_path):
+        raise FileNotFoundError(f"Model weights not found at {base_model_path}")
+    return base_model_path
+
+
+def get_model_layers(model):
+    layers = []
+
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Conv2d):
+            layers.append(name)
+        if isinstance(module, nn.MaxPool2d):
+            layers.append(name)
+    # Return the last 3 layers they can be critical or the dimentionality will be reduced.
+    return (layers[-4:])
 
 
 # Auto parse class folders
@@ -37,10 +75,10 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations, orthogonal=False):            # changed the default value to False
+def train_cav(concept_activations, random_activations, orthogonal=False):  # changed the default value to False
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
-    clf = LinearSVC(max_iter=1500).fit(X, y)                                                 # Try out SGDClassifier / LogisticRegression
+    clf = LinearSVC(max_iter=1500).fit(X, y)  # Try out SGDClassifier / LogisticRegression
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 
@@ -124,9 +162,9 @@ def compute_avg_confidence(model, loader, target_idx_list):
     return [avg_confidences[idx] for idx in target_idx_list]
 
 
-def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs , 
-                     classification_loss = "./results/classification_loss.pdf" , 
-                     alignment_loss = "./results/alignment_loss.pdf", total_loss = "./results/total_loss.pdf"):
+def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs,
+                     classification_loss="./results/classification_loss.pdf",
+                     alignment_loss="./results/alignment_loss.pdf", total_loss="./results/total_loss.pdf"):
     # plot total loss
     plt.figure(figsize=(8, 6))
     plt.plot(range(epochs), total_loss_history, marker='o', label='Total Loss')
