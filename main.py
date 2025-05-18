@@ -21,7 +21,7 @@ from config import (
 )
 
 from utils import (
-    get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
+    get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers
 )
 
@@ -32,6 +32,7 @@ LAYER_NAMES = None
 
 activation = {}
 output_shape = {}
+
 
 
 def get_activation(layer_name):
@@ -222,21 +223,26 @@ if __name__ == "__main__":
         # Configure logging
         RESULTS_PATH = './results/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
-        log_filename = f"./results/{BASE_MODEL}/audit_trail_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         logging.basicConfig(
             filename=log_filename,
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
         logging.info("Script started.")
-
-        IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
+        MODEL_PATH,IMAGE_SIZE = get_base_model_image_size(BASE_MODEL) 
+        #load model 
+        MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
+        MODEL.to(DEVICE)
+        #Get all bottleneck layers
+        LAYER_NAMES = get_model_layers(MODEL)
+        NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
 
         # Load the model
-        MODEL = DeepCNN(num_classes=NUM_CLASSES)
-        MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
-        MODEL.to(DEVICE)
-        LAYER_NAMES = ["conv_block4.0"]
+        #MODEL = DeepCNN(num_classes=NUM_CLASSES)
+        #MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
+        #MODEL.to(DEVICE)
+        #LAYER_NAMES = ["conv_block4.0"]
 
         # Transformations
         TRAIN_TRANSFORM = transforms.Compose([
@@ -266,7 +272,8 @@ if __name__ == "__main__":
             print("Loading val datasets stand by")
             dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
             validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-            class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+            class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), 
+            transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
             print("Loading concept datasets stand by")
             concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
             print("Loading random datasets stand by")

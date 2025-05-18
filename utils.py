@@ -21,16 +21,19 @@ def get_num_classes(base_path):
 
 # Get base model image size
 def get_base_model_image_size(base_model_path):
+    model_path = get_model_weight_path(base_model_path)
     if 'inception' in base_model_path:
         image_size = 299
     else:
         image_size = 224
 
-    return image_size
+    return model_path, image_size
 
 
-def get_model_weight_path(base_model):
-    base_model_path = os.path.join("./model_weights", base_model + ".pth")
+
+def get_model_weight_path(base_model, model_root_path =r'/home/srikanth/trained_models/pytorch'):
+    base_model_path = os.path.join(model_root_path , base_model + "/" + base_model + ".pth")
+    print(model_root_path, base_model_path )
     if not os.path.exists(base_model_path):
         raise FileNotFoundError(f"Model weights not found at {base_model_path}")
     return base_model_path
