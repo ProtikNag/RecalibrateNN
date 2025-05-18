@@ -13,54 +13,35 @@ from torchvision import transforms
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
-from new_config import (
-    get_num_classes, getbasemodel_imagesize, getmodel_layers, override_parameters,
-    IMAGE_SIZE, RESULTS_PATH, BASE_MODEL, LEARNING_RATE, EPOCHS, BATCH_SIZE, DEVICE, LAYER_NAMES,
-    RANDOM_FOLDER, MODEL, CONCEPT_FOLDER,
-    CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST,
-    LAMBDA_ALIGNS
+from config import (
+    LEARNING_RATE, EPOCHS, BATCH_SIZE,
+    DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST,
+    CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
 )
 
 from utils import (
     get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
-    compute_avg_confidence
+    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers
 )
 
-os.makedirs(RESULTS_PATH, exist_ok=True)
-
-# Configure logging
-log_filename = f"./results/{BASE_MODEL}/audit_trail_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-logging.basicConfig(
-    filename=log_filename,
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-logging.info("Script started.")
-
-MODEL_PATH, IMAGE_SIZE  = getbasemodel_imagesize(BASE_MODEL)
-
-# Data preparation
-transform = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-    transforms.ToTensor(),
-])
+TRAIN_TRANSFORM = None
+VALID_TRANSFORM = None
 
 try:
     print("Calling methods get_class_folder_dicts")
     train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
     TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
     print("Loading train datasets stand by")
-    train_dataset = MultiClassImageDataset(train_folders, transform=transform)
-    val_dataset = MultiClassImageDataset(valid_folders, transform=transform)
+    train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+    val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
     print("Loading val datasets stand by")
     dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), transform=transform), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+    class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
     print("Loading concept datasets stand by")
-    concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=transform), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER]
+    concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
     print("Loading random datasets stand by")
-    random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=transform), batch_size=BATCH_SIZE, shuffle=True)
+    random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
     logging.info("Data preparation completed successfully.")
 except Exception as e:
     logging.error(f"Error during data preparation: {e}")
@@ -69,12 +50,14 @@ except Exception as e:
 activation = {}
 output_shape = {}
 
+
 def get_activation(layer_name):
     def hook(model, input, output):
         activation[layer_name] = output
         output_shape[layer_name] = output.shape
-        #This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
+        # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
         print(f"Verify the output shape : Big shape means slower convergence Layername = {layer_name} , output.shape : {output.shape}")
+
     return hook
 
 
@@ -96,7 +79,6 @@ def compute_cav(model, loader_positive, loader_random, layer_name, orthogonal=Fa
     return torch.tensor(cav, dtype=torch.float32, device=DEVICE)
 
 
-
 def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx):
     logging.info(f"Computing TCAV score for layer: {layer_name}, target index: {target_idx}")
     model.eval()
@@ -107,11 +89,11 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
             outputs = model(imgs)
             f_l = activation[layer_name]
             h_k = outputs[:, target_idx]
-            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()             # check the documentation for the default values
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()  # check the documentation for the default values
             grad_flat = grad.view(grad.size(0), -1)
             grad_norm = F.normalize(grad_flat, p=2, dim=1)
             S = (grad_norm * cav_vector).sum(dim=1)
-            scores.append(S > 0)                                    # additional logging for sensitivity analysis
+            scores.append(S > 0)  # additional logging for sensitivity analysis
     scores = torch.cat(scores)
     logging.info(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
     print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
@@ -162,10 +144,10 @@ def main():
                     for imgs, labels in dataset_loader:
                         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
                         optimizer.zero_grad()
-                        if(BASE_MODEL == 'inception_v3'):
-                          outputs, aux_logits = model_trained(imgs)
+                        if (BASE_MODEL == 'inception_v3'):
+                            outputs, aux_logits = model_trained(imgs)
                         else:
-                          outputs = model_trained(imgs)
+                            outputs = model_trained(imgs)
                         cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                         f_l = activation[layer_name].view(imgs.size(0), -1)
 
@@ -174,7 +156,7 @@ def main():
                             mask = (labels == target_idx)
                             if mask.any():
                                 cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
-                                align_loss += torch.abs(-torch.mean(cosine_similarity))
+                                align_loss += (1 - torch.mean(torch.abs(cosine_similarity)))
 
                         loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
                         loss.backward()
@@ -225,17 +207,16 @@ def main():
                     stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
                     stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
 
-
                 classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                 alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                 total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                 plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
-                                 classificationloss_filename, alignmentloss_filename,total_loss)
+                                 classificationloss_filename, alignmentloss_filename, total_loss)
                 statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
-                save_statistics(stats , statistic_filename )
+                save_statistics(stats, statistic_filename)
                 logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
                 modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
-                torch.save(model_trained.state_dict(),modelsave_filename)
+                torch.save(model_trained.state_dict(), modelsave_filename)
 
     except Exception as e:
         logging.error(f"Error in main function: {e}")
@@ -252,10 +233,44 @@ if __name__ == "__main__":
     # Override the model name if provided
     if args.model_name:
         BASE_MODEL = args.model_name.strip().lower()
-        MODEL_PATH, MODEL , LAYER_NAMES, TRANSFORMS = override_parameters(args.model_name)
+        BASE_MODEL = BASE_MODEL.strip().lower()
+        BASE_MODEL_PATH = get_model_weight_path(BASE_MODEL)
+
+        # Configure logging
+        RESULTS_PATH = './results/' + BASE_MODEL + '/'
+        os.makedirs(RESULTS_PATH, exist_ok=True)
+        log_filename = f"./results/{BASE_MODEL}/audit_trail_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logging.basicConfig(
+            filename=log_filename,
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        logging.info("Script started.")
+
+        IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
+
+        # Load the model
+        MODEL = torch.load(BASE_MODEL_PATH, map_location=DEVICE)
+        MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
+        MODEL.to(DEVICE)
+        LAYER_NAMES = get_model_layers(MODEL)
+
+        # Transformations
+        TRAIN_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+        VALID_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
         logging.info(f"Model overridden with: {args.model_name}")
-        logging.info(f"Model path: {MODEL_PATH}")
+        logging.info(f"Model path: {BASE_MODEL_PATH}")
         logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
         logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
+
     main()
     logging.info("Script execution finished.")

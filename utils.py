@@ -43,7 +43,6 @@ def get_model_layers(model):
             layers.append(name)
         if isinstance(module, nn.MaxPool2d):
             layers.append(name)
-    # Return the last 3 layers they can be critical or the dimentionality will be reduced.
     return (layers[-4:])
 
 
@@ -75,7 +74,7 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations, orthogonal=False):  # changed the default value to False
+def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC'):
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
     clf = LinearSVC(max_iter=1500).fit(X, y)  # Try out SGDClassifier / LogisticRegression
