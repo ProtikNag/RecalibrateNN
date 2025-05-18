@@ -21,6 +21,7 @@ CONCEPT_FOLDER_LIST = [
 ]
 RANDOM_FOLDER = "./data/concept/random/"
 NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
+LINEAR_CLASSIFIER_TYPE = 'SGDClassifier'
 
 ##Hyper parameters
 LEARNING_RATE = 1e-3

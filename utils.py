@@ -5,6 +5,7 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from matplotlib import pyplot as plt
 import csv
+from sklearn.linear_model import SGDClassifier, LogisticRegression
 import torch.nn as nn
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -36,14 +37,15 @@ def get_model_weight_path(base_model):
 
 
 def get_model_layers(model):
+    layer_types = (nn.Conv2d, nn.MaxPool2d)
     layers = []
+    param_names = [name for name, _ in model.named_parameters()]
 
     for name, module in model.named_modules():
-        if isinstance(module, nn.Conv2d):
-            layers.append(name)
-        if isinstance(module, nn.MaxPool2d):
-            layers.append(name)
-    return (layers[-4:])
+        if isinstance(module, layer_types):
+            if any(pname.startswith(name) for pname in param_names):
+                layers.append(name)
+    return layers[-4:]
 
 
 # Auto parse class folders
@@ -77,7 +79,15 @@ def get_orthogonal_vector(cav_vector):
 def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC'):
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
-    clf = LinearSVC(max_iter=1500).fit(X, y)  # Try out SGDClassifier / LogisticRegression
+
+    if classifier_type == 'LinearSVC':
+        clf = LinearSVC(max_iter=1500)
+    elif classifier_type == 'SGDClassifier':
+        clf = SGDClassifier(loss='hinge', max_iter=1000, tol=1e-3)  # hinge = SVM-like
+    elif classifier_type == 'LogisticRegression':
+        clf = LogisticRegression(max_iter=1000, solver='liblinear')
+
+    clf.fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 

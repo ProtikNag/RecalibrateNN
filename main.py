@@ -9,13 +9,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from model import DeepCNN
 
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
 from config import (
-    LEARNING_RATE, EPOCHS, BATCH_SIZE,
-    DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST,
+    LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+    DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
     CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
 )
 
@@ -24,28 +25,10 @@ from utils import (
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers
 )
 
+MODEL = None
 TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
-
-try:
-    print("Calling methods get_class_folder_dicts")
-    train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
-    TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
-    print("Loading train datasets stand by")
-    train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
-    val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
-    print("Loading val datasets stand by")
-    dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
-    print("Loading concept datasets stand by")
-    concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
-    print("Loading random datasets stand by")
-    random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
-    logging.info("Data preparation completed successfully.")
-except Exception as e:
-    logging.error(f"Error during data preparation: {e}")
-    raise
+LAYER_NAMES = None
 
 activation = {}
 output_shape = {}
@@ -56,7 +39,7 @@ def get_activation(layer_name):
         activation[layer_name] = output
         output_shape[layer_name] = output.shape
         # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
-        print(f"Verify the output shape : Big shape means slower convergence Layername = {layer_name} , output.shape : {output.shape}")
+        print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
 
     return hook
 
@@ -75,7 +58,7 @@ def compute_cav(model, loader_positive, loader_random, layer_name, orthogonal=Fa
             rnd_acts.append(activation[layer_name].view(imgs.size(0), -1).cpu().numpy())
     pos_acts = np.vstack(pos_acts)
     rnd_acts = np.vstack(rnd_acts)
-    cav = train_cav(pos_acts, rnd_acts, orthogonal)
+    cav = train_cav(pos_acts, rnd_acts, orthogonal, LINEAR_CLASSIFIER_TYPE)
     return torch.tensor(cav, dtype=torch.float32, device=DEVICE)
 
 
@@ -250,10 +233,10 @@ if __name__ == "__main__":
         IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
 
         # Load the model
-        MODEL = torch.load(BASE_MODEL_PATH, map_location=DEVICE)
+        MODEL = DeepCNN(num_classes=NUM_CLASSES)
         MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
         MODEL.to(DEVICE)
-        LAYER_NAMES = get_model_layers(MODEL)
+        LAYER_NAMES = ["conv_block4.0"]
 
         # Transformations
         TRAIN_TRANSFORM = transforms.Compose([
@@ -262,6 +245,7 @@ if __name__ == "__main__":
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
+
         VALID_TRANSFORM = transforms.Compose([
             transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
             transforms.ToTensor(),
@@ -271,6 +255,26 @@ if __name__ == "__main__":
         logging.info(f"Model path: {BASE_MODEL_PATH}")
         logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
         logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
+
+        try:
+            print("Calling methods get_class_folder_dicts")
+            train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
+            TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
+            print("Loading train datasets stand by")
+            train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+            val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
+            print("Loading val datasets stand by")
+            dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+            validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+            class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+            print("Loading concept datasets stand by")
+            concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
+            print("Loading random datasets stand by")
+            random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+            logging.info("Data preparation completed successfully.")
+        except Exception as e:
+            logging.error(f"Error during data preparation: {e}")
+            raise
 
     main()
     logging.info("Script execution finished.")

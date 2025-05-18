@@ -10,18 +10,12 @@ from torchvision import transforms
 
 from custom_dataloader import MultiClassImageDataset
 from model import DeepCNN
-from utils import get_class_folder_dicts
+from utils import get_class_folder_dicts, get_num_classes
 
 SEED = 0
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
-
-def get_num_classes(base_path):
-    return len([
-        name for name in os.listdir(base_path)
-        if os.path.isdir(os.path.join(base_path, name))
-    ])
 
 NUM_CLASSES = get_num_classes('./data/multi_class_classification_1/')
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -48,15 +42,23 @@ def training_biased_model(
     os.makedirs("./model_weights", exist_ok=True)
 
     # Transforms
-    transform = transforms.Compose([
+    TRAIN_TRANSFORM = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
+    VALID_TRANSFORM = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
     # Load data
     train_folders, val_folders, class_names = get_class_folder_dicts(data_path)
-    train_dataset = MultiClassImageDataset(train_folders, transform=transform)
-    val_dataset = MultiClassImageDataset(val_folders, transform=transform)
+    train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+    val_dataset = MultiClassImageDataset(val_folders, transform=VALID_TRANSFORM)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
