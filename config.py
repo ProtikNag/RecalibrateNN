@@ -30,4 +30,5 @@ LINEAR_CLASSIFIER_TYPE = 'SGDClassifier'
 LEARNING_RATE = 1e-3
 EPOCHS = 15
 BATCH_SIZE = 64
-LAMBDA_ALIGNS = [round(i.item(), 2) for i in np.arange(0.5, 1.01, 3.10)]
+#LAMBDA_ALIGNS = [round(i.item(), 2) for i in np.arange(0.5, 1.01, 3.10)]
+LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0, 1.01, 0.10)]
