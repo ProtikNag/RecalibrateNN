@@ -29,10 +29,9 @@ def get_base_model_image_size(base_model_path):
     return image_size
 
 
-
-def get_model_weight_path(base_model, model_root_path =r'./model_weights'):
-    base_model_path = os.path.join(model_root_path , base_model + "/" + base_model + ".pth")
-    print(model_root_path, base_model_path )
+def get_model_weight_path(base_model, model_root_path=r'./model_weights'):
+    base_model_path = os.path.join(model_root_path, base_model + "/" + base_model + ".pth")
+    print(model_root_path, base_model_path)
     if not os.path.exists(base_model_path):
         raise FileNotFoundError(f"Model weights not found at {base_model_path}")
     return base_model_path

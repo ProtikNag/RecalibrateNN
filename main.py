@@ -34,7 +34,6 @@ activation = {}
 output_shape = {}
 
 
-
 def get_activation(layer_name):
     def hook(model, input, output):
         activation[layer_name] = output
@@ -142,9 +141,9 @@ def main():
                                 cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
                                 align_loss += (1 - torch.mean(torch.abs(cosine_similarity)))
                                 logging.info(
-                                f"Epoch {epoch + 1}/{EPOCHS}, "
-                                f"Minimization parameter: {(1 - torch.mean(torch.abs(cosine_similarity)))}, "
-                                f"target_idx: {target_idx}"
+                                    f"Epoch {epoch + 1}/{EPOCHS}, "
+                                    f"Minimization parameter: {(1 - torch.mean(torch.abs(cosine_similarity)))}, "
+                                    f"target_idx: {target_idx}"
                                 )
                         loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
                         loss.backward()
@@ -212,88 +211,85 @@ def main():
 
 
 if __name__ == "__main__":
-  # Argument parser to override the model name and model path
-  parser = argparse.ArgumentParser(description="Override model name and model path")
-  parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
-  parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
-  args = parser.parse_args()
+    # Argument parser to override the model name and model path
+    parser = argparse.ArgumentParser(description="Override model name and model path")
+    parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
+    parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
+    args = parser.parse_args()
 
-  # Check if both parameters are provided
-  if not args.model_name or not args.model_path:
-    print("Error: Both --model_name and --model_path must be provided.")
-  else:
-    BASE_MODEL = args.model_name.strip().lower()
-    BASE_MODEL_PATH = args.model_path.strip()
+    # Check if both parameters are provided
+    if not args.model_name or not args.model_path:
+        print("Error: Both --model_name and --model_path must be provided.")
+    else:
+        BASE_MODEL = args.model_name.strip().lower()
+        BASE_MODEL_PATH = args.model_path.strip()
 
+    # Override the model name if provided
+    if args.model_name:
+        BASE_MODEL = args.model_name.strip().lower()
+        BASE_MODEL = BASE_MODEL.strip().lower()
+        MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
 
+        # Configure logging
+        RESULTS_PATH = './results/' + BASE_MODEL + '/'
+        os.makedirs(RESULTS_PATH, exist_ok=True)
+        log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logging.basicConfig(
+            filename=log_filename,
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        logging.info("Script started.")
+        IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
+        # load model
+        MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
+        MODEL.to(DEVICE)
+        # Get all bottleneck layers
+        LAYER_NAMES = get_model_layers(MODEL)
+        NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
+    else:
+        # Load the model
+        MODEL = DeepCNN(num_classes=NUM_CLASSES)
+        MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
+        MODEL.to(DEVICE)
+        LAYER_NAMES = ["conv_block4.0"]
 
-  # Override the model name if provided
-  if args.model_name:
-      BASE_MODEL = args.model_name.strip().lower()
-      BASE_MODEL = BASE_MODEL.strip().lower()
-      MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
+    # Transformations
+    TRAIN_TRANSFORM = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
-      # Configure logging
-      RESULTS_PATH = './results/' + BASE_MODEL + '/'
-      os.makedirs(RESULTS_PATH, exist_ok=True)
-      log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-      logging.basicConfig(
-          filename=log_filename,
-          level=logging.INFO,
-          format='%(asctime)s - %(levelname)s - %(message)s'
-      )
-      logging.info("Script started.")
-      IMAGE_SIZE = get_base_model_image_size(BASE_MODEL) 
-      #load model 
-      MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
-      MODEL.to(DEVICE)
-      #Get all bottleneck layers
-      LAYER_NAMES = get_model_layers(MODEL)
-      NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
-  else:
+    VALID_TRANSFORM = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    logging.info(f"Model overridden with: {args.model_name}")
+    logging.info(f"Model path: {BASE_MODEL_PATH}")
+    logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
+    logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
 
-      # Load the model
-      MODEL = DeepCNN(num_classes=NUM_CLASSES)
-      MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
-      MODEL.to(DEVICE)
-      LAYER_NAMES = ["conv_block4.0"]
-
-  # Transformations
-  TRAIN_TRANSFORM = transforms.Compose([
-      transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-      transforms.RandomHorizontalFlip(),
-      transforms.ToTensor(),
-      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-  ])
-
-  VALID_TRANSFORM = transforms.Compose([
-      transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-      transforms.ToTensor(),
-      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-  ])
-  logging.info(f"Model overridden with: {args.model_name}")
-  logging.info(f"Model path: {BASE_MODEL_PATH}")
-  logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
-  logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
-
-  try:
-    print("Calling methods get_class_folder_dicts")
-    train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
-    TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
-    print("Loading train datasets stand by")
-    train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
-    val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
-    print("Loading val datasets stand by")
-    dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), 
-    transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
-    print("Loading concept datasets stand by")
-    concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
-    print("Loading random datasets stand by")
-    random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
-    logging.info("Data preparation completed successfully.")
-  except Exception as e:
-    logging.error(f"Error during data preparation: {e}")
-  main()
-  logging.info("Script execution finished.")
+    try:
+        print("Calling methods get_class_folder_dicts")
+        train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
+        TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
+        print("Loading train datasets stand by")
+        train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+        val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
+        print("Loading val datasets stand by")
+        dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"),
+                                                              transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+        print("Loading concept datasets stand by")
+        concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
+        print("Loading random datasets stand by")
+        random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+        logging.info("Data preparation completed successfully.")
+    except Exception as e:
+        logging.error(f"Error during data preparation: {e}")
+    main()
+    logging.info("Script execution finished.")
