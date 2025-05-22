@@ -100,11 +100,12 @@ def train_cav(concept_activations, random_activations, orthogonal=False, classif
 
 def evaluate_accuracy(model, loader):
     """
-    Evaluates the model on a given DataLoader `loader` and appends:
+    Evaluates the model on a given DataLoader `loader` and returns:
     - Overall accuracy, precision, recall, F1 score
-    - Correct prediction count per class
-    to './results/validation_metrics.txt'.
+
+    If the evaluation fails due to empty predictions or labels, returns 0s and prints diagnostics.
     """
+    import os
     os.makedirs("./results", exist_ok=True)
 
     model.eval()
@@ -117,38 +118,55 @@ def evaluate_accuracy(model, loader):
         for imgs, labels in loader:
             imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
             outputs = model(imgs)
+
+            # Debug model output
+            print(f"[Debug] Model output stats — min: {outputs.min().item():.4f}, max: {outputs.max().item():.4f}")
+
+            if outputs.shape[0] == 0:
+                print("[Warning] Model returned empty output.")
+                continue
+
             preds = torch.argmax(outputs, dim=1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
 
-    # Overall metrics
+    if len(all_preds) == 0 or len(all_labels) == 0:
+        print("[Error] No predictions or labels collected. Returning default scores.")
+        return 0.0, 0.0, 0.0, 0.0
+
     acc = accuracy_score(all_labels, all_preds)
     precision = precision_score(all_labels, all_preds, average='macro', zero_division=0)
     recall = recall_score(all_labels, all_preds, average='macro', zero_division=0)
     f1 = f1_score(all_labels, all_preds, average='macro', zero_division=0)
 
-    # Class-wise stats
-    class_names = loader.dataset.class_names if hasattr(loader.dataset, "class_names") else [str(i) for i in
-                                                                                             sorted(set(all_labels))]
+    # Optional: Class-wise statistics
+    class_names = loader.dataset.class_names if hasattr(loader.dataset, "class_names") else [str(i) for i in sorted(set(all_labels))]
     class_correct_counts = {name: 0 for name in class_names}
     class_total_counts = {name: 0 for name in class_names}
 
     for true, pred in zip(all_labels, all_preds):
-        class_name = class_names[true]
-        class_total_counts[class_name] += 1
-        if true == pred:
-            class_correct_counts[class_name] += 1
+        try:
+            class_name = class_names[true]
+            class_total_counts[class_name] += 1
+            if true == pred:
+                class_correct_counts[class_name] += 1
+        except IndexError:
+            print(f"[Error] Label index {true} out of class_names range.")
 
-    # Append to results file
     for class_name in class_names:
         correct = class_correct_counts[class_name]
         total = class_total_counts[class_name]
-        print(f"Class: {class_name} — Correct: {correct} / {total}\n")
+        print(f"Class: {class_name} — Correct: {correct} / {total}")
 
     return acc, precision, recall, f1
 
 
 def compute_avg_confidence(model, loader, target_idx_list):
+    """
+    Computes the average confidence score for predictions that match each target class index in `target_idx_list`.
+
+    Returns a list of average confidence values (in order of target_idx_list).
+    """
     model.eval()
     class_confidences = {idx: [] for idx in target_idx_list}
 
@@ -156,20 +174,30 @@ def compute_avg_confidence(model, loader, target_idx_list):
         for imgs, _ in loader:
             imgs = imgs.to(DEVICE)
             outputs = model(imgs)
+
+            if outputs.ndim != 2:
+                raise ValueError(f"[Error] Unexpected output shape: {outputs.shape}")
             probs = torch.softmax(outputs, dim=1)
             preds = outputs.argmax(dim=1)
 
+            num_classes = probs.shape[1]
             for idx in target_idx_list:
+                if idx >= num_classes:
+                    print(f"[Warning] Target index {idx} exceeds number of model output classes ({num_classes}). Skipping.")
+                    continue
                 confs = probs[preds == idx, idx]
-                class_confidences[idx] += confs.tolist()
+                class_confidences[idx].extend(confs.tolist())
 
-    avg_confidences = {
-        idx: (np.mean(confs) if confs else 0.0)
-        for idx, confs in class_confidences.items()
-    }
+    avg_confidences = {}
+    for idx in target_idx_list:
+        confs = class_confidences.get(idx, [])
+        if len(confs) == 0:
+            print(f"[Warning] No predictions made for class {idx}. Confidence will be 0.")
+            avg_confidences[idx] = 0.0
+        else:
+            avg_confidences[idx] = float(np.mean(confs))
 
-    # Return as a list aligned with input index order
-    return [avg_confidences[idx] for idx in target_idx_list]
+    return [avg_confidences.get(idx, 0.0) for idx in target_idx_list]
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs,
