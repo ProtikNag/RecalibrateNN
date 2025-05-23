@@ -22,8 +22,9 @@ from config import (
 
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
-    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers
+    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader
 )
+
 
 MODEL = None
 TRAIN_TRANSFORM = None
@@ -96,9 +97,13 @@ def main():
             print("Computing the tcav scores can take a while stand by")
             tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+            print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+            logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+           
 
             acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
             avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+            results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
 
             logging.info(f"Accuracy Before: {acc_before:.4f}")
             logging.info(f"Precision Before: {precision_before:.4f}")
@@ -162,6 +167,9 @@ def main():
                     print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
 
                 acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
+                
+                results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                
                 print("Computing the tcav scores after can take a while stand by")
                 tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                               for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
@@ -186,6 +194,10 @@ def main():
                     "Recall After": round(recall_after, 3),
                     "F1 Before": round(f1_before, 3),
                     "F1 After": round(f1_after, 3),
+                    "Legacy Accuracy Before": round(acc_legacy_before, 3),
+                    "Legacy Accuracy After": round(acc_legacy_after, 3),
+                    "Class count  Before": class_count_legacy_before[i],
+                    "Class count After": class_count_legacy_after[i],
                 }
 
                 for i, class_name in enumerate(TARGET_CLASS_LIST):
@@ -208,6 +220,7 @@ def main():
     except Exception as e:
         logging.error(f"Error in main function: {e}, layer_name :{layer_name}, LAMBDA_ALIGN{LAMBDA_ALIGN} ")
     logging.info("Main function completed.")
+
 
 
 if __name__ == "__main__":

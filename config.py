@@ -25,9 +25,12 @@ CONCEPT_FOLDER_LIST = [
 RANDOM_FOLDER = "/home/concept/random/"
 NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
 LINEAR_CLASSIFIER_TYPE = 'SGDClassifier'
+#LINEAR_CLASSIFIER_TYPE = 'LogisticRegression'
 
 ##Hyper parameters
 LEARNING_RATE = 1e-3
 EPOCHS = 15
 BATCH_SIZE = 64
-LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0.25, 1.0, 0.25)]
+#LAMBDA_ALIGNS = [round(i.item(), 2) for i in np.arange(0.5, 1.01, 3.10)]
+LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0, 1.01, 0.10)]
+#LAMBDA_ALIGNS = [0.5]

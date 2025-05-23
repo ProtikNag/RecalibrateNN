@@ -11,6 +11,7 @@ import torch.nn as nn
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
+
 # Dynamically determine the number of classes
 def get_num_classes(base_path):
     return len([
@@ -46,6 +47,9 @@ def get_model_layers(model):
         if isinstance(module, layer_types):
             if any(pname.startswith(name) for pname in param_names):
                 layers.append(name)
+            else:
+                layers.append(name)
+    return layers
     return layers[-4:]
 
 
@@ -113,8 +117,10 @@ def evaluate_accuracy(model, loader):
 
     all_preds = []
     all_labels = []
+    batch_count = 0
 
     with torch.no_grad():
+        batch_count = batch_count + 1
         for imgs, labels in loader:
             imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
             outputs = model(imgs)
@@ -124,8 +130,8 @@ def evaluate_accuracy(model, loader):
 
             if outputs.shape[0] == 0:
                 print("[Warning] Model returned empty output.")
+                logging.info(f"Processing image batch: {batch_count}, the labels were {labels}")
                 continue
-
             preds = torch.argmax(outputs, dim=1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
@@ -174,7 +180,6 @@ def compute_avg_confidence(model, loader, target_idx_list):
         for imgs, _ in loader:
             imgs = imgs.to(DEVICE)
             outputs = model(imgs)
-
             if outputs.ndim != 2:
                 raise ValueError(f"[Error] Unexpected output shape: {outputs.shape}")
             probs = torch.softmax(outputs, dim=1)
@@ -198,6 +203,38 @@ def compute_avg_confidence(model, loader, target_idx_list):
             avg_confidences[idx] = float(np.mean(confs))
 
     return [avg_confidences.get(idx, 0.0) for idx in target_idx_list]
+
+
+
+def predict_from_loader(val_loader, model, class_names):
+    model.eval()
+    results = []
+    all_labels = []
+    all_preds = []
+    class_confidences = {cls: [] for cls in class_names}
+    class_counts = {cls: 0 for cls in class_names}
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = images.to(DEVICE)
+            labels = labels.to(DEVICE)
+            outputs = model(images)
+            confidences, preds = torch.max(torch.nn.functional.softmax(outputs, dim=1), 1)
+            for i in range(images.size(0)):
+                true_class = class_names[labels[i].item()]
+                pred_class = class_names[preds[i].item()]
+                all_preds.append(pred_class)
+                all_labels.append(true_class)
+                class_confidences[pred_class].append(confidences[i].item())
+                class_counts[true_class] += 1
+                results.append({
+                    "true_class": true_class,
+                    "predicted_class": pred_class,
+                    "Prediction Confidence": confidences[i].item()
+                })
+    acc = accuracy_score(all_labels, all_preds)
+    avg_confidences = {cls: (sum(vals)/len(vals) if vals else 0.0) for cls, vals in class_confidences.items()}
+    print(f"DEBUG acc = {acc} , avg_confidences = {avg_confidences}, class_counts: {class_counts}")
+    return results, avg_confidences, class_counts, acc
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs,
