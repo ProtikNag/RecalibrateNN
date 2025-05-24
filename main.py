@@ -89,133 +89,141 @@ def main():
     try:
         for layer_name in LAYER_NAMES:
             logging.info(f"Processing layer: {layer_name}")
+            try:
 
-            model_trained = copy.deepcopy(MODEL).to(DEVICE)
-            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-            print("Computing the cav vectors can take a while stand by")
-            cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
-            print("Computing the tcav scores can take a while stand by")
-            tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
-                           for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-            print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-            logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-           
-
-            acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
-            avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
-            results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
-
-            logging.info(f"Accuracy Before: {acc_before:.4f}")
-            logging.info(f"Precision Before: {precision_before:.4f}")
-            logging.info(f"Recall Before: {recall_before:.4f}")
-            logging.info(f"F1 Score Before: {f1_before:.4f}")
-            logging.info(f"Average Confidence Before: {avg_conf_before}")
-            logging.info(f"TCAV Score before : {tcav_before}")
-            print(f"Accuracy Before: {acc_before:.4f}, tcav_before: {tcav_before}")
-
-            for LAMBDA_ALIGN in LAMBDA_ALIGNS:
-                LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
-                logging.info(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
-                print(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
                 model_trained = copy.deepcopy(MODEL).to(DEVICE)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                model_trained.train()
-                for name, param in model_trained.named_parameters():
-                    param.requires_grad = (layer_name in name)
-                model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+                print("Computing the cav vectors can take a while stand by")
+                cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
+                print("Computing the tcav scores can take a while stand by")
+                tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+                logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+            
 
-                optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
-                loss_history = {"total": [], "cls": [], "align": []}
+                acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+                avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
 
-                for epoch in range(EPOCHS):
-                    total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
-                    for imgs, labels in dataset_loader:
-                        imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
-                        optimizer.zero_grad()
-                        if (BASE_MODEL == 'inception_v3'):
-                            outputs, aux_logits = model_trained(imgs)
-                        else:
-                            outputs = model_trained(imgs)
-                        cls_loss = nn.CrossEntropyLoss()(outputs, labels)
-                        f_l = activation[layer_name].view(imgs.size(0), -1)
+                logging.info(f"Accuracy Before: {acc_before:.4f}")
+                logging.info(f"Precision Before: {precision_before:.4f}")
+                logging.info(f"Recall Before: {recall_before:.4f}")
+                logging.info(f"F1 Score Before: {f1_before:.4f}")
+                logging.info(f"Average Confidence Before: {avg_conf_before}")
+                logging.info(f"TCAV Score before : {tcav_before}")
+                print(f"Accuracy Before: {acc_before:.4f}, tcav_before: {tcav_before}")
+            except Exception as e:
+                logging.error(f"Error during initial evaluation: {e}")
+                print(f"Error during initial evaluation: {e}")
+                continue
+            try:
+                for LAMBDA_ALIGN in LAMBDA_ALIGNS:
+                    LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
+                    logging.info(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
+                    print(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
+                    model_trained = copy.deepcopy(MODEL).to(DEVICE)
+                    model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                    model_trained.train()
+                    for name, param in model_trained.named_parameters():
+                        param.requires_grad = (layer_name in name)
+                    model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
 
-                        align_loss = 0.0
-                        for i, target_idx in enumerate(TARGET_IDX_LIST):
-                            mask = (labels == target_idx)
-                            if mask.any():
-                                cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
-                                align_loss += (1 - torch.mean(torch.abs(cosine_similarity)))
-                                logging.info(
-                                    f"Epoch {epoch + 1}/{EPOCHS}, "
-                                    f"Minimization parameter: {(1 - torch.mean(torch.abs(cosine_similarity)))}, "
-                                    f"target_idx: {target_idx}"
-                                )
-                        loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
-                        loss.backward()
-                        torch.nn.utils.clip_grad_norm_(model_trained.parameters(), max_norm=7)
-                        optimizer.step()
+                    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
+                    loss_history = {"total": [], "cls": [], "align": []}
 
-                        total_loss_epoch += loss.item()
-                        cls_loss_epoch += cls_loss.item()
-                        align_loss_epoch += align_loss.item()
+                    for epoch in range(EPOCHS):
+                        total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
+                        for imgs, labels in dataset_loader:
+                            imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
+                            optimizer.zero_grad()
+                            if (BASE_MODEL == 'inception_v3'):
+                                outputs, aux_logits = model_trained(imgs)
+                            else:
+                                outputs = model_trained(imgs)
+                            cls_loss = nn.CrossEntropyLoss()(outputs, labels)
+                            f_l = activation[layer_name].view(imgs.size(0), -1)
 
-                    n_batches = len(dataset_loader)
-                    loss_history["total"].append(total_loss_epoch / n_batches)
-                    loss_history["cls"].append(cls_loss_epoch / n_batches)
-                    loss_history["align"].append(align_loss_epoch / n_batches)
-                    logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
-                    print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
+                            align_loss = 0.0
+                            for i, target_idx in enumerate(TARGET_IDX_LIST):
+                                mask = (labels == target_idx)
+                                if mask.any():
+                                    cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
+                                    align_loss += (1 - torch.mean(torch.abs(cosine_similarity)))
+                                    logging.info(
+                                        f"Epoch {epoch + 1}/{EPOCHS}, "
+                                        f"Minimization parameter: {(1 - torch.mean(torch.abs(cosine_similarity)))}, "
+                                        f"target_idx: {target_idx}"
+                                    )
+                            loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
+                            loss.backward()
+                            torch.nn.utils.clip_grad_norm_(model_trained.parameters(), max_norm=7)
+                            optimizer.step()
 
-                acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
-                
-                results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
-                
-                print("Computing the tcav scores after can take a while stand by")
-                tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
-                              for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
-                logging.info(f"Accuracy After: {acc_after:.4f}")
-                logging.info(f"Precision After: {precision_after:.4f}")
-                logging.info(f"Recall After: {recall_after:.4f}")
-                logging.info(f"F1 Score After: {f1_after:.4f}")
-                logging.info(f"Average Confidence After: {avg_conf_after}")
-                logging.info(f"TCAV Score after : {tcav_after}")
-                print(f"Accuracy After: {acc_after:.4f}, tcav_after: {tcav_after}")
+                            total_loss_epoch += loss.item()
+                            cls_loss_epoch += cls_loss.item()
+                            align_loss_epoch += align_loss.item()
 
-                stats = {
-                    "Layer Name": layer_name,
-                    "Lambda Classification": LAMBDA_CLS,
-                    "Lambda Alignment": LAMBDA_ALIGN,
-                    "Accuracy Before": round(acc_before, 3),
-                    "Accuracy After": round(acc_after, 3),
-                    "Precision Before": round(precision_before, 3),
-                    "Precision After": round(precision_after, 3),
-                    "Recall Before": round(recall_before, 3),
-                    "Recall After": round(recall_after, 3),
-                    "F1 Before": round(f1_before, 3),
-                    "F1 After": round(f1_after, 3),
-                    "Legacy Accuracy Before": round(acc_legacy_before, 3),
-                    "Legacy Accuracy After": round(acc_legacy_after, 3),
-                    "Class count  Before": class_count_legacy_before[i],
-                    "Class count After": class_count_legacy_after[i],
-                }
+                        n_batches = len(dataset_loader)
+                        loss_history["total"].append(total_loss_epoch / n_batches)
+                        loss_history["cls"].append(cls_loss_epoch / n_batches)
+                        loss_history["align"].append(align_loss_epoch / n_batches)
+                        logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
+                        print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
 
-                for i, class_name in enumerate(TARGET_CLASS_LIST):
-                    stats[f"TCAV Before ({class_name})"] = round(tcav_before[i], 3)
-                    stats[f"TCAV After ({class_name})"] = round(tcav_after[i], 3)
-                    stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
-                    stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
+                    acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
+                    
+                    results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                    
+                    print("Computing the tcav scores after can take a while stand by")
+                    tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                                for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                    avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                    logging.info(f"Accuracy After: {acc_after:.4f}")
+                    logging.info(f"Precision After: {precision_after:.4f}")
+                    logging.info(f"Recall After: {recall_after:.4f}")
+                    logging.info(f"F1 Score After: {f1_after:.4f}")
+                    logging.info(f"Average Confidence After: {avg_conf_after}")
+                    logging.info(f"TCAV Score after : {tcav_after}")
+                    print(f"Accuracy After: {acc_after:.4f}, tcav_after: {tcav_after}")
 
-                classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
-                alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
-                total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
-                plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
-                                 classificationloss_filename, alignmentloss_filename, total_loss)
-                statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
-                save_statistics(stats, statistic_filename)
-                logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
-                modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
-                torch.save(model_trained.state_dict(), modelsave_filename)
+                    stats = {
+                        "Layer Name": layer_name,
+                        "Lambda Classification": LAMBDA_CLS,
+                        "Lambda Alignment": LAMBDA_ALIGN,
+                        "Accuracy Before": round(acc_before, 3),
+                        "Accuracy After": round(acc_after, 3),
+                        "Precision Before": round(precision_before, 3),
+                        "Precision After": round(precision_after, 3),
+                        "Recall Before": round(recall_before, 3),
+                        "Recall After": round(recall_after, 3),
+                        "F1 Before": round(f1_before, 3),
+                        "F1 After": round(f1_after, 3),
+                        "Legacy Accuracy Before": round(acc_legacy_before, 3),
+                        "Legacy Accuracy After": round(acc_legacy_after, 3),
+                        "Class count  Before": class_count_legacy_before[i],
+                        "Class count After": class_count_legacy_after[i]
+                    }
+
+                    for i, class_name in enumerate(TARGET_CLASS_LIST):
+                        stats[f"TCAV Before ({class_name})"] = round(tcav_before[i], 3)
+                        stats[f"TCAV After ({class_name})"] = round(tcav_after[i], 3)
+                        stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
+                        stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
+
+                    classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
+                                    classificationloss_filename, alignmentloss_filename, total_loss)
+                    statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
+                    save_statistics(stats, statistic_filename)
+                    logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
+                    modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
+                    torch.save(model_trained.state_dict(), modelsave_filename)
+            except Exception as e:
+                logging.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
+                print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
 
     except Exception as e:
         logging.error(f"Error in main function: {e}, layer_name :{layer_name}, LAMBDA_ALIGN{LAMBDA_ALIGN} ")
@@ -259,6 +267,9 @@ if __name__ == "__main__":
         MODEL.to(DEVICE)
         # Get all bottleneck layers
         LAYER_NAMES = get_model_layers(MODEL)
+        logging.info(f"Layer names present in this model are {LAYER_NAMES}")
+        LAYER_NAMES = get_model_layers(MODEL)[2:]
+        logging.info(f"Layer names trained now in this model are {LAYER_NAMES}")
         NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
     else:
         # Load the model
