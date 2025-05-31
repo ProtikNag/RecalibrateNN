@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 # Load your Excel file
-df = pd.read_excel("statistics_vgg16.xlsx")
+df = pd.read_excel("./consolidated_results/statistics_vgg16.xlsx")
 
 st.title("Interactive Data Filter and Scatter Plot")
 
