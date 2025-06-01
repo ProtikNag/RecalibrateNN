@@ -41,6 +41,7 @@ def get_activation(layer_name):
         output_shape[layer_name] = output.shape
         # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
+        logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
 
     return hook
 
