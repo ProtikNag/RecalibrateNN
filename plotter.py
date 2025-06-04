@@ -11,7 +11,8 @@ st.title("Interactive Data Filter and Scatter Plot")
 #columns_to_filter = ['Layer Name', 'Lambda Alignment', 'Accuracy Before']  # replace with your column names
 columns_to_filter = df.columns.tolist()
 print("Available columns for filtering:", columns_to_filter)
-columns_to_filter = st.sidebar.multiselect("Select columns to filter", df.columns.tolist(), default=df.columns.tolist())
+columns_to_filter = ['Layer Name', 'Lambda Alignment', 'Accuracy Before']
+# columns_to_filter = st.sidebar.multiselect("Select columns to filter", df.columns.tolist(), default=df.columns.tolist())
 if not columns_to_filter:
     st.error("No valid columns found for filtering.")
     st.stop()
