@@ -116,3 +116,14 @@ python main.py
 * train_cav: Trains the CAV using LinearSVC.
 * cosine_similarity_loss: Computes alignment loss.
 * evaluate_accuracy: Calculates model accuracy.
+
+`plot_gradcam_compare.py`
+```aiignore
+python new_grad.py \
+  --model_name vgg \
+  --model_before_path ./results/vgg16_before.pth \
+  --model_after_path ./results/vgg16_after.pth \
+  --target_class zebra \
+  --target_layer features.28
+
+```

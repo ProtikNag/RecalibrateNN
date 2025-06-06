@@ -12,17 +12,17 @@ torch.manual_seed(SEED)
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-CLASSIFICATION_DATA_BASE_PATH = "/home/multiclass_classification"
+CLASSIFICATION_DATA_BASE_PATH = "./data/multi_class_classification"
 TARGET_CLASS_LIST = ["deer", "horse", "zebra"]
 TARGET_FOLDER_LIST = [os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train") for class_name in TARGET_CLASS_LIST]
 
 
 CONCEPT_FOLDER_LIST = [
-    "/home/concept/deer/coat",             # for deer - Coat
-    "/home/concept/horse/horse_skin",      # for horse
-    "/home/concept/zebra/stripes"          # for zebra
+    "./data/concept/deer/coat",             # for deer - Coat
+    "./data/concept/horse/horse_skin",      # for horse
+    "./data/concept/zebra/stripes"          # for zebra
 ]
-RANDOM_FOLDER = "/home/concept/random/"
+RANDOM_FOLDER = "./data/concept/random/"
 NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
 LINEAR_CLASSIFIER_TYPE = 'SGDClassifier'
 #LINEAR_CLASSIFIER_TYPE = 'LogisticRegression'
