@@ -16,6 +16,7 @@ def get_target_layer(model, layer_name):
 
 
 def replace_relu_with_out_of_place(model):
+     
     for name, module in model.named_children():
         if isinstance(module, torch.nn.ReLU):
             setattr(model, name, torch.nn.ReLU(inplace=False))
@@ -32,7 +33,7 @@ def load_images(target_class):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5]*3, std=[0.5]*3),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     val_dir = os.path.join(CLASSIFICATION_DATA_BASE_PATH, target_class, "valid")
     dataset = SingleClassDataLoader(val_dir, transform=transform)
@@ -57,12 +58,30 @@ def compute_sensitivity(model, loader, class_idx):
 
 
 def plot_gradcam_comparison(model_before, model_after, gradcam_before, gradcam_after,
-                            image_tensors, sensitivity_scores, class_idx, target_class):
-    top_indices = sorted(range(len(sensitivity_scores)), key=lambda i: -sensitivity_scores[i])[:5]
-    top_images = [image_tensors[i] for i in top_indices]
-    top_scores = [sensitivity_scores[i] for i in top_indices]
+                            image_tensors, sensitivity_scores, class_idx, target_class, index_sort="top"):
 
-    for idx, (img_tensor, score) in enumerate(zip(top_images, top_scores)):
+    if(index_sort == "top"):
+      top_indices = sorted(range(len(sensitivity_scores)), key=lambda i: -sensitivity_scores[i])[:5]
+      top_images = [image_tensors[i] for i in top_indices]
+      top_scores = [sensitivity_scores[i] for i in top_indices]
+     
+      incides = top_indices
+      selected_images = top_images
+      scores = top_scores   
+      filename = f"results/top_{class_idx}_{type}"
+
+    else:
+      bottom_indices = sorted(range(len(sensitivity_scores)), key=lambda i: sensitivity_scores[i])[:5]
+      bottom_images = [image_tensors[i] for i in bottom_indices]
+      bottom_scores = [sensitivity_scores[i] for i in bottom_indices]
+      incides = bottom_indices
+      selected_images = bottom_images
+      scores = bottom_scores
+      filename = f"results/bottom_{class_idx}_{type}"
+    
+    
+
+    for idx, (img_tensor, score) in enumerate(zip(selected_images, scores)):
         img_tensor = img_tensor.unsqueeze(0).to(DEVICE)
 
         cam_before = gradcam_before.generate(img_tensor, class_idx=torch.tensor([class_idx], device=DEVICE))
@@ -87,19 +106,25 @@ def plot_gradcam_comparison(model_before, model_after, gradcam_before, gradcam_a
 
         plt.suptitle(f"Top-{idx+1} Sensitive {target_class.capitalize()} Image")
         plt.tight_layout()
-        plt.show()
+        #plt.show()
+         
+        plt.savefig(filename + f"{idx+1}.png")
 
+import copy
 
 def main(model_name: str, model_before_path: str, model_after_path: str,
          target_class: str, target_layer_name: str):
-
+         
+    print(model_before_path, model_after_path)
     # === Load models ===
     model_before = torch.load(model_before_path, map_location=DEVICE)
-    model_after = torch.load(model_after_path, map_location=DEVICE)
-
+    model_after = copy.deepcopy(model_before)
+    state_dict = torch.load(model_after_path)
+    model_after.load_state_dict(state_dict)
+    model_after.to(DEVICE)
+    #model_after = torch.load(model_after_path, map_location=DEVICE)
     replace_relu_with_out_of_place(model_before)
     replace_relu_with_out_of_place(model_after)
-
     model_before.to(DEVICE).eval()
     model_after.to(DEVICE).eval()
 
@@ -126,6 +151,11 @@ def main(model_name: str, model_before_path: str, model_after_path: str,
                             image_tensors, sensitivity_scores,
                             class_idx, target_class)
 
+    plot_gradcam_comparison(model_before, model_after,
+                            gradcam_before, gradcam_after,
+                            image_tensors, sensitivity_scores,
+                            class_idx, target_class, "bottom")
+
 
 if __name__ == "__main__":
     import argparse
@@ -136,7 +166,6 @@ if __name__ == "__main__":
     parser.add_argument('--model_after_path', type=str, required=True, help="Path to model after retraining")
     parser.add_argument('--target_class', type=str, required=True, help="Target class name (e.g., zebra)")
     parser.add_argument('--target_layer', type=str, required=True, help="Target layer name (e.g., features.28)")
-
     args = parser.parse_args()
     main(args.model_name, args.model_before_path, args.model_after_path,
          args.target_class, args.target_layer)
