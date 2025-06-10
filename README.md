@@ -94,6 +94,7 @@ Command \
 Run the main script:
 
 ```bash
+#If running in Srikanth platform set the environment variable PLATFORM="Srikanth" using  export PLATFORM="Srikanth"
 python main.py
 ```
 

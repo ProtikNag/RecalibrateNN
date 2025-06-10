@@ -2,6 +2,8 @@ import copy
 import os.path
 import logging
 
+import os
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -19,6 +21,16 @@ from config import (
     DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
     CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
 )
+
+if(os.environ.get('PLATFORM') == "Srikanth"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set ") 
+  from config_modified import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from Srikanths folder" )
+
 
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
