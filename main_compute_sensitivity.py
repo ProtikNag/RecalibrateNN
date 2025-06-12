@@ -37,7 +37,7 @@ from utils import (
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader 
 )
 
-from tcav_utils import (util_compute_cav)
+from tcav_utils import (util_compute_cav, util_compute_tcav_score, util_compute_sensitivity_score, util_compute_tcav_score_from_sensitivity)
 
 MODEL = None
 TRAIN_TRANSFORM = None
@@ -46,6 +46,15 @@ LAYER_NAMES = None
 
 activation = {}
 output_shape = {}
+#Shuffled data loaders
+class_dataloaders = []
+concept_loader_list = []
+random_loader = []
+#UnShuffled data loaders
+plain_class_dataloaders = []
+plain_concept_loader_list = []
+plain_random_loader = []
+validation_loader = []
 
 
 def get_activation(layer_name):
@@ -59,25 +68,7 @@ def get_activation(layer_name):
     return hook
 
 
-def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx):
-    logging.info(f"Computing TCAV score for layer: {layer_name}, target index: {target_idx}")
-    model.eval()
-    scores = []
-    for imgs in dataset_loader:
-        imgs = imgs.to(DEVICE)
-        with torch.enable_grad():
-            outputs = model(imgs)
-            f_l = activation[layer_name]
-            h_k = outputs[:, target_idx]
-            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()  # check the documentation for the default values
-            grad_flat = grad.view(grad.size(0), -1)
-            grad_norm = F.normalize(grad_flat, p=2, dim=1)
-            S = (grad_norm * cav_vector).sum(dim=1)
-            scores.append(S > 0)  # additional logging for sensitivity analysis
-    scores = torch.cat(scores)
-    logging.info(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
-    print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
-    return scores.float().mean().item()
+
 
 
 def main():
@@ -92,10 +83,14 @@ def main():
                 print("Computing the cav vectors can take a while stand by")
                 cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation) for concept_loader in concept_loader_list]
                 print("Computing the tcav scores can take a while stand by")
-                tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                tcav_before = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+                independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
+                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                print(independent_sensitivityscore)
+                exit()
             
 
                 acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
@@ -297,13 +292,18 @@ if __name__ == "__main__":
         val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
         print("Loading val datasets stand by")
         dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        plain_dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
         class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"),
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
         print("Loading concept datasets stand by")
         concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
+        plain_concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=False) for path in CONCEPT_FOLDER_LIST]
+
         print("Loading random datasets stand by")
         random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+        plain_random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=False)
         logging.info("Data preparation completed successfully.")
     except Exception as e:
         logging.error(f"Error during data preparation: {e}")

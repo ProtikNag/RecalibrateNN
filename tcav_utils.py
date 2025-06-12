@@ -39,7 +39,7 @@ from utils import (
 
 
 def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, orthogonal=False, dump_cav=True):
-    logger = Logger_Singleton()
+    logging = Logger_Singleton()
     pos_acts, rnd_acts = [], []
     model.eval()
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -61,5 +61,57 @@ def util_compute_cav(model, loader_positive, loader_random, layer_name, activati
       os.makedirs('.'+os.sep+'cav', exist_ok=True)
       with open(cav_filename, 'wb') as f:
          pickle.dump(cav, f)
-    logger.info(f"CAV for layer {layer_name} trained")
+    logging.info(f"CAV for layer {layer_name} trained")
     return torch.tensor(cav, dtype=torch.float32, device=DEVICE)
+
+
+def util_compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx, activation):
+    logging = Logger_Singleton()
+    logging.info(f"Computing TCAV score for layer: {layer_name}, target index: {target_idx}")
+    model.eval()
+    scores = []
+    for imgs in dataset_loader:
+        imgs = imgs.to(DEVICE)
+        with torch.enable_grad():
+            outputs = model(imgs)
+            f_l = activation[layer_name]
+            h_k = outputs[:, target_idx]
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()  # check the documentation for the default values
+            grad_flat = grad.view(grad.size(0), -1)
+            grad_norm = F.normalize(grad_flat, p=2, dim=1)
+            S = (grad_norm * cav_vector).sum(dim=1)
+            scores.append(S > 0)  # additional logging for sensitivity analysis
+    scores = torch.cat(scores)
+    logging.info(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
+    print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
+    return scores.float().mean().item()
+    
+def util_compute_sensitivity_score(model, layer_name, cav_vector, dataset_loader, target_idx, activation ):
+    logging = Logger_Singleton()
+    logging.info(f"Computing TCAV score for layer: {layer_name}, target index: {target_idx}")
+    model.eval()
+    scores = []
+    for imgs in dataset_loader:
+        imgs = imgs.to(DEVICE)
+        with torch.enable_grad():
+            outputs = model(imgs)
+            f_l = activation[layer_name]
+            h_k = outputs[:, target_idx]
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()  # check the documentation for the default values
+            grad_flat = grad.view(grad.size(0), -1)
+            grad_norm = F.normalize(grad_flat, p=2, dim=1)
+            S = (grad_norm * cav_vector).sum(dim=1)
+            #append the real sensitivity score
+            scores.append(S)  # additional logging for sensitivity analysis
+    scores = torch.cat(scores)
+    logging.info(f"Sensitivity score : {layer_name}, target index: {target_idx}, Scores: {scores}")
+    print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}, Scores: {scores}")
+    return scores
+    
+    
+def util_compute_tcav_score_from_sensitivity(scores):
+    logging = Logger_Singleton()
+    tcav_score = scores.float().mean().item()
+    logging.info(f"TCAV score {tcav_score}")
+    return
+    
