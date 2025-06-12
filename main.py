@@ -1,6 +1,6 @@
 import copy
 import os.path
-import logging
+from logger import Logger_Singleton
 
 import os
 
@@ -53,7 +53,7 @@ def get_activation(layer_name):
         output_shape[layer_name] = output.shape
         # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
-        logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
+        #logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
 
     return hook
 
@@ -268,11 +268,7 @@ if __name__ == "__main__":
         RESULTS_PATH = './results/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
         log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        logging.basicConfig(
-            filename=log_filename,
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
+        logging = Logger_Singleton(log_filename)
         logging.info("Script started.")
         IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
         # load model
