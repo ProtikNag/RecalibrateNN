@@ -3,7 +3,8 @@ import os.path
 from logger import Logger_Singleton
 import pandas as pd
 import os
-
+import traceback
+import rich
 import numpy as np
 import torch
 import torch.nn as nn
@@ -66,31 +67,31 @@ def get_activation(layer_name):
     return hook
 
 
-
-
-
 def main():
     logging.info("Main function started.")
     try:
         for layer_name in LAYER_NAMES:
             logging.info(f"Processing layer: {layer_name}")
+            
             try:
                 model_trained = copy.deepcopy(MODEL).to(DEVICE)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                 print("Computing the cav vectors can take a while stand by")
                 cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation) for concept_loader in concept_loader_list]
                 print("Computing the tcav scores can take a while stand by")
-                tcav_before = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation)
+                tcav_before = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation) \
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                 
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-                independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
+  
+                independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                             
                 independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
-                df["sensitivityscore_Before" ] = independent_sensitivityscore
-                print(df["sensitivityscore_Before" ])
+                sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
+                df[sensitivityscore_Before ] = independent_sensitivityscore
+                print(df[sensitivityscore_Before])
                 #logging.info(f"Individual sensitivity scores before: {df['sensitivityscore_Before'].to_string(index=False)}")
 
                 acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
@@ -106,8 +107,11 @@ def main():
                 print(f"Accuracy Before: {acc_before:.4f}, tcav_before: {tcav_before}")
             except Exception as e:
                 logging.error(f"Error during initial evaluation: {e}")
-                print(f"Error during initial evaluation: {e}")
+                logging.error(f"An error occurred in main method due to:{traceback.format_exc()}" )
+                print(f"[bold red]Error occured in main {traceback.format_exc()} [/bold red]")
                 continue
+            df.to_csv(dataframe_filename, index = False)
+            
             try:
                 for LAMBDA_ALIGN in LAMBDA_ALIGNS:
                     LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
@@ -116,13 +120,13 @@ def main():
                     model_trained = copy.deepcopy(MODEL).to(DEVICE)
                     model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                     model_trained.train()
+                    
                     for name, param in model_trained.named_parameters():
                         param.requires_grad = (layer_name in name)
+                    
                     model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
-
                     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
                     loss_history = {"total": [], "cls": [], "align": []}
-
                     for epoch in range(EPOCHS):
                         total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
                         for imgs, labels in dataset_loader:
@@ -167,17 +171,17 @@ def main():
                     results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                     
                     print("Computing the tcav scores after can take a while stand by")
-                    tcav_after = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                    tcav_after = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation) \
                                 for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+
                     independent_sensitivityscore_after = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                            
-                            
-                    independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
-                    df[f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" ] = independent_sensitivityscore
+                    independent_sensitivityscore_after = np.concatenate(independent_sensitivityscore_after)
+                    sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" 
+                    df[sensitivityscore_After] = independent_sensitivityscore_after
+                    df.to_csv(dataframe_filename, index = False)
                     print(df["sensitivityscore_After" ])
-                    logging.info(f"Individual sensitivity scores after: {df['sensitivityscore_After'].to_string(index=False)}")
-
+                    logging.info(f"Individual sensitivity scores after: {df[f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}"].to_string(index=False)}")
                     avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
                     logging.info(f"Accuracy After: {acc_after:.4f}")
                     logging.info(f"Precision After: {precision_after:.4f}")
@@ -222,12 +226,18 @@ def main():
                     modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
                     torch.save(model_trained.state_dict(), modelsave_filename)
                     df.to_csv(dataframe_filename, index = False)
+                    
             except Exception as e:
                 logging.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
                 print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
+                logging.error(f"An error occurred in main method due to following reason while computing tcav:{traceback.format_exc()}" )
+                print(f"[bold red]Error occured in main while computing tcav_after {traceback.format_exc()} [/bold red]")
+                continue
 
     except Exception as e:
         logging.error(f"Error in main function: {e}, layer_name :{layer_name}, LAMBDA_ALIGN{LAMBDA_ALIGN} ")
+        logging.error(f"An error occurred in main method due to following reason:{traceback.format_exc()}" )
+        print(f"[bold red]An error occurred in main method due to following reason {traceback.format_exc()} [/bold red]")
     logging.info("Main function completed.")
 
 
@@ -251,7 +261,6 @@ if __name__ == "__main__":
         BASE_MODEL = args.model_name.strip().lower()
         BASE_MODEL = BASE_MODEL.strip().lower()
         MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
-
         # Configure logging
         RESULTS_PATH = './results/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
@@ -309,7 +318,6 @@ if __name__ == "__main__":
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
         class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), \
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
-
         full_filelist = []
         full_class_idx = []
 
@@ -328,6 +336,9 @@ if __name__ == "__main__":
         logging.info("Data preparation completed successfully.")
     except Exception as e:
         logging.error(f"Error during data preparation: {e}")
+        logging.error(f"An error occurred  due to following reason:{traceback.format_exc()}" )
+        print(f"[bold red]An error occurred  due to following reason:{traceback.format_exc()} [/bold red]")
+        
         
     main()
     logging.info("Script execution finished.")
