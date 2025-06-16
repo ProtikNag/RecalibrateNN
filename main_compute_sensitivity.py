@@ -88,7 +88,7 @@ def main():
                 independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                             
-                independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+                independent_sensitivityscore = np.concatenate(independent_sensitivityscore.cpu())
                 sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
                 df[sensitivityscore_Before ] = independent_sensitivityscore
                 print(df[sensitivityscore_Before])
@@ -176,7 +176,7 @@ def main():
 
                     independent_sensitivityscore_after = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                    independent_sensitivityscore_after = np.concatenate(independent_sensitivityscore_after)
+                    independent_sensitivityscore_after = np.concatenate(independent_sensitivityscore_after.cpu())
                     sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" 
                     df[sensitivityscore_After] = independent_sensitivityscore_after
                     df.to_csv(dataframe_filename, index = False)
