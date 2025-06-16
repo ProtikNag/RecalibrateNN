@@ -37,6 +37,41 @@ from utils import (
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader 
 )
 
+def uils_getlayers(model_name):
+    LAYER_NAMES = None
+    if(model_name == 'vgg16'):
+        LAYER_NAMES = ['features.2','features.5','features.7','features.12','features.14','features.17','features.19','features.24']
+    if(model_name == 'inception_v3'):
+        LAYER_NAMES = ['Mixed_5b.branch5x5_2.conv','Mixed_5b.branch3x3dbl_1.conv','Mixed_5b.branch3x3dbl_2.conv','Mixed_5b.branch3x3dbl_3.conv','Mixed_5b.branch_pool.conv','Mixed_5c.branch1x1.conv', 
+'Mixed_5c.branch5x5_1.conv','Mixed_5c.branch5x5_2.conv','Mixed_5c.branch3x3dbl_1.conv','Mixed_5c.branch3x3dbl_2.conv','Mixed_5c.branch3x3dbl_3.conv','Mixed_5c.branch_pool.conv',
+'Mixed_5d.branch1x1.conv','Mixed_5d.branch5x5_1.conv','Mixed_5d.branch5x5_2.conv','Mixed_5d.branch3x3dbl_1.conv','Mixed_5d.branch3x3dbl_2.conv','Mixed_5d.branch3x3dbl_3.conv',
+'Mixed_5d.branch_pool.conv','Mixed_6a.branch3x3.conv','Mixed_6a.branch3x3dbl_1.conv','Mixed_6a.branch3x3dbl_2.conv','Mixed_6a.branch3x3dbl_3.conv','Mixed_6b.branch1x1.conv',
+'Mixed_6b.branch7x7_1.conv','Mixed_6b.branch7x7_2.conv','Mixed_6b.branch7x7_3.conv','Mixed_6b.branch7x7dbl_1.conv','Mixed_6b.branch7x7dbl_2.conv','Mixed_6b.branch7x7dbl_3.conv',
+'Mixed_6b.branch7x7dbl_4.conv','Mixed_6b.branch7x7dbl_5.conv','Mixed_6b.branch_pool.conv','Mixed_6c.branch1x1.conv','Mixed_6c.branch7x7_1.conv','Mixed_6c.branch7x7_2.conv',
+'Mixed_6c.branch7x7_3.conv','Mixed_6c.branch7x7dbl_1.conv','Mixed_6c.branch7x7dbl_2.conv','Mixed_6c.branch7x7dbl_3.conv','Mixed_6c.branch7x7dbl_4.conv','Mixed_6c.branch7x7dbl_5.conv',
+'Mixed_6c.branch_pool.conv','Mixed_6d.branch1x1.conv','Mixed_6d.branch7x7_1.conv','Mixed_6d.branch7x7_2.conv','Mixed_6d.branch7x7_3.conv','Mixed_6d.branch7x7dbl_1.conv',
+'Mixed_6d.branch7x7dbl_2.conv','Mixed_6d.branch7x7dbl_3.conv','Mixed_6d.branch7x7dbl_4.conv','Mixed_6d.branch7x7dbl_5.conv','Mixed_6d.branch_pool.conv','Mixed_6e.branch1x1.conv', 
+'Mixed_6e.branch7x7_1.conv','Mixed_6e.branch7x7_2.conv','Mixed_6e.branch7x7_3.conv','Mixed_6e.branch7x7dbl_1.conv','Mixed_6e.branch7x7dbl_2.conv','Mixed_6e.branch7x7dbl_3.conv', 
+'Mixed_6e.branch7x7dbl_4.conv','Mixed_6e.branch7x7dbl_5.conv','Mixed_6e.branch_pool.conv','Mixed_7a.branch3x3_1.conv','Mixed_7a.branch3x3_2.conv','Mixed_7a.branch7x7x3_1.conv', 
+'Mixed_7a.branch7x7x3_2.conv','Mixed_7a.branch7x7x3_3.conv','Mixed_7a.branch7x7x3_4.conv','Mixed_7b.branch1x1.conv','Mixed_7b.branch3x3_1.conv','Mixed_7b.branch3x3_2a.conv', 
+'Mixed_7b.branch3x3_2b.conv','Mixed_7b.branch3x3dbl_1.conv','Mixed_7b.branch3x3dbl_2.conv']
+    if(model_name == 'resnet50'):
+        LAYER_NAMES = ['layer1.0.conv2','layer1.0.conv3','layer1.0.downsample.0','layer1.1.conv1','layer1.1.conv2','layer1.1.conv3','layer1.2.conv1', 
+        'layer1.2.conv2','layer1.2.conv3','layer2.0.conv1','layer2.0.con2','layer2.0.conv3','layer2.0.downsample.0','layer2.1.conv1', 
+        'layer2.1.conv2','layer2.1.conv3','layer2.2.conv1','layer2.2.conv2','layer2.2.conv3','layer2.3.conv1', 
+        'layer2.3.conv2','layer2.3.conv3','layer3.0.conv1','layer3.0.conv2','layer3.0.conv3','layer3.0.downsample.0', 
+        'layer3.1.conv1','layer3.1.conv2','layer3.1.conv3','layer3.2.conv1','layer3.2.conv2','layer3.2.conv3','layer3.3.conv1', 
+        'layer3.3.conv2','layer3.3.conv3','layer3.4.conv1','layer3.4.conv2','layer3.4.conv3','layer3.5.conv1','layer3.5.conv2', 
+        'layer3.5.conv3','layer4.0.conv1','layer4.0.conv2','layer4.0.conv3','layer4.0.downsample.0','layer4.1.conv1','layer4.1.conv2',
+        'layer4.1.conv3','layer4.2.conv1','layer4.2.conv2']
+    if(model_name == 'mobilenet_v3_small'):
+        LAYER_NAMES = ['features.5','features.7','features.10','features.12','features.14','features.17','features.19','features.21']
+    if(model_name == 'mobilenet_v3_large'):
+        LAYER_NAMES = ['features.5','features.7','features.10','features.12','features.14']
+    
+    return LAYER_NAMES
+    
+
 
 def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, orthogonal=False, dump_cav=True):
     logging = Logger_Singleton()
@@ -111,7 +146,9 @@ def util_compute_sensitivity_score(model, layer_name, cav_vector, dataset_loader
     
 def util_compute_tcav_score_from_sensitivity(scores):
     logging = Logger_Singleton()
-    tcav_score = scores.float().mean().item()
+    tcav_score = []
+    for score in scores:
+      tcav_score.append(score.float().mean().item())
     logging.info(f"TCAV score {tcav_score}")
     return tcav_score
     

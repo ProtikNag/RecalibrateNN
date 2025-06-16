@@ -38,7 +38,8 @@ from utils import (
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader 
 )
 
-from tcav_utils import (util_compute_cav, util_compute_tcav_score, util_compute_sensitivity_score, util_compute_tcav_score_from_sensitivity)
+from tcav_utils import (util_compute_cav, util_compute_tcav_score, util_compute_sensitivity_score, 
+                        util_compute_tcav_score_from_sensitivity, uils_getlayers)
 
 MODEL = None
 TRAIN_TRANSFORM = None
@@ -89,7 +90,7 @@ def main():
                 sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
                 df[sensitivityscore_Before ] = independent_sensitivityscore
                 print(df[sensitivityscore_Before])
-                #logging.info(f"Individual sensitivity scores before: {df['sensitivityscore_Before'].to_string(index=False)}")
+                logging.info(f"Individual sensitivity scores before: {df[sensitivityscore_Before].to_string(index=False)}")
 
                 acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
                 avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
@@ -270,7 +271,9 @@ if __name__ == "__main__":
         MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
         MODEL.to(DEVICE)
         # Get all bottleneck layers
-        LAYER_NAMES = get_model_layers(MODEL)
+        LAYER_NAMES = uils_getlayers(BASE_MODEL)
+        if(LAYER_NAMES == None):
+            LAYER_NAMES = get_model_layers(MODEL)
         logging.info(f"Layer names present in this model are {LAYER_NAMES}")
         LAYER_NAMES = LAYER_NAMES[2:]
         logging.info(f"Layer names trained now in this model are {LAYER_NAMES}")

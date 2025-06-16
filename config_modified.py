@@ -19,4 +19,5 @@ RANDOM_FOLDER = "/home/concept/random/"
 NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
 LINEAR_CLASSIFIER_TYPE = 'SGDClassifier'
 #LINEAR_CLASSIFIER_TYPE = 'LogisticRegression'
+EPOCHS = 25
 LAMBDA_ALIGNS = [round(i.item(),2) for i in np.arange(0.5, 0.9, 0.10)]
