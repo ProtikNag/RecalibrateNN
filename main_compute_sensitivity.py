@@ -1,7 +1,7 @@
 import copy
 import os.path
 from logger import Logger_Singleton
-
+import pandas as pd
 import os
 
 import numpy as np
@@ -48,13 +48,12 @@ activation = {}
 output_shape = {}
 #Shuffled data loaders
 class_dataloaders = []
+validation_loader = []
 concept_loader_list = []
 random_loader = []
-#UnShuffled data loaders
-plain_class_dataloaders = []
-plain_concept_loader_list = []
-plain_random_loader = []
-validation_loader = []
+
+dataframe_filename = None
+df = pd.DataFrame()
 
 
 def get_activation(layer_name):
@@ -64,7 +63,6 @@ def get_activation(layer_name):
         # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
         #logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
-
     return hook
 
 
@@ -77,7 +75,6 @@ def main():
         for layer_name in LAYER_NAMES:
             logging.info(f"Processing layer: {layer_name}")
             try:
-
                 model_trained = copy.deepcopy(MODEL).to(DEVICE)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                 print("Computing the cav vectors can take a while stand by")
@@ -85,13 +82,16 @@ def main():
                 print("Computing the tcav scores can take a while stand by")
                 tcav_before = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                print(independent_sensitivityscore)
-                exit()
-            
+                            
+                independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+                df["sensitivityscore_Before" ] = independent_sensitivityscore
+                print(df["sensitivityscore_Before" ])
+                #logging.info(f"Individual sensitivity scores before: {df['sensitivityscore_Before'].to_string(index=False)}")
 
                 acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
                 avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
@@ -167,8 +167,17 @@ def main():
                     results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                     
                     print("Computing the tcav scores after can take a while stand by")
-                    tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                    tcav_after = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                                 for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                    independent_sensitivityscore_after = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
+                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                            
+                            
+                    independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+                    df[f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" ] = independent_sensitivityscore
+                    print(df["sensitivityscore_After" ])
+                    logging.info(f"Individual sensitivity scores after: {df['sensitivityscore_After'].to_string(index=False)}")
+
                     avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
                     logging.info(f"Accuracy After: {acc_after:.4f}")
                     logging.info(f"Precision After: {precision_after:.4f}")
@@ -212,6 +221,7 @@ def main():
                     logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
                     modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
                     torch.save(model_trained.state_dict(), modelsave_filename)
+                    df.to_csv(dataframe_filename, index = False)
             except Exception as e:
                 logging.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
                 print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
@@ -246,6 +256,7 @@ if __name__ == "__main__":
         RESULTS_PATH = './results/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
         log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        dataframe_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         logging = Logger_Singleton(log_filename)
         logging.info("Script started.")
         IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
@@ -255,7 +266,7 @@ if __name__ == "__main__":
         # Get all bottleneck layers
         LAYER_NAMES = get_model_layers(MODEL)
         logging.info(f"Layer names present in this model are {LAYER_NAMES}")
-        LAYER_NAMES = get_model_layers(MODEL)[2:]
+        LAYER_NAMES = LAYER_NAMES[2:]
         logging.info(f"Layer names trained now in this model are {LAYER_NAMES}")
         NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
     else:
@@ -290,22 +301,33 @@ if __name__ == "__main__":
         print("Loading train datasets stand by")
         train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
         val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
+        #print(train_dataset.getfilelist())
+        #print(val_dataset.getfilelist())      
+        #logging.info(f"Training data sets files {train_dataset.getfilelist()}")
         print("Loading val datasets stand by")
         dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-        plain_dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
-
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"),
+        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"), \
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+
+        full_filelist = []
+        full_class_idx = []
+
+        for class_loader , idx  in zip(class_dataloaders , TARGET_IDX_LIST):
+              for image_files in class_loader.dataset.image_files:
+                  full_filelist.append(os.path.join(class_loader.dataset.folder_path,image_files))
+                  full_class_idx.append(idx)
+        df["Full filepath"] = full_filelist
+        df["Full Class Index"] = full_class_idx
+        print(df["Full filepath"], df["Full Class Index"])
+        
         print("Loading concept datasets stand by")
         concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
-        plain_concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=False) for path in CONCEPT_FOLDER_LIST]
-
         print("Loading random datasets stand by")
         random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
-        plain_random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=False)
         logging.info("Data preparation completed successfully.")
     except Exception as e:
         logging.error(f"Error during data preparation: {e}")
+        
     main()
     logging.info("Script execution finished.")

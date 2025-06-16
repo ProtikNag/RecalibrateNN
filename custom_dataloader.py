@@ -22,6 +22,11 @@ class MultiClassImageDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image, label
+        
+    def getfilelist(self):
+        filelist = [i[0] for i in self.samples]
+        target_class = [i[1] for i in self.samples]
+        return (filelist, target_class)
 
 
 # SingleClassDataLoader
