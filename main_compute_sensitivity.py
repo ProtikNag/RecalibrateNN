@@ -183,8 +183,8 @@ def main():
                     sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" 
                     df[sensitivityscore_After] = independent_sensitivityscore_after
                     df.to_csv(dataframe_filename, index = False)
-                    print(df["sensitivityscore_After" ])
-                    logging.info(f"Individual sensitivity scores after: {df[f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}"].to_string(index=False)}")
+                    print(df[sensitivityscore_After ])
+                    logging.info(f"Individual sensitivity scores after: {df[sensitivityscore_After].to_string(index=False)}")
                     avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
                     logging.info(f"Accuracy After: {acc_after:.4f}")
                     logging.info(f"Precision After: {precision_after:.4f}")
