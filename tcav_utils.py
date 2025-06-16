@@ -113,5 +113,5 @@ def util_compute_tcav_score_from_sensitivity(scores):
     logging = Logger_Singleton()
     tcav_score = scores.float().mean().item()
     logging.info(f"TCAV score {tcav_score}")
-    return
+    return tcav_score
     

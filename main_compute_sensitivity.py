@@ -78,16 +78,12 @@ def main():
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                 print("Computing the cav vectors can take a while stand by")
                 cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation) for concept_loader in concept_loader_list]
-                print("Computing the tcav scores can take a while stand by")
-                tcav_before = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation) \
-                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                
-                print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-                logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-  
+                print("Computing the tcav scores and sensitivity scores can take a while stand by")
                 independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                            
+                tcav_before = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
+                print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+                logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
                 independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
                 sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
@@ -172,12 +168,10 @@ def main():
                     results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                     
                     print("Computing the tcav scores after can take a while stand by")
-                    tcav_after = [util_compute_tcav_score(model_trained, layer_name, cav, class_loader, idx, activation) \
-                                for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-
                     independent_sensitivityscore_after = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation)
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                             
+                    tcav_after = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore_after)
                     independent_sensitivityscore_after = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore_after]
                     independent_sensitivityscore_after = np.concatenate(independent_sensitivityscore_after)
                     sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{LAMBDA_ALIGN}" 
