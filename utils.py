@@ -7,6 +7,13 @@ from matplotlib import pyplot as plt
 import csv
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 import torch.nn as nn
+from logger import Logger_Singleton
+from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
+from torchvision.models import resnet50, vgg16,inception_v3, mobilenet_v3_large, mobilenet_v3_small
+from torch.utils.data import DataLoader
+from torchvision import transforms
+
+
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -287,5 +294,72 @@ def save_statistics(stat, filename="results/statistics.csv"):
         # Write header only if file doesn't exist
         if not file_exists:
             writer.writeheader()
-
         writer.writerow(stat)
+        
+        
+def load_model(model_name, model_path):
+    logger = Logger_Singleton()
+    logger.info(f"Model name: {model_name}, Model path {model_path}")
+    """
+    Load the model state dictionary from the specified path.
+    """
+    print(model_path)
+    model = torch.load(model_path)
+    model.eval()
+    return model
+
+def load_model_statedict(model, model_path):
+    logger = Logger_Singleton()
+    logger.info(f"Model Symmary: {model}, Model path {model_path}")
+    """
+    Load the model state dictionary from the specified path.
+    """
+    print(model_path)
+    model.load_state_dict(torch.load(model_path, weights_only=True))
+    return model
+
+
+def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE):
+    logger = Logger_Singleton()
+    # Transformations
+    IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
+    TRAIN_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    VALID_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
+    logger.info(f"Training folders: {train_folders} and the validation folders: {valid_folders}")
+    train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+    dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    return  dataset_loader, val_loader,TRAIN_TRANSFORM,VALID_TRANSFORM, class_names
+
+def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_folder_list, BATCH_SIZE):
+    logger = Logger_Singleton()
+    IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
+    TRAIN_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    VALID_TRANSFORM = transforms.Compose([
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    logger.info(f"Loading concept datasets stand by from the folders {concept_folder_list}")
+    print("Loading concept datasets stand by")
+    concept_loader = [DataLoader(SingleClassDataLoader(path, transform=TRAIN_TRANSFORM ), batch_size=BATCH_SIZE, shuffle=True) for path in concept_folder_list]
+    logger.info(f"Loading random datasets stand by from the folder {random_folder_list}")
+    print("Loading random datasets stand by")
+    random_loader = DataLoader(SingleClassDataLoader(random_folder_list, transform=TRAIN_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+    return concept_loader, random_loader

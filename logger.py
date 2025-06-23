@@ -47,6 +47,8 @@ class Logger_Singleton:
             self.logger.addHandler(handler)
 
     def log(self, level, method_name , message):
+        if(self._instance == None):
+            return
         if level == 'info':
             self.logger.info(message)
         elif level == 'debug':
@@ -57,6 +59,8 @@ class Logger_Singleton:
             self.logger.warning(f"Unknown log level: {level} - {message}")
 
     def info(self, message):
+        if(self._instance == None):
+            return
         try:
             method_name = inspect.stack()[1].function
         except exception as e:
@@ -67,6 +71,8 @@ class Logger_Singleton:
         self.logger.info(log_message)
             
     def debug(self, message):
+        if(self._instance == None):
+            return
         try:
             method_name = inspect.stack()[1].function
         except exception as e:
@@ -77,6 +83,8 @@ class Logger_Singleton:
         self.logger.debug(log_message)
             
     def warning(self, message):
+        if(self._instance == None):
+            return
         try:
             method_name = inspect.stack()[1].function
         except exception as e:
@@ -87,6 +95,8 @@ class Logger_Singleton:
         self.logger.warning(log_message)
 
     def error(self,  message):
+        if(self._instance == None):
+            return
         self.logger.setLevel(logging.WARNING)
         try:
             method_name = inspect.stack()[1].function
@@ -96,3 +106,6 @@ class Logger_Singleton:
 
         self.logger.setLevel(logging.ERROR)
         self.logger.error(log_message)
+        
+    def get_instance(self):
+        return self._instance
