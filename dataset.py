@@ -28,26 +28,26 @@ def get_image_dataset(MODEL_NAME):
 def get_layer_list(MODEL_NAME):
     if (MODEL_NAME == 'inception_v3'):
         return INCEPTION_V3_LAYERS
-    if(MODEL_NAME == 'vgg16')
+    if(MODEL_NAME == 'vgg16'):
         return 'VGG16_LAYERS'
-    if(MODEL_NAME == 'resnet50')
+    if(MODEL_NAME == 'resnet50'):
         return 'RESNET50_LAYERS'
-    if(MODEL_NAME == 'mobilenet_v3_small')
+    if(MODEL_NAME == 'mobilenet_v3_small'):
         return 'MOBILENET_V3_SMALL_LAYERS'
-    if(MODEL_NAME == 'mobilenet_v3_large')
+    if(MODEL_NAME == 'mobilenet_v3_large'):
         return 'MOBILENET_V3_LARGE_LAYERS'
         
 
 def get_lambda_val(MODEL_NAME):
     if (MODEL_NAME == 'inception_v3'):
         return lambda_inception
-    if(MODEL_NAME == 'vgg16')
+    if(MODEL_NAME == 'vgg16'):
         return lambda_vgg16
-    if(MODEL_NAME == 'resnet50')
+    if(MODEL_NAME == 'resnet50'):
         return lambda_resnet50
-    if(MODEL_NAME == 'mobilenet_v3_small')
+    if(MODEL_NAME == 'mobilenet_v3_small'):
         return lambda_mobilenet_v3_small
-    if(MODEL_NAME == 'mobilenet_v3_large')
+    if(MODEL_NAME == 'mobilenet_v3_large'):
         return lambda_mobilenet_v3_large
 
 
