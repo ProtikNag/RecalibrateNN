@@ -3,18 +3,22 @@ import torch.nn as nn
 from PIL import Image
 import os
 import numpy as np
+import cv2
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib import pyplot as plt
 from torchvision import transforms
 from captum.attr import IntegratedGradients
 from captum.attr import visualization as viz
 from utils import get_base_model_image_size
+from lime.lime_image import LimeImageExplainer
+from skimage.segmentation import mark_boundaries
 
 """
-  https://captum.ai/tutorials/Image_and_Text_Classification_LIME
-  https://captum.ai/tutorials/TorchVision_Interpret
-  https://captum.ai/api/
-  https://medium.com/@stepanulyanin/implementing-grad-cam-in-pytorch-ea0937c31e82
-  https://github.com/jacobgil/pytorch-grad-cam
+https://captum.ai/tutorials/Image_and_Text_Classification_LIME
+https://captum.ai/tutorials/TorchVision_Interpret
+https://captum.ai/api/
+https://medium.com/@stepanulyanin/implementing-grad-cam-in-pytorch-ea0937c31e82
+https://github.com/jacobgil/pytorch-grad-cam
 """
 
 def find_last_conv_layer_pytorch(model):
@@ -119,7 +123,8 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
         - The function currently assumes a hardcoded mapping of class indices to class names (e.g., 0 = deer, 1 = horse, 2 = zebra).
     """
     #hard coded the classes for now 0 = deer , 1 = Horse, 2 = Zebra
-    
+    for i in range(num_classes):
+        os.makedirs(save_dir +f'/{i}', exist_ok=True)
     for class_idx in range(num_classes):
         save_dir_new = save_dir + f'/{class_idx}'
         input_tensors = get_image_array(model_name, images[class_idx])
@@ -133,13 +138,9 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
                         baselines=baseline,
                         target=all_preds_tensors,
                         n_steps=200,
-                        internal_batch_size=10
-                       )   # shape [10, 3, 224, 224]
-                       
-        default_cmap = LinearSegmentedColormap.from_list('custom blue', 
-                                                 [(0, '#ffffff'),
-                                                  (0.25, '#000000'),
-                                                  (1, '#000000')], N=256)               
+                        internal_batch_size=10)   # shape [10, 3, 224, 224]
+        default_cmap = LinearSegmentedColormap.from_list('custom blue', [(0, '#ffffff'),(0.25, '#000000'), 
+                                                                         (1, '#000000')], N=256)               
         for i in range(len(attributions)):
             #Convert the CHW to HWC 
             attr = attributions[i].cpu().detach().numpy().transpose(1, 2, 0)
@@ -156,7 +157,171 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
             )
             fig, _ = vis_result
             if save_dir_new:
-                filename = f"integrated_gradients_sample_{i}_class_{all_preds_tensors[i]}.png"
+                filename = f"integrated_gradients_sample_{i}_class_{all_preds_tensors[i]}.svg"
                 filepath = os.path.join(save_dir_new,filename)
-                fig.savefig(filepath)
+                fig.savefig(filepath, format='svg')
     return 
+
+
+def show_cam_on_image(img, heatmap):
+    heatmap = cv2.resize(heatmap, (img.width, img.height))
+    heatmap = np.uint8(255 * heatmap)
+    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+    # Convert PIL image to OpenCV format
+    img_cv = np.array(img)
+    img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
+    superimposed_img = heatmap * 0.4 + img_cv
+    superimposed_img = np.uint8(255 * superimposed_img / np.max(superimposed_img))
+    superimposed_img = cv2.cvtColor(superimposed_img, cv2.COLOR_BGR2RGB)
+    return Image.fromarray(superimposed_img)
+
+"""_summary_
+GradCAM class for generating Class Activation Maps (CAM) using the Grad-CAM technique.
+    Returns:
+        _type_: _description_
+"""
+class GradCAM:
+    def __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = None
+        self.activations = None
+
+        # Register hooks to capture gradients and activations
+        self.target_layer.register_forward_hook(self._save_activations)
+        self.target_layer.register_backward_hook(self._save_gradients)
+        print(f"Registered hooks for layer: {self.target_layer}")
+
+    def _save_activations(self, module, input, output):
+        self.activations = output.detach()
+
+    def _save_gradients(self, module, grad_input, grad_output):
+        self.gradients = grad_output[0].detach()
+
+    def __call__(self, input_tensor, target_class=None):
+        self.model.eval()
+        
+        # Forward pass
+        output = self.model(input_tensor)
+        
+        if target_class is None:
+            # Get the predicted class if no target class is specified
+            target_class = output.argmax(dim=1).item()
+
+        # Zero gradients
+        self.model.zero_grad()
+
+        # Backward pass to compute gradients of the target class with respect to the target layer's output
+        one_hot_output = torch.zeros_like(output)
+        one_hot_output[0][target_class] = 1
+        output.backward(gradient=one_hot_output, retain_graph=True)
+        # Global average pooling of gradients
+        pooled_gradients = torch.mean(self.gradients, dim=[0, 2, 3])
+
+        # Weighted combination of activations
+        for i in range(self.activations.shape[1]):
+            self.activations[:, i, :, :] *= pooled_gradients[i]
+
+        # ReLU on the weighted activations
+        heatmap = torch.sum(self.activations, dim=1).squeeze()
+        heatmap = nn.functional.relu(heatmap)
+
+        # Normalize the heatmap
+        heatmap /= torch.max(heatmap)
+
+        return heatmap.cpu().numpy()
+    
+def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
+    """Function to explain the model predictions using GradCAM.  """
+    target_layer = find_last_conv_layer_pytorch(model)[1]  # Get the last convolutional layer
+    show_fig = False
+    grad_cam = GradCAM(model, target_layer)
+
+    for i in range(num_classes):
+        os.makedirs(save_dir +f'/{i}', exist_ok=True)
+    for i in range(num_classes):
+        image_array = get_image_array(MODEL_NAME, images[i])
+        all_preds ,all_probs = predictdata(image_array , model)
+        for img_idx in range(len(image_array)):
+            try:
+                original_image = Image.open(images[i][img_idx])
+                image = image_array[img_idx].unsqueeze(0)
+                heatmap = grad_cam(image, target_class= i)
+                image_np = image.squeeze(0).detach().cpu().numpy()
+                image_np = np.transpose(image_np, (1, 2, 0))  # Convert from (C, H, W) to (H, W, C)
+                image_np = (image_np - image_np.min()) / (image_np.max() - image_np.min()) 
+                cam_image = show_cam_on_image(original_image, heatmap)
+                if(show_fig == True):
+                    plt.figure()
+                    plt.imshow(cam_image)
+                #cam_image.save(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'))
+                fig, ax = plt.subplots()
+                ax.imshow(cam_image)
+                ax.axis('off')
+                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.svg'), format='svg', bbox_inches='tight')
+                plt.close(fig)
+                print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.svg'))
+            except Exception as e:
+                print(f"Error processing image {images[i][img_idx]}: {e}")
+                continue
+    print(f"GradCAM results saved in {save_dir}")
+    return
+    
+def permute_callback(images_np, model):
+    # Convert to torch tensor and permute to (N, C, H, W)
+    images_tensor = torch.from_numpy(images_np).permute(0, 3, 1, 2).float()
+    device = next(model.parameters()).device
+    images_tensor = images_tensor.to(device)
+    with torch.no_grad():
+        outputs = model(images_tensor)
+        probs = torch.softmax(outputs, dim=1).cpu().numpy()
+    return probs
+
+def lime_explainer(model, image_tensor,save_fig_path,  org_image_array=None):
+    show_fig = False
+    explainer = LimeImageExplainer()    
+    for i in range(len(image_tensor)):
+        explanation = explainer.explain_instance(
+            image_tensor[i].cpu().numpy().transpose(1, 2, 0), 
+            lambda x: permute_callback(x, model), 
+            top_labels=1, 
+            hide_color=0, 
+            num_samples=1000,
+        )
+        temp = explanation.get_image_and_mask(explanation.top_labels[0], positive_only=True, num_features=20, hide_rest=True)
+        image, mask = temp
+        fig, axes = plt.subplots(1, 2, figsize=(10, 10))
+        #Load the original image if provided
+        if org_image_array is not None:
+            org_image = org_image_array[i]
+            org_image = Image.open(org_image)
+            org_image = np.array(org_image)
+        axes[0].imshow(org_image if org_image is not None else image_tensor[i].cpu().numpy().transpose(1, 2, 0))
+        axes[0].set_title('Original image')
+        axes[0].axis('off')
+        axes[1].imshow(mark_boundaries(image.astype(np.uint8), mask))
+        axes[1].set_title('LIME Explanation')
+        axes[1].axis('off')
+        # Save the figure
+        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.svg')
+        plt.tight_layout()
+        plt.savefig(fig_path, bbox_inches='tight',format='svg')
+        plt.close(fig)
+        # Optionally show the figure
+        if show_fig:
+            plt.figure(fig.number)
+            plt.show()
+
+def xai_lime_explainer(MODEL_NAME, model, images, num_classes, save_dir ):
+    """
+    Function to explain the model predictions using LIME.
+    """
+    for i in range(num_classes):
+        os.makedirs(save_dir +f'/{i}', exist_ok=True)
+    
+    for i in range(num_classes):
+        image_array = get_image_array(MODEL_NAME, images[i])
+        all_preds ,all_probs = predictdata(image_array , model)
+        save_dir_dest = os.path.join(save_dir, str(i))
+        print(f"{save_dir_dest}.")
+        lime_explainer(model, image_array, save_dir_dest, images[i])

@@ -27,7 +27,12 @@ import pandas as pd
 from torchvision import transforms
 from utils import get_base_model_image_size
 import os
-from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch)
+from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch, xai_gradcam_explainer, xai_lime_explainer)
+from dataset import get_image_dataset , num_classes
+
+XAI_Integrated_gradients = True
+XAI_GradCAM              = True
+XAI_Lime                 = True
 
 MODEL = None
 TRAIN_TRANSFORM = None
@@ -38,46 +43,7 @@ activation = {}
 output_shape = {}
 df = pd.DataFrame()
 
-IMAGES_CLASS_0 = [
-    '/home/multiclass_classification/deer/train/b23f5bb88b.jpg',
-    '/home/multiclass_classification/deer/train/38cdafa0ff.jpg',
-    '/home/multiclass_classification/deer/train/3a1776bf9d.jpg',
-    '/home/multiclass_classification/deer/train/image_35.jpg',
-    '/home/multiclass_classification/deer/train/image_21.jpg',
-    '/home/multiclass_classification/deer/train/image_79.jpg',
-    '/home/multiclass_classification/deer/train/4171515070.jpg',
-    '/home/multiclass_classification/deer/train/image_65.jpg',
-    '/home/multiclass_classification/deer/train/image_32.jpg',
-    '/home/multiclass_classification/deer/train/4d88a12299.jpg'
-]
-
-IMAGES_CLASS_1 = [
-    '/home/multiclass_classification/horse/train/05_003.png',
-    '/home/multiclass_classification/horse/train/07_060.png',
-    '/home/multiclass_classification/horse/train/03_038.png',
-    '/home/multiclass_classification/horse/train/horse01-7.png',
-    '/home/multiclass_classification/horse/train/horse01-3.png',
-    '/home/multiclass_classification/horse/train/horse03-0.png',
-    '/home/multiclass_classification/horse/train/07_034.png',
-    '/home/multiclass_classification/horse/train/horse02-7.png',
-    '/home/multiclass_classification/horse/train/07_070.png',
-    '/home/multiclass_classification/horse/train/horse31-4.png'
-]
-
-IMAGES_CLASS_2 = [
-    '/home/multiclass_classification/zebra/train/n02391049_541.jpg',
-    '/home/multiclass_classification/zebra/train/n02391049_10158.jpg',
-    '/home/multiclass_classification/zebra/train/n02391049_2177.jpg',
-    '/home/multiclass_classification/zebra/train/n02391049_7434.jpg',
-    '/home/multiclass_classification/zebra/train/008.jpg',
-    '/home/multiclass_classification/zebra/train/image_8.jpeg',
-    '/home/multiclass_classification/zebra/train/n02391049_1743.jpg',
-    '/home/multiclass_classification/zebra/train/image_116.jpeg',
-    '/home/multiclass_classification/zebra/train/n02391049_9136.jpg',
-    '/home/multiclass_classification/zebra/train/image_45.jpeg'
-]
-
-IMAGES = [IMAGES_CLASS_0, IMAGES_CLASS_1, IMAGES_CLASS_2]
+IMAGES = get_image_dataset('vgg16')
 
 def get_activation(layer_name):
     def hook(model, input, output):
@@ -85,6 +51,14 @@ def get_activation(layer_name):
         output_shape[layer_name] = output.shape
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
     return hook
+
+def get_model(model_path, modified_model_path=None):
+    model = torch.load(model_path)
+    if(modified_model_path is not None):
+        model.load_state_dict(torch.load(modified_model_path, weights_only=True))
+    model.eval()
+    return model
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Obtain the original model path and the revised model path")
@@ -97,28 +71,40 @@ if __name__ == '__main__':
         "--org_model_path", "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth",
         "--modified_model_path", "/mnt/data/results/vgg16/loss_vgg16_features.12_0.5.pth",
         "--model_name", "vgg16",
-        "--save_dir", "./integrated_gradient"
+        "--save_dir", "./xai_images/integrated_gradient"
     ])
     BASE_MODEL_PATH = args.org_model_path.strip()
     MODIFIED_MODEL_PATH = args.modified_model_path.strip()
     MODEL_NAME = args.model_name.strip().lower()
-    save_dir = args.save_dir.strip()
-    model = torch.load(BASE_MODEL_PATH)
-    return_value = find_last_conv_layer_pytorch(model)
-    last_layer = return_value[0]
-    print(last_layer)
-    model.eval()
-    num_classes = 3
-    save_dir_before = os.path.join(save_dir, MODEL_NAME+'/before')
-    for i in range(num_classes):
-      os.makedirs(save_dir_before +f'/{i}', exist_ok=True)
-    xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before)
-    model_modified = torch.load(BASE_MODEL_PATH)
-    model_modified.load_state_dict(torch.load(MODIFIED_MODEL_PATH, weights_only=True))
-    return_value = find_last_conv_layer_pytorch(model_modified)
-    last_layer = return_value[0]
-    model_modified.eval()
-    save_dir_after = os.path.join(save_dir, MODEL_NAME+'/after')
-    for i in range(num_classes):
-      os.makedirs(save_dir_after +f'/{i}', exist_ok=True)
-    xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after)
+    IMAGES = get_image_dataset(MODEL_NAME)
+
+    ################################################################################################################
+    ############# Integrated Gradients ##########################################################
+    if(XAI_Integrated_gradients == True):
+        save_dir = args.save_dir.strip()
+        model = get_model(BASE_MODEL_PATH)
+        save_dir_before = os.path.join(save_dir, MODEL_NAME+'/before')
+        xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before)
+        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+        save_dir_after = os.path.join(save_dir, MODEL_NAME+'/after')
+        xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after)
+    ################################################################################################################
+    ############# GRAD CAM Implementation ##########################################################
+    if(XAI_GradCAM == True):
+        model = get_model(BASE_MODEL_PATH)
+        save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'before')
+        #def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
+        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir)
+        save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'after')
+        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir)
+    ################################################################################################################
+    ############# Lime Implementation ##########################################################
+    if(XAI_Lime == True):
+        model = get_model(BASE_MODEL_PATH)
+        save_dir = os.path.join('./xai_images/lime', MODEL_NAME,  'before')
+        xai_lime_explainer(MODEL_NAME, model, IMAGES, num_classes, save_dir)
+        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+        save_dir = os.path.join('./xai_images/lime', MODEL_NAME,  'after')
+        xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir)
+
