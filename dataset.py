@@ -61,7 +61,7 @@ def get_model_path(MODEL_NAME, layer_name, lambda_val):
             pass
     except Exception as e:
         print("File not found in the given path ")
-        raise FileNotFoundError(f"The file '{filepath}' was not found.")
+        raise FileNotFoundError(f"The file '{base_path}' was not found.")
     return (base_path)
     
     
