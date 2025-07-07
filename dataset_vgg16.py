@@ -36,3 +36,8 @@ IMAGES_CLASS_VGG16_2 = [
     '/home/multiclass_classification/zebra/train/n02391049_9136.jpg',
     '/home/multiclass_classification/zebra/train/image_45.jpeg'
 ]
+
+
+VGG16_LAYERS = ['features.12', 'features.14']
+
+lambda_vgg16 = [0.5,0.7]
