@@ -54,7 +54,6 @@ def get_activation(layer_name):
         # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
         #logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
-
     return hook
 
 
@@ -103,7 +102,6 @@ def main():
         for layer_name in LAYER_NAMES:
             logging.info(f"Processing layer: {layer_name}")
             try:
-
                 model_trained = copy.deepcopy(MODEL).to(DEVICE)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                 print("Computing the cav vectors can take a while stand by")
@@ -113,12 +111,9 @@ def main():
                             for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-            
-
                 acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
                 avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
                 results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
-
                 logging.info(f"Accuracy Before: {acc_before:.4f}")
                 logging.info(f"Precision Before: {precision_before:.4f}")
                 logging.info(f"Recall Before: {recall_before:.4f}")
@@ -141,10 +136,8 @@ def main():
                     for name, param in model_trained.named_parameters():
                         param.requires_grad = (layer_name in name)
                     model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
-
                     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
                     loss_history = {"total": [], "cls": [], "align": []}
-
                     for epoch in range(EPOCHS):
                         total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
                         for imgs, labels in dataset_loader:
@@ -156,7 +149,6 @@ def main():
                                 outputs = model_trained(imgs)
                             cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                             f_l = activation[layer_name].view(imgs.size(0), -1)
-
                             align_loss = 0.0
                             for i, target_idx in enumerate(TARGET_IDX_LIST):
                                 mask = (labels == target_idx)
@@ -172,22 +164,17 @@ def main():
                             loss.backward()
                             torch.nn.utils.clip_grad_norm_(model_trained.parameters(), max_norm=7)
                             optimizer.step()
-
                             total_loss_epoch += loss.item()
                             cls_loss_epoch += cls_loss.item()
                             align_loss_epoch += align_loss.item()
-
                         n_batches = len(dataset_loader)
                         loss_history["total"].append(total_loss_epoch / n_batches)
                         loss_history["cls"].append(cls_loss_epoch / n_batches)
                         loss_history["align"].append(align_loss_epoch / n_batches)
                         logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
                         print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
-
                     acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
-                    
                     results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
-                    
                     print("Computing the tcav scores after can take a while stand by")
                     tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
                                 for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
@@ -199,7 +186,6 @@ def main():
                     logging.info(f"Average Confidence After: {avg_conf_after}")
                     logging.info(f"TCAV Score after : {tcav_after}")
                     print(f"Accuracy After: {acc_after:.4f}, tcav_after: {tcav_after}")
-
                     stats = {
                         "Layer Name": layer_name,
                         "Lambda Classification": LAMBDA_CLS,
@@ -217,13 +203,11 @@ def main():
                         "Class count  Before": class_count_legacy_before[i],
                         "Class count After": class_count_legacy_after[i]
                     }
-
                     for i, class_name in enumerate(TARGET_CLASS_LIST):
                         stats[f"TCAV Before ({class_name})"] = round(tcav_before[i], 3)
                         stats[f"TCAV After ({class_name})"] = round(tcav_after[i], 3)
                         stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
                         stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
-
                     classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                     alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                     total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
@@ -237,7 +221,6 @@ def main():
             except Exception as e:
                 logging.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
                 print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
-
     except Exception as e:
         logging.error(f"Error in main function: {e}, layer_name :{layer_name}, LAMBDA_ALIGN{LAMBDA_ALIGN} ")
     logging.info("Main function completed.")
@@ -250,20 +233,20 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
     args = parser.parse_args()
-
+    if(os.getenv('DEBUG')):
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth","--model_name", "vgg16"])
+        args = parser.parse_args(["--model_path" , "/home/srikanth/trained_models/pytorch","--model_name", "mobilenet_v3_small"])
     # Check if both parameters are provided
     if not args.model_name or not args.model_path:
         print("Error: Both --model_name and --model_path must be provided.")
     else:
         BASE_MODEL = args.model_name.strip().lower()
         BASE_MODEL_PATH = args.model_path.strip()
-
     # Override the model name if provided
     if args.model_name:
         BASE_MODEL = args.model_name.strip().lower()
         BASE_MODEL = BASE_MODEL.strip().lower()
         MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
-
         # Configure logging
         RESULTS_PATH = './results/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
@@ -286,7 +269,6 @@ if __name__ == "__main__":
         MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
         MODEL.to(DEVICE)
         LAYER_NAMES = ["conv_block4.0"]
-
     # Transformations
     TRAIN_TRANSFORM = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
@@ -294,7 +276,6 @@ if __name__ == "__main__":
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-
     VALID_TRANSFORM = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
         transforms.ToTensor(),
@@ -304,7 +285,6 @@ if __name__ == "__main__":
     logging.info(f"Model path: {BASE_MODEL_PATH}")
     logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
     logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
-
     try:
         print("Calling methods get_class_folder_dicts")
         train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)

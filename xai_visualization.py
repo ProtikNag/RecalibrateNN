@@ -43,7 +43,19 @@ activation = {}
 output_shape = {}
 df = pd.DataFrame()
 
-IMAGES = get_image_dataset('vgg16')
+#MODEL_NAME = 'vgg16'
+#RECALIBRATED_MODEL = 'loss_vgg16_features.12_0.5.pth'
+#MODEL_NAME = 'inception_v3'
+#RECALIBRATED_MODEL = 'loss_inception_v3_Mixed_6b.branch7x7dbl_4.conv_0.6.pth'
+#MODEL_NAME  = "resnet50"
+#RECALIBRATED_MODEL = 'loss_resnet50_layer3.5.conv1_0.6.pth'
+#MODEL_NAME  = "mobilenet_v3_large"
+#RECALIBRATED_MODEL = 'loss_mobilenet_v3_large_features.5_0.6.pth'
+
+######################################
+MODEL_NAME = 'vgg16'
+RECALIBRATED_MODEL = 'loss_vgg16_features.12_0.7.pth'
+
 
 def get_activation(layer_name):
     def hook(model, input, output):
@@ -68,11 +80,25 @@ if __name__ == '__main__':
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
     args = parser.parse_args()
     args = parser.parse_args([
-        "--org_model_path", "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth",
-        "--modified_model_path", "/mnt/data/results/vgg16/loss_vgg16_features.12_0.5.pth",
-        "--model_name", "vgg16",
+        "--org_model_path", f"/home/srikanth/trained_models/pytorch/{MODEL_NAME}/{MODEL_NAME}.pth",
+        "--modified_model_path", f"/mnt/data/results/{MODEL_NAME}/{RECALIBRATED_MODEL}",
+        "--model_name", f"{MODEL_NAME}",
         "--save_dir", "./xai_images/integrated_gradient"
     ])
+    
+    """    
+
+    args = parser.parse_args([
+        "--org_model_path", f"/home/srikanth/trained_models/pytorch/{MODEL_NAME}/{MODEL_NAME}.pth",
+        "--modified_model_path", f"/mnt/data/results/{MODEL_NAME}/{RECALIBRATED_MODEL}",
+        "--model_name", f"{MODEL_NAME}",
+        "--save_dir", "./xai_images/integrated_gradient"
+    ])
+    """
+
+    
+    ''
+    
     BASE_MODEL_PATH = args.org_model_path.strip()
     MODIFIED_MODEL_PATH = args.modified_model_path.strip()
     MODEL_NAME = args.model_name.strip().lower()

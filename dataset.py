@@ -6,13 +6,15 @@ from dataset_mobilenet_v3_small import *
 from dataset_mobilenet_v3_large import *
  
 IMAGES_VGG16 = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
-IMAGES_INCEPTION = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
-IMAGES_MNET_SMALL = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
-IMAGES_MNET_LARGE = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
-IMAGES_RESNET = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
+IMAGES_INCEPTION_V3 = [IMAGES_CLASS_INCEPTION_V3_0, IMAGES_CLASS_INCEPTION_V3_1, IMAGES_CLASS_INCEPTION_V3_2]
+
+IMAGES_MOBILENET_V3_SMALL = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
+IMAGES_MOBILENET_V3_LARGE = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
+IMAGES_RESNET50 = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
 
 def get_image_dataset(MODEL_NAME):
-    if MODEL_NAME == 'vgg16':
+    print(MODEL_NAME)
+    if MODEL_NAME == 'vgg16':     
         return IMAGES_VGG16
     elif MODEL_NAME == 'inception_v3':
         return IMAGES_INCEPTION_V3
@@ -23,7 +25,8 @@ def get_image_dataset(MODEL_NAME):
     elif MODEL_NAME == 'resnet50':
         return IMAGES_RESNET50
     else :
-        raise ValueError(f"Unknown model: {MODEL_NAME}. Supported models are: vgg16, inception_v3, mobilenet_v3_small, mobilenet_v3_large, resnet50.")
+        print("*************", IMAGES_VGG16)
+        raise ValueError(f"Unknown model: . Supported models are: vgg16, inception_v3, mobilenet_v3_small, mobilenet_v3_large, resnet50.")
 
 def get_layer_list(MODEL_NAME):
     if (MODEL_NAME == 'inception_v3'):
