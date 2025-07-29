@@ -71,15 +71,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Obtainthe original model path and the revised model path")
     parser.add_argument("--org_model_path", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
+    parser.add_argument("--before_after", action='store_true', help="Default parameter for before after comparison if its true then before after comparison will be done")
     args = parser.parse_args()
     # Take the parameters passed by the program instead of user as this is running in debug mode. 
     if(os.getenv('DEBUG')):
         #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth","--model_name", "vgg16"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/resnet50/resnet50.pth","--model_name", "resnet50"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_small/mobilenet_v3_small.pth","--model_name", "mobilenet_v3_small"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_large/mobilenet_v3_large.pth","--model_name", "mobilenet_v3_large"])
         args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/inception_v3/inception_v3.pth","--model_name", "inception_v3"])
-    
-    BASE_MODEL_PATH = args.org_model_path.strip()
-    MODEL_NAME = args.model_name.strip()
-    layers = get_layer_list(MODEL_NAME)
+
+    before_after = args.before_after  
+    BASE_MODEL_PATH = args.org_model_path
+    MODEL_NAME = args.model_name
     lambda_val_list = get_lambda_val(MODEL_NAME)
     if not BASE_MODEL_PATH or not MODEL_NAME:
         raise ValueError("Please provide valid paths for org_model_path, and model_name")
@@ -99,6 +103,13 @@ if __name__ == "__main__":
     model_trained.to(device)
     full_filelist = []
     full_class_idx = []
+    if(before_after == True):
+      
+      layers = get_layer_list(MODEL_NAME)
+    else:
+      MODEL = load_model(MODEL_NAME, BASE_MODEL_PATH)
+      layers = get_model_layers(MODEL)
+      del (MODEL)
     ############## Load data #################################
     dataset_loader, val_loader,TRAIN_TRANSFORM , VALID_TRANSFORM, class_names = load_train_valid_dataset(MODEL_NAME,CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE)
     TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
@@ -138,29 +149,37 @@ if __name__ == "__main__":
             hook_handle.remove()
             activation.clear()  # Clear activations to free memory
             torch.cuda.empty_cache()
-            print("Evaluating the output of model after")
-            ############## AFTER ###################################
-            ############## Model AFTER #################################   
-            #Load the model
-            modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val)
-            model_trained = load_model_statedict(model_trained, modified_model_path)
-            model_trained.to(device)
-            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-            hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-            independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
-                                    for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-            logger.info(f"Sensitivity score for each image After is {independent_sensitivityscore}")
-            independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
-            tcav_after = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
-            independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
-            logger.info(f"tcav_after is {tcav_after}")
-            sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{lambda_val}"
-            df[sensitivityscore_After ] = independent_sensitivityscore
-            hook_handle.remove()
-            activation.clear()  # Clear activations to free memory
-            torch.cuda.empty_cache()
-            df.to_csv(dataframe_filename, index = False)
+            
+            if(before_after == True):
+              print("Evaluating the output of model after")
+              ############## AFTER ###################################
+              ############## Model AFTER #################################   
+              #Load the model
+              modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val)
+              model_trained = load_model_statedict(model_trained, modified_model_path)
+              model_trained.to(device)
+              model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+              hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+              independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
+                                      for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+              logger.info(f"Sensitivity score for each image After is {independent_sensitivityscore}")
+              independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
+              tcav_after = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
+              independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+              logger.info(f"tcav_after is {tcav_after}")
+              sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{lambda_val}"
+              df[sensitivityscore_After ] = independent_sensitivityscore
+              hook_handle.remove()
+              activation.clear()  # Clear activations to free memory
+              torch.cuda.empty_cache()
+              df.to_csv(dataframe_filename, index = False)
+            else:
+              # We need to go just once for before only computation and n times for before after based on lambda hence break
+              df.to_csv(dataframe_filename, index = False) 
+              continue
         del model_trained
+        if(before_after == False):
+            break
     
     
     
