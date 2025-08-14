@@ -49,7 +49,6 @@ def get_model_layers(model):
     layer_types = (nn.Conv2d, nn.MaxPool2d)
     layers = []
     param_names = [name for name, _ in model.named_parameters()]
-
     for name, module in model.named_modules():
         if isinstance(module, layer_types):
             if any(pname.startswith(name) for pname in param_names):
@@ -57,7 +56,6 @@ def get_model_layers(model):
             else:
                 layers.append(name)
     return layers
-    return layers[-4:]
 
 
 # Auto parse class folders

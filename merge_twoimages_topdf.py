@@ -5,7 +5,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 image1 = '/home/srikanth/study1/RecalibrateNN/xai_images/gradcam/vgg16/before/0/gradcam_13.svg'
-image2 = '/home/srikanth/study1/RecalibrateNN/xai_images/gradcam/vgg16/before/0/gradcam_14.svg'
+image2 = '/home/srikanth/study1/RecalibrateNN/xai_images/gradcam/vgg16/before/0/gradcam_15.svg'
 
 def svg_to_png(svg_path, output_png_path, width, height):
     # Convert SVG to PNG with specified width and height

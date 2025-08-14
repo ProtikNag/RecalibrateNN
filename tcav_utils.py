@@ -68,7 +68,6 @@ def uils_getlayers(model_name):
         LAYER_NAMES = ['features.5','features.7','features.10','features.12','features.14','features.17','features.19','features.21']
     if(model_name == 'mobilenet_v3_large'):
         LAYER_NAMES = ['features.5','features.7','features.10','features.12','features.14']
-    
     return LAYER_NAMES
     
 

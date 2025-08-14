@@ -246,14 +246,12 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
     args = parser.parse_args()
-
     # Check if both parameters are provided
     if not args.model_name or not args.model_path:
         print("Error: Both --model_name and --model_path must be provided.")
     else:
         BASE_MODEL = args.model_name.strip().lower()
         BASE_MODEL_PATH = args.model_path.strip()
-
     # Override the model name if provided
     if args.model_name:
         BASE_MODEL = args.model_name.strip().lower()
