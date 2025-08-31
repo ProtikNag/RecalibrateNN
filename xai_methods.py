@@ -157,9 +157,9 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
             )
             fig, _ = vis_result
             if save_dir_new:
-                filename = f"integrated_gradients_sample_{i}_class_{all_preds_tensors[i]}.pdf"
+                filename = f"integrated_gradients_sample_{i}_class_{all_preds_tensors[i]}.png"
                 filepath = os.path.join(save_dir_new,filename)
-                fig.savefig(filepath, format='pdf')
+                fig.savefig(filepath, format='png')
     return 
 
 
@@ -258,9 +258,9 @@ def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
                 fig, ax = plt.subplots()
                 ax.imshow(cam_image)
                 ax.axis('off')
-                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.pdf'), format='pdf', bbox_inches='tight')
+                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'), format='png', bbox_inches='tight')
                 plt.close(fig)
-                print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.pdf'))
+                print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'))
             except Exception as e:
                 print(f"Error processing image {images[i][img_idx]}: {e}")
                 continue
@@ -303,9 +303,9 @@ def lime_explainer(model, image_tensor,save_fig_path,  org_image_array=None):
         axes[1].set_title('LIME Explanation')
         axes[1].axis('off')
         # Save the figure
-        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.pdf')
+        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.png')
         plt.tight_layout()
-        plt.savefig(fig_path, bbox_inches='tight',format='pdf')
+        plt.savefig(fig_path, bbox_inches='tight',format='png')
         plt.close(fig)
         # Optionally show the figure
         if show_fig:
