@@ -155,6 +155,7 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
                 sign='positive',
                 show_colorbar=True,
                 outlier_perc=1,
+                use_pyplot  = False,
                 title=f"Integrated Gradients - Class {all_preds_tensors[i].item()}"
             )
             fig, _ = vis_result
