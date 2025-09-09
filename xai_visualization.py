@@ -110,20 +110,20 @@ if __name__ == '__main__':
         save_dir = args.save_dir.strip()
         model = get_model(BASE_MODEL_PATH)
         save_dir_before = os.path.join(save_dir, MODEL_NAME+'/before')
-        xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before)
+        xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before, title_prefix = "before")
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
         save_dir_after = os.path.join(save_dir, MODEL_NAME+'/after')
-        xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after)
+        xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
     ################################################################################################################
     ############# GRAD CAM Implementation ##########################################################
     if(XAI_GradCAM == True):
         model = get_model(BASE_MODEL_PATH)
         save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'before')
         #def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
-        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir)
+        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir, title_prefix ="before")
         save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'after')
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir)
+        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir, title_prefix ="after")
     ################################################################################################################
     ############# Lime Implementation ##########################################################
     if(XAI_Lime == True):

@@ -104,7 +104,7 @@ def predictdata(image_tensors , model):
     return all_preds ,all_probs
 
  
-def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, save_dir = './' ):
+def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, save_dir = './' ,title_prefix = ""):
     """
     xai_integrated_gradients(model_name, model, num_classes, images, n_steps=200, save_dir='./')
     Generates and visualizes Integrated Gradients attributions for a set of images and a given model.
@@ -156,11 +156,11 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
                 show_colorbar=True,
                 outlier_perc=1,
                 use_pyplot  = False,
-                title=f"Integrated Gradients - Class {all_preds_tensors[i].item()}"
+                title=f"Integrated Gradients - Class {all_preds_tensors[i].item()} - {title_prefix}"
             )
             fig, _ = vis_result
             if save_dir_new:
-                filename = f"integrated_gradients_sample_{i}_class_{all_preds_tensors[i]}.png"
+                filename = f"integrated_gradients_{i}_class_{all_preds_tensors[i]}.png"
                 filepath = os.path.join(save_dir_new,filename)
                 fig.savefig(filepath, format='png')
     return 
@@ -236,7 +236,7 @@ class GradCAM:
 
         return heatmap.cpu().numpy()
     
-def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
+def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir, title_prefix =""):
     """Function to explain the model predictions using GradCAM.  """
     target_layer = find_last_conv_layer_pytorch(model)[1]  # Get the last convolutional layer
     show_fig = False
@@ -263,6 +263,7 @@ def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
                 fig, ax = plt.subplots()
                 ax.imshow(cam_image)
                 ax.axis('off')
+                ax.set_title(f"GradCAM - Class{i} - {title_prefix}", fontsize=12)
                 fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'), format='png', bbox_inches='tight')
                 plt.close(fig)
                 print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'))
@@ -281,7 +282,6 @@ def permute_callback(images_np, model):
         outputs = model(images_tensor)
         probs = torch.softmax(outputs, dim=1).cpu().numpy()
     return probs
-
 def lime_explainer(model, image_tensor,save_fig_path,  org_image_array=None):
     show_fig = False
     explainer = LimeImageExplainer()    
