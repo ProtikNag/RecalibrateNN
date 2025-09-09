@@ -34,7 +34,7 @@ IMAGES_CLASS_RESNET50_2 = ['/home/multiclass_classification/zebra/train/n0239104
 '/home/multiclass_classification/zebra/train/046.jpg' ]
 
 
-
+"""
 RESNET50_LAYERS = ['layer1.0.conv2','layer1.0.conv3','layer1.1.conv2','layer1.2.conv1','layer1.2.conv2','layer2.0.conv1',
 'layer2.0.conv3','layer2.0.downsample.0','layer2.1.conv1','layer2.1.conv2','layer2.1.conv3','layer2.2.conv1',
 'layer2.2.conv2','layer2.3.conv1','layer2.3.conv2','layer2.3.conv3','layer3.0.conv1','layer3.0.conv2','layer3.0.conv3',
@@ -42,6 +42,8 @@ RESNET50_LAYERS = ['layer1.0.conv2','layer1.0.conv3','layer1.1.conv2','layer1.2.
 'layer3.3.conv1','layer3.3.conv2','layer3.3.conv3','layer3.4.conv1','layer3.4.conv2','layer3.4.conv3','layer3.5.conv1',
 'layer3.5.conv2','layer3.5.conv3','layer4.0.conv1','layer4.0.conv3','layer4.0.downsample.0','layer4.1.conv1',
 'layer4.1.conv2','layer4.2.conv2']
+"""
+RESNET50_LAYERS = ['layer1.0.conv2','layer1.0.conv3','layer4.0.conv1','layer4.0.conv2'] 
 
-
-lambda_resnet50 = [0.6,0.7,0.9,1]
+lambda_resnet50 = [0.5]
+#lambda_resnet50 = [0.6,0.7,0.9,1]

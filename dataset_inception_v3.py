@@ -33,7 +33,7 @@ IMAGES_CLASS_INCEPTION_V3_2 = [ '/home/multiclass_classification/zebra/train/ima
 '/home/multiclass_classification/zebra/train/n02391049_2803.jpg'
 ]
 
-
+"""
 INCEPTION_V3_LAYERS = ['Mixed_6b.branch7x7dbl_4.conv', 'Mixed_6c.branch1x1.conv',
 'Mixed_6c.branch7x7_2.conv', 'Mixed_6c.branch7x7_3.conv', 'Mixed_6c.branch7x7dbl_1.conv',
 'Mixed_6c.branch7x7dbl_2.conv', 'Mixed_6c.branch_pool.conv', 'Mixed_6d.branch7x7dbl_1.conv',
@@ -43,11 +43,12 @@ INCEPTION_V3_LAYERS = ['Mixed_6b.branch7x7dbl_4.conv', 'Mixed_6c.branch1x1.conv'
 'Mixed_7b.branch3x3_1.conv', 'Mixed_7b.branch3x3dbl_1.conv', 'Mixed_7b.branch3x3dbl_2.conv']
 
 
-"""
 INCEPTION_V3_LAYERS = ['Mixed_6b.branch7x7dbl_4.conv', 'Mixed_6c.branch1x1.conv',
 'Mixed_6c.branch7x7_2.conv', 'Mixed_6c.branch7x7_3.conv', 'Mixed_6c.branch7x7dbl_1.conv',
 'Mixed_6c.branch7x7dbl_2.conv', 'Mixed_6c.branch_pool.conv', 'Mixed_6d.branch7x7dbl_1.conv',
 'Mixed_6d.branch7x7dbl_2.conv', 'Mixed_6d.branch7x7dbl_4.conv', 'Mixed_6e.branch1x1.conv' ] 
 """
 
-lambda_inception = [0.6,0.8]
+INCEPTION_V3_LAYERS = ['Mixed_6e.branch1x1.conv']
+lambda_inception = [0.5]
+#lambda_inception = [0.6,0.8]

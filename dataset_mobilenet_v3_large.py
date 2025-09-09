@@ -36,6 +36,6 @@ IMAGES_CLASS_MOBILENET_V3_LARGE_2 = ['/home/multiclass_classification/zebra/trai
 
 
 
-MOBILENET_V3_LARGE_LAYERS = ['features.5', 'features.12']
+MOBILENET_V3_LARGE_LAYERS = ['features.5', 'features.11', 'features.12']
 
 lambda_mobilenet_v3_large = [0.5]

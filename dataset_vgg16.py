@@ -1,4 +1,44 @@
 IMAGES_CLASS_VGG16_0 = [
+'/home/multiclass_classification/deer/train/fec92271ef.jpg',
+'/home/multiclass_classification/deer/train/image_64.jpg',
+'/home/multiclass_classification/deer/train/2edbd423e7.jpg',
+'/home/multiclass_classification/deer/train/789d5733d0.jpg',
+'/home/multiclass_classification/deer/train/a5b32ae5f7.jpg',
+'/home/multiclass_classification/deer/train/e85b4d9a16.jpg',
+'/home/multiclass_classification/deer/train/3a1776bf9d.jpg',
+'/home/multiclass_classification/deer/train/image_72.jpg',
+'/home/multiclass_classification/deer/train/image_14.jpg',
+'/home/multiclass_classification/deer/train/image_74.jpg'
+]
+
+IMAGES_CLASS_VGG16_1 = [
+'/home/multiclass_classification/horse/train/horse11-5.png',
+'/home/multiclass_classification/horse/train/horse43-9.png',
+'/home/multiclass_classification/horse/train/07_105.png',
+'/home/multiclass_classification/horse/train/horse28-9.png',
+'/home/multiclass_classification/horse/train/horse32-6.png',
+'/home/multiclass_classification/horse/train/01_044.png',
+'/home/multiclass_classification/horse/train/02_038.png',
+'/home/multiclass_classification/horse/train/03_043.png',
+'/home/multiclass_classification/horse/train/horse37-4.png',
+'/home/multiclass_classification/horse/train/horse32-3.png'
+]
+
+IMAGES_CLASS_VGG16_2 = [
+'/home/multiclass_classification/zebra/train/034.jpg',
+'/home/multiclass_classification/zebra/train/image_36.jpeg',
+'/home/multiclass_classification/zebra/train/n02391049_79.jpg',
+'/home/multiclass_classification/zebra/train/n02391049_4748.jpg',
+'/home/multiclass_classification/zebra/train/296.jpg',
+'/home/multiclass_classification/zebra/train/n02391049_1441.jpg',
+'/home/multiclass_classification/zebra/train/028.jpg',
+'/home/multiclass_classification/zebra/train/132.jpg',
+'/home/multiclass_classification/zebra/train/n02391049_5276.jpg',
+'/home/multiclass_classification/zebra/train/314.jpg'
+]
+
+"""
+IMAGES_CLASS_VGG16_0 = [
     '/home/multiclass_classification/deer/train/b23f5bb88b.jpg', #0
     '/home/multiclass_classification/deer/train/38cdafa0ff.jpg', #1
     '/home/multiclass_classification/deer/train/3a1776bf9d.jpg', #2
@@ -18,6 +58,8 @@ IMAGES_CLASS_VGG16_0 = [
     '/home/multiclass_classification/deer/train/4853621eaa.jpg', #14 
     '/home/multiclass_classification/deer/train/94a7ed02ee.jpg'  #15
 ]
+
+
 
 IMAGES_CLASS_VGG16_1 = [
     '/home/multiclass_classification/horse/train/05_003.png',   #0 
@@ -39,7 +81,8 @@ IMAGES_CLASS_VGG16_1 = [
     '/home/multiclass_classification/horse/train/03_069.png',   #13
     '/home/multiclass_classification/horse/train/horse09-5.png',#14
     '/home/multiclass_classification/horse/train/02_021.png'    #15
-]                                                               
+]  
+                                                             
                                                                 
 IMAGES_CLASS_VGG16_2 = [                                        
     '/home/multiclass_classification/zebra/train/n02391049_541.jpg',  #0 
@@ -61,8 +104,9 @@ IMAGES_CLASS_VGG16_2 = [
     '/home/multiclass_classification/zebra/train/265.jpg',            #14
     '/home/multiclass_classification/zebra/train/n02391049_6121.jpg'  #15
 ]
+"""
 
 
-VGG16_LAYERS = ['features.12', 'features.14']
+VGG16_LAYERS = ['features.12', 'features.14', 'features.19', 'features.20', 'features.21']
 
 lambda_vgg16 = [0.5,0.7]

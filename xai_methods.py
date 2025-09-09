@@ -144,11 +144,13 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
         for i in range(len(attributions)):
             #Convert the CHW to HWC 
             attr = attributions[i].cpu().detach().numpy().transpose(1, 2, 0)
+            orig_img = np.array(input_tensors[i].cpu()).transpose(1, 2, 0)
             # Plot heatmap overlay
+            # Plot blended heatmap overlay
             vis_result = viz.visualize_image_attr(
                 attr,
-                np.array(input_tensors[i].cpu()),
-                method='heat_map',
+                orig_img,
+                method='blended_heat_map',  # <-- changed here
                 cmap=default_cmap,
                 sign='positive',
                 show_colorbar=True,
@@ -161,6 +163,8 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
                 filepath = os.path.join(save_dir_new,filename)
                 fig.savefig(filepath, format='png')
     return 
+
+ 
 
 
 def show_cam_on_image(img, heatmap):
