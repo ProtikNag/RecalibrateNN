@@ -30,7 +30,7 @@ ml_dtypes==0.5.1
 mpmath==1.3.0
 namex==0.0.8
 networkx==3.4.2
-numpy==2.2.4
+numpy==1.26.4
 numpy-utils==0.1.6
 opt_einsum==3.4.0
 optree==0.14.1
@@ -90,8 +90,6 @@ ml_dtypes==0.5.1
 mpmath==1.3.0
 namex==0.0.8
 networkx==3.4.2
-numpy==2.2.4
-numpy-utils==0.1.6
 opt_einsum==3.4.0
 optree==0.14.1
 packaging==24.2
@@ -153,8 +151,6 @@ ml_dtypes==0.5.1
 mpmath==1.3.0
 namex==0.0.8
 networkx==3.4.2
-numpy==2.2.4
-numpy-utils==0.1.6
 nvidia-cublas-cu12==12.4.5.8
 nvidia-cuda-cupti-cu12==12.4.127
 nvidia-cuda-nvrtc-cu12==12.4.127
@@ -195,7 +191,7 @@ torch==2.5.1
 torchaudio==2.5.1
 torchsummary==1.5.1
 torchvision==0.20.1
-triton==3.1.0
+triton
 typing_extensions==4.12.2
 tzdata==2025.2
 urllib3==2.3.0
