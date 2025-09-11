@@ -1,0 +1,11 @@
+sudo apt install -y python3
+sudo apt install -y python3-pip
+#Install a specific version of python 
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.12
+ln -sf /usr/bin/python3 /usr/bin/python
+python3 -m venv L40_2_PYTORCH_VENV
+mount /dev/sdb /mnt/data
+source /mnt/data/L40_P2_Pytorch_VENV/bin/activate
+pip install -r requirements.txt

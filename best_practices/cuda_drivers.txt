@@ -1,0 +1,16 @@
+----------------------------------------------------------------------
+Installing CUDA Drivers and NVIdia drivers on Platform 2
+NVIDIA-SMI 570.172.08             
+Driver Version: 570.172.08     
+CUDA Version: 12.8    
+----------------------------------------------------------------------
+lspci |grep -i nvidia
+sudo apt update
+sudo apt upgrade
+sudo apt install build-essential linux-headers-$(uname -r)
+lspci |grep -i nvidia
+sudo apt install dkms
+echo -e "blacklist nouveau\noptions nouveau modeset=0" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf
+apt install nvidia-cuda-toolkit
+sudo apt install nvidia-driver-570 nvidia-utils-570
+----------------------------------------------------------------------
