@@ -32,6 +32,25 @@ if(os.environ.get('PLATFORM') == "Srikanth"):
   print("Taking all the required path from Srikanths folder" )
 
 
+if(os.environ.get('PLATFORM') == "CUB"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with CALTECH Data ") 
+  from config_modified_cub import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from CALTECH Dataset folder" )
+
+if(os.environ.get('PLATFORM') == "IMAGENET"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with IMAGENET Data ") 
+  from config_modified_inet import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from IMAGENET Dataset folder" )
+
+
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader
