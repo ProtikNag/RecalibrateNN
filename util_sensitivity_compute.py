@@ -35,6 +35,23 @@ if(os.environ.get('PLATFORM') == "Srikanth"):
   )
   print("Taking all the required path from Srikanths folder" )
 
+if(os.environ.get('PLATFORM') == "CUB"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with CALTECH Data ") 
+  from config_modified_cub import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from CALTECH Dataset folder" )
+
+if(os.environ.get('PLATFORM') == "IMAGENET"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with IMAGENET Data ") 
+  from config_modified_inet import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from IMAGENET Dataset folder" )
 
 from utils import (
     get_base_model_image_size, get_model_layers, predict_from_loader,load_model, load_model_statedict,get_class_folder_dicts,
@@ -70,21 +87,28 @@ if __name__ == "__main__":
     # Argument parser to override the model name and model path
     parser = argparse.ArgumentParser(description="Obtainthe original model path and the revised model path")
     parser.add_argument("--org_model_path", type=str, default=None, help="Specify a model name to override the default model")
+    parser.add_argument("--recal_model_basepath", type=str, default=None, help="Specify a location of the recalibrated model base path")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--before_after", action='store_true', help="Default parameter for before after comparison if its true then before after comparison will be done")
     args = parser.parse_args()
     # Take the parameters passed by the program instead of user as this is running in debug mode. 
     if(os.getenv('DEBUG')):
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth","--model_name", "vgg16"])
-        args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/resnet50/resnet50.pth","--model_name", "resnet50"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_small/mobilenet_v3_small.pth","--model_name", "mobilenet_v3_small"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_large/mobilenet_v3_large.pth","--model_name", "mobilenet_v3_large"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/inception_v3/inception_v3.pth","--model_name", "inception_v3"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "vgg16"])
+        args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/resnet50/resnet50.pth", "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "resnet50"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_small/mobilenet_v3_small.pth", "--recal_model_basepath", "/mnt/data/results/" ,  "--model_name", "mobilenet_v3_small"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_large/mobilenet_v3_large.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "mobilenet_v3_large"])
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/inception_v3/inception_v3.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "inception_v3"])
 
     before_after = args.before_after  
     BASE_MODEL_PATH = args.org_model_path
     MODEL_NAME = args.model_name
     lambda_val_list = get_lambda_val(MODEL_NAME)
+    if(args.recal_model_basepath):
+        recal_model_basepath = args.recal_model_basepath
+    else:
+        recal_model_basepath = None
+    
+    
     if not BASE_MODEL_PATH or not MODEL_NAME:
         raise ValueError("Please provide valid paths for org_model_path, and model_name")
     print(f"Using org_model_path: {BASE_MODEL_PATH}, model_name: {MODEL_NAME}")
@@ -150,13 +174,16 @@ if __name__ == "__main__":
               hook_handle.remove()
               activation.clear()  # Clear activations to free memory
               torch.cuda.empty_cache()
-            
+              print(before_after)
               if(before_after == True):
                 print("Evaluating the output of model after")
                 ############## AFTER ###################################
                 ############## Model AFTER #################################   
                 #Load the model
-                modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val)
+                if(recal_model_basepath != None):
+                    modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val,recal_model_basepath)
+                else:
+                    modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val)
                 model_trained = load_model_statedict(model_trained, modified_model_path)
                 model_trained.to(device)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))

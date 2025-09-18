@@ -12,6 +12,13 @@ IMAGES_MOBILENET_V3_SMALL = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_
 IMAGES_MOBILENET_V3_LARGE = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
 IMAGES_RESNET50 = [IMAGES_CLASS_VGG16_0, IMAGES_CLASS_VGG16_1, IMAGES_CLASS_VGG16_2]
 
+if(os.environ.get("PLATFORM") == "Srikanth"):
+    RECALIBRATED_MODEL_BASE_PATH = '/mnt/data/results/'
+if(os.environ.get("PLATFORM") == "CUB"):
+    RECALIBRATED_MODEL_BASE_PATH = '/mnt/sdd/caltech/results/'
+
+
+
 def get_image_dataset(MODEL_NAME):
     print(MODEL_NAME)
     if MODEL_NAME == 'vgg16':     
@@ -55,9 +62,9 @@ def get_lambda_val(MODEL_NAME):
 
 
 
-def get_model_path(MODEL_NAME, layer_name, lambda_val):
+def get_model_path(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_path=RECALIBRATED_MODEL_BASE_PATH):
     
-    base_path = '/mnt/data/results/' +MODEL_NAME.strip() + '/loss_' + MODEL_NAME.strip() + '_' + layer_name.strip() + '_' + str(lambda_val) + '.pth' 
+    base_path = recalibrated_model_base_path +MODEL_NAME.strip() + '/loss_' + MODEL_NAME.strip() + '_' + layer_name.strip() + '_' + str(lambda_val) + '.pth' 
     print(base_path)
     try:
         with open(base_path, 'r') as f:

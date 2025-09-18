@@ -79,12 +79,15 @@ if __name__ == '__main__':
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
     args = parser.parse_args()
+    
+    """
     args = parser.parse_args([
         "--org_model_path", f"/home/srikanth/trained_models/pytorch/{MODEL_NAME}/{MODEL_NAME}.pth",
         "--modified_model_path", f"/mnt/data/results/{MODEL_NAME}/{RECALIBRATED_MODEL}",
         "--model_name", f"{MODEL_NAME}",
         "--save_dir", "./xai_images/integrated_gradient"
     ])
+    """
     
     """    
 
