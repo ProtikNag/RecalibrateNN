@@ -41,6 +41,15 @@ if(os.environ.get('PLATFORM') == "CUB"):
   )
   print("Taking all the required path from CALTECH Dataset folder" )
 
+if(os.environ.get('PLATFORM') == "CUB_MULTICLASS"):
+  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with CALTECH Data ") 
+  from config_modified_cub_multiclass import (
+      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
+      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
+      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
+  )
+  print("Taking all the required path from CALTECH Multiclass Dataset folder" )
+
 if(os.environ.get('PLATFORM') == "IMAGENET"):
   print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with IMAGENET Data ") 
   from config_modified_inet import (
@@ -306,7 +315,9 @@ if __name__ == "__main__":
     logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
     try:
         print("Calling methods get_class_folder_dicts")
+        print("Classification base path ", CLASSIFICATION_DATA_BASE_PATH)
         train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
+        print("Train folders , valid folders and class name ", train_folders, valid_folders, class_names)
         TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
         print("Loading train datasets stand by")
         train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
