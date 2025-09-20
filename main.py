@@ -325,8 +325,10 @@ if __name__ == "__main__":
         print("Loading val datasets stand by")
         dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, class_name + "/train"),
+        
+        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name),
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+        
         print("Loading concept datasets stand by")
         concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
         print("Loading random datasets stand by")
