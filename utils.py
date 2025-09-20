@@ -57,35 +57,7 @@ def get_model_layers(model):
                 layers.append(name)
     return layers
 
-"""
-# Auto parse class folders
-def get_class_folder_dicts(base_dir):
-    print(base_dir)
-    classes = sorted([d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))])
-    train_class_folders = {}
-    valid_class_folders = {}
 
-    for idx, class_name in enumerate(classes):
-        class_path = os.path.join(base_dir, class_name)
-        train_folder = os.path.join(class_path, 'train')
-        #Changed the name from valid to val instead
-        valid_folder = os.path.join(class_path, 'valid')
-        if os.path.exists(train_folder):
-            train_class_folders[train_folder] = idx
-        if os.path.exists(valid_folder):
-            valid_class_folders[valid_folder] = idx
-    return train_class_folders, valid_class_folders, classes
-"""
-
-# Example usage (assuming the directories exist)
-# try:
-#     base_directory = '/path/to/your/dataset'
-#     train_folders, valid_folders, class_names = get_class_folder_dicts(base_directory)
-#     print("Train Folders:", train_folders)
-#     print("Valid Folders:", valid_folders)
-#     print("Class Names:", class_names)
-# except FileNotFoundError as e:
-#     print(e)
 # Auto parse class folders
 def get_class_folder_dicts(base_dir):
     print(base_dir)
@@ -115,10 +87,9 @@ def get_class_folder_dicts(base_dir):
             train_class_folders[train_class_folder] = idx
         if os.path.exists(valid_class_folder):
             valid_class_folders[valid_class_folder] = idx
-
+    print(train_class_folders, valid_class_folders, classes)
     return train_class_folders, valid_class_folders, classes
-
-
+    
 
 def get_orthogonal_vector(cav_vector):
     random_vector = np.random.randn(*cav_vector.shape)
@@ -167,7 +138,6 @@ def evaluate_accuracy(model, loader):
     all_preds = []
     all_labels = []
     batch_count = 0
-
     with torch.no_grad():
         batch_count = batch_count + 1
         for imgs, labels in loader:
@@ -184,6 +154,7 @@ def evaluate_accuracy(model, loader):
             preds = torch.argmax(outputs, dim=1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
+            
 
     if len(all_preds) == 0 or len(all_labels) == 0:
         print("[Error] No predictions or labels collected. Returning default scores.")
@@ -196,6 +167,7 @@ def evaluate_accuracy(model, loader):
 
     # Optional: Class-wise statistics
     class_names = loader.dataset.class_names if hasattr(loader.dataset, "class_names") else [str(i) for i in sorted(set(all_labels))]
+
     class_correct_counts = {name: 0 for name in class_names}
     class_total_counts = {name: 0 for name in class_names}
 

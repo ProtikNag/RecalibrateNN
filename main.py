@@ -11,54 +11,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from model import DeepCNN
 
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
-from config import (
-    LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-    DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-    CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-)
-
-if(os.environ.get('PLATFORM') == "Srikanth"):
-  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set ") 
-  from config_modified import (
-      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-  )
-  print("Taking all the required path from Srikanths folder" )
-
-
-if(os.environ.get('PLATFORM') == "CUB"):
-  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with CALTECH Data ") 
-  from config_modified_cub import (
-      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-  )
-  print("Taking all the required path from CALTECH Dataset folder" )
-
-if(os.environ.get('PLATFORM') == "CUB_MULTICLASS"):
-  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with CALTECH Data ") 
-  from config_modified_cub_multiclass import (
-      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-  )
-  print("Taking all the required path from CALTECH Multiclass Dataset folder" )
-
-if(os.environ.get('PLATFORM') == "IMAGENET"):
-  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set with IMAGENET Data ") 
-  from config_modified_inet import (
-      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-  )
-  print("Taking all the required path from IMAGENET Dataset folder" )
-
+from ConfigSingleton import ConfigSingleton
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
@@ -133,15 +91,34 @@ def main():
                 model_trained = copy.deepcopy(MODEL).to(DEVICE)
                 model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                 print("Computing the cav vectors can take a while stand by")
-                cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
+                try:
+                    cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
+                except Exception as e:
+                    logging.error(f"Error during CAV computation: {e}")
+                    print(f"Error during CAV computation: {e}")
+                    continue
                 print("Computing the tcav scores can take a while stand by")
-                tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
-                            for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                try:
+                    tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                                for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                except Exception as e:
+                    logging.error(f"Error during TCAV score computation: {e}")
+                    print(f"Error during TCAV score computation: {e}")
+                    continue
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
-                acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
-                avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
-                results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                try:
+                    acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+                    avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                except Exception as e:
+                    logging.error(f"Error during accuracy evaluation: {e}")
+                    print(f"Error during accuracy evaluation: {e}")
+                print(validation_loader, TARGET_IDX_LIST)
+                try:
+                    results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                except Exception as e:
+                    logging.error(f"Error during legacy prediction: {e}")
+                    print(f"Error during legacy prediction: {e}")
                 logging.info(f"Accuracy Before: {acc_before:.4f}")
                 logging.info(f"Precision Before: {precision_before:.4f}")
                 logging.info(f"Recall Before: {recall_before:.4f}")
@@ -204,9 +181,19 @@ def main():
                     acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
                     results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                     print("Computing the tcav scores after can take a while stand by")
-                    tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
-                                for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                    avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                    try:
+                        tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                                    for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                    except Exception as e:
+                        logging.error(f"Error during TCAV score computation after training: {e}")
+                        print(f"Error during TCAV score computation after training: {e}")
+                        continue
+                    try:
+                        avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                    except Exception as e:
+                        logging.error(f"Error during average confidence computation after training: {e}")
+                        print(f"Error during average confidence computation after training: {e}")
+                        
                     logging.info(f"Accuracy After: {acc_after:.4f}")
                     logging.info(f"Precision After: {precision_after:.4f}")
                     logging.info(f"Recall After: {recall_after:.4f}")
@@ -260,7 +247,30 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Override model name and model path")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
+    parser.add_argument("--config_file", type=str, default=None, help="Specify a config file to override the default path")
     args = parser.parse_args()
+    config_file = args.config_file
+    print(config_file)
+    if config_file is not None:
+        if not os.path.isfile(config_file):
+            raise FileNotFoundError(f"Config file '{config_file}' does not exist.")
+    else:
+        raise FileNotFoundError(f"Config file parameter not provided in the command line")
+    config = ConfigSingleton(config_file)
+    SEED = config.SEED
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    CLASSIFICATION_DATA_BASE_PATH = config.CLASSIFICATION_DATA_BASE_PATH
+    TARGET_CLASS_LIST = config.TARGET_CLASS_LIST
+    RANDOM_FOLDER = config.RANDOM_FOLDER
+    CONCEPT_FOLDER_LIST = config.CONCEPT_FOLDER_LIST
+    LEARNING_RATE = config.LEARNING_RATE
+    EPOCHS = config.EPOCHS
+    BATCH_SIZE = config.BATCH_SIZE
+    NUM_CLASSES = config.NUM_CLASSES
+    LAMBDA_ALIGNS = config.LAMBDA_ALIGNS
+    LINEAR_CLASSIFIER_TYPE = config.LINEAR_CLASSIFIER_TYPE
+    print("Config file loaded successfully.")
     if(os.getenv('DEBUG')):
         #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth","--model_name", "vgg16"])
         args = parser.parse_args(["--model_path" , "/home/srikanth/trained_models/pytorch","--model_name", "mobilenet_v3_small"])
@@ -325,10 +335,8 @@ if __name__ == "__main__":
         print("Loading val datasets stand by")
         dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
-        
-        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name),
+        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name  ),
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
-        
         print("Loading concept datasets stand by")
         concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
         print("Loading random datasets stand by")
