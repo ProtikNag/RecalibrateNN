@@ -1,0 +1,34 @@
+# This is a full-line comment describing the entire file.
+
+# Path to the caltech dataset
+misc:
+   seed: 0
+
+classification:
+  data_base_path: "/mnt/sdd/caltech_training" # Path to the classification dataset base directory.
+  target_class_list:
+    - "001.Black_footed_Albatross"
+    - "002.Laysan_Albatross"
+    - "003.Sooty_Albatross"
+
+
+  linear_classifier_type: "SGDClassifier" # Specifies the type of linear classifier to use.
+  lambda_aligns: [ 0.5, 0.6, 0.7, 0.8]
+
+# --- CONCEPT CONFIGURATIONS ---
+# This section defines the paths for various concepts.
+concept:
+  base_path: "/mnt/sdd/parts"
+  target_folders:
+    - "001.Black_footed_Albatross/beak"
+    - "002.Laysan_Albatross/beak"
+    - "003.Sooty_Albatross/beak"
+    
+  random_folder: "/home/concept/random"
+
+hyperparameters:
+  learning_rate: 1e-03
+  epochs: 30
+  batch_size: 64
+  
+  
