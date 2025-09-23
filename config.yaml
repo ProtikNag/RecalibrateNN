@@ -11,6 +11,7 @@ classification:
     - "zebra"
   linear_classifier_type: "SGDClassifier" # Specifies the type of linear classifier to use.
   lambda_aligns: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+  sensitivityanalysis_lambdas: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
@@ -26,5 +27,4 @@ hyperparameters:
   learning_rate: 1e-03
   epochs: 30
   batch_size: 64
-  
   

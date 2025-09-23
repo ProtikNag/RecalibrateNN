@@ -13,6 +13,13 @@ class ConfigSingleton:
             cls._instance.config_file = config_file
             cls._instance._load_and_process_config()
         return cls._instance
+        
+    def is_subset(self, list1, list2):
+      """
+      Checks if list1 is a subset of list2.
+      """
+      return set(list1).issubset(set(list2))
+    
 
     def _load_and_process_config(self):
         try:
@@ -30,6 +37,12 @@ class ConfigSingleton:
         self.LINEAR_CLASSIFIER_TYPE = config['classification']['linear_classifier_type']
         self.NUM_CLASSES = self._get_num_classes(self.CLASSIFICATION_DATA_BASE_PATH)
         self.LAMBDA_ALIGNS = config['classification']['lambda_aligns']
+        self.SENSITIVITYANALYSIS_LAMBDAS = config['classification']['sensitivityanalysis_lambdas']
+        if(self.is_subset(self.LAMBDA_ALIGNS,self.SENSITIVITYANALYSIS_LAMBDAS)):
+            print(" sensitivity analysis lambdas is subset of the lambda aligns ")
+        else:
+            raise("Exception in lambda aligns and sensiticvity analysis ")
+            
 
         #Read all the concept and random sections
         config_base_path = config['concept']['base_path']
@@ -65,6 +78,8 @@ class ConfigSingleton:
         for target in self.TARGET_CLASS_LIST:
             folder_path = os.path.join(base_path,"valid/"+ target)
             results = self._verify_files_links(folder_path)
+        
+        
         
         if(not_found == 1):
             raise(" Some of the folders are not found or an incorrect link ")
