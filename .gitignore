@@ -6,3 +6,5 @@ data/
 *.pth*
 model_weights/
 results/
+cav/
+xai_images/
