@@ -38,25 +38,32 @@ recalibration:
   layers_to_train:
     vgg16:
       - 'features.5'
+      # - 'features.7'
+      # - 'features.12'
+      # - 'features.13'
+      # - 'features.14'
+      # - 'features.15'
+      # - 'features.21'
 
     inception_v3:
       - 'Mixed_6e.branch1x1.conv'
-      - 'Mixed_6e.branch7x7_1.conv'
-      - 'Mixed_7a.branch3x3_1.conv'
+      # - 'Mixed_6e.branch7x7_1.conv'
+      # - 'Mixed_7a.branch3x3_1.conv'
 
     resnet50:
       - 'layer4.0.conv1'
-      - 'layer4.0.conv2'
-      - 'layer4.1.conv1'
+      # - 'layer4.0.conv2'
+      # - 'layer4.1.conv1'
 
     mobilnet_v3_small:
       - 'features.5.block.0.0'
-      - 'features.6.block.0.0'
+      # - 'features.6.block.0.0'
 
     mobilenet_v3_large:
       - 'features.5.block.0.0'
-      - 'features.6.block.0.0'
-  lambda_aligns_recalib: [0.5, 0.6, 0.7, 0.8] 
+      # - 'features.6.block.0.0'
+  #lambda_aligns_recalib: [0.5, 0.6, 0.7, 0.8] 
+  lambda_aligns_recalib: [0.5]
 # --- END OF CONFIGURATIONS ---
 
 # Note all the XAI images can be captured here for before after comparison

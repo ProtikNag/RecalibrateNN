@@ -11,31 +11,17 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from model import DeepCNN
 
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
-from config import (
-    LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-    DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-    CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-)
-
-if(os.environ.get('PLATFORM') == "Srikanth"):
-  print("overriding config paths to point to directory structure of srikanth. Note Protik will not have this parameter set ") 
-  from config_modified import (
-      LEARNING_RATE, EPOCHS, BATCH_SIZE, NUM_CLASSES,
-      DEVICE, RANDOM_FOLDER, CONCEPT_FOLDER_LIST, LINEAR_CLASSIFIER_TYPE,
-      CLASSIFICATION_DATA_BASE_PATH, TARGET_CLASS_LIST, LAMBDA_ALIGNS
-  )
-  print("Taking all the required path from Srikanths folder" )
-
 
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader 
 )
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def uils_getlayers(model_name):
     LAYER_NAMES = None
@@ -72,7 +58,7 @@ def uils_getlayers(model_name):
     
 
 
-def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, orthogonal=False, dump_cav=True):
+def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, LINEAR_CLASSIFIER_TYPE, orthogonal=False, dump_cav=True):
     logging = Logger_Singleton()
     pos_acts, rnd_acts = [], []
     model.eval()

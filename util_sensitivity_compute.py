@@ -4,9 +4,6 @@ import pandas as pd
 import os.path
 import numpy as np
 import argparse
-
-
-from logger import Logger_Singleton
 from datetime import datetime
 
 import torch
@@ -15,10 +12,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
+from logger import Logger_Singleton
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
-from datetime import datetime
-
 
 from ConfigSingleton import ConfigSingleton
 from utils import (
@@ -54,17 +49,14 @@ def get_model_path(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_p
     print("Base path where the model is located ",base_path)
     return (base_path)
         
-
-
-
-
-    
     
 
 MODEL = None
 TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
 LAYER_NAMES = None
+OVERRIDE_RECALIB = None
+
 
 activation = {}
 output_shape = {}
@@ -78,6 +70,20 @@ def get_activation(layer_name):
         print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
         #logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
     return hook
+
+
+def get_layernames_override(MODEL_NAME, config):
+    if(MODEL_NAME == 'vgg16'):
+        return (config.VGG_RECALIB)
+    if(MODEL_NAME == 'resnet50'):
+        return (config.RESNET50_RECALIB)
+    if(MODEL_NAME == 'inception_v3'):
+        return (config.INCEPTION_V3_RECALIB)
+    if(MODEL_NAME == 'mobilenet_v3_small'):
+        return (config.MOBILENET_V3_SMALL_RECALIB)
+    if(MODEL_NAME == 'mobilenet_v3_large'):
+        return (config.MOBILENET_V3_LARGE_RECALIB)
+
 
 
 
@@ -114,6 +120,7 @@ if __name__ == "__main__":
     NUM_CLASSES = config.NUM_CLASSES
     LAMBDA_ALIGNS = config.LAMBDA_ALIGNS
     LINEAR_CLASSIFIER_TYPE = config.LINEAR_CLASSIFIER_TYPE
+    
     print("Config file loaded successfully.")
     # Get the training dataset and the validation dataset folders
     
@@ -154,12 +161,14 @@ if __name__ == "__main__":
     full_filelist = []
     full_class_idx = []
     if(before_after == True):
-      
-        layers = get_model_layers(model_trained)
+        if(config.OVERRIDE_RECALIB == True):
+            layers  =   get_layernames_override(MODEL_NAME, config)
+        else:
+            layers = get_model_layers(model_trained)
     else:
-      MODEL = load_model(MODEL_NAME, BASE_MODEL_PATH)
-      layers = get_model_layers(MODEL)
-      del (MODEL)
+        MODEL = load_model(MODEL_NAME, BASE_MODEL_PATH)
+        layers = get_model_layers(MODEL)
+        del (MODEL)
     ############## Load data #################################
     dataset_loader, val_loader,TRAIN_TRANSFORM , VALID_TRANSFORM, class_names = load_train_valid_dataset(MODEL_NAME,CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE)
     TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
@@ -182,7 +191,7 @@ if __name__ == "__main__":
         model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
         print("Computing the cav vectors can take a while stand by")
         logger.info("Computing the cav vectors can take a while stand by")
-        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation) for concept_loader in concept_loader_list]
+        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
         stored_cav_vector[layer_name] = cav_vectors 
         logger.info("Computing the sensitivity score can take a while stand by")
         independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
@@ -203,26 +212,21 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Model trained variable not yet defined  ")
     if(before_after == True):
-        for layer_name in layers:
-            for lambda_val in lambda_val_list:
-                try:
-
-                    ###########AFTER######################
-                    if(recal_model_basepath != None):
-                        modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val,recal_model_basepath)
-                        model_trained = load_model_statedict(model_trained, modified_model_path)
-                        hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                        model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                        model_trained.to(device)
-                        print("Computing the cav vectors can take a while stand by")
-                        logger.info("Computing the cav vectors can take a while stand by")
-                        try:
-                            print(concept_loader_list , random_loader) 
-                            cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation) for concept_loader in concept_loader_list]
-                        except Exception as e:
-                            print("EXit")
-                            exit()
-                        
+        for lambda_val in lambda_val_list:
+            try:
+                ###########AFTER######################
+                if(recal_model_basepath != None):
+                    modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val,recal_model_basepath)
+                    model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
+                    model_trained = load_model_statedict(model_trained, modified_model_path)
+                    hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                    model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                    model_trained.to(device)
+                    print("Computing the cav vectors can take a while stand by")
+                    logger.info("Computing the cav vectors can take a while stand by")
+                    try:
+                        print(concept_loader_list , random_loader) 
+                        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation,LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
                         stored_cav_vector[layer_name] = cav_vectors 
                         logger.info("Computing the sensitivity score can take a while stand by")
                         independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
@@ -239,14 +243,16 @@ if __name__ == "__main__":
                         activation.clear()  # Clear activations to free memory
                         torch.cuda.empty_cache()
                         df.to_csv(dataframe_filename, index = False)
-                except Exception as e:
-                    df.to_csv(dataframe_filename, index = False)
-                    #print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
-                    logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
-                    continue
-                try:
-                      del model_trained
-                except Exception as e:
-                      #print(f"Model trained variable not yet defined  ")
-                      continue
-                      
+                    except Exception as e:
+                        print(f"Exception obtained while computing util_compute_cav {e}")
+                        continue
+            except Exception as e:
+                df.to_csv(dataframe_filename, index = False)
+                print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
+                logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
+                continue
+            try:
+                del model_trained
+            except Exception as e:
+                print(f"Model trained variable not yet defined  ")
+                continue

@@ -80,7 +80,7 @@ class ConfigSingleton:
     
     def _read_xai_image_path(self, config):
         self.INTEGRATED_GRADIENT = config['xai_before_after']['integrated_gradients']
-        self.gradcam = config['xai_before_after']['grad_cam']
+        self.GRADCAM = config['xai_before_after']['grad_cam']
         self.LIME = config['xai_before_after']['lime']
         #Read all the xai image paths
         self.XAI_IMAGE_PATH = config['xai_before_after']['image_path']
