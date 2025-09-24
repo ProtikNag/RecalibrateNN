@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/mnt/sdd/caltech_training" # Path to the classification dataset base directory.
+  data_base_path: "/mnt/data/caltech_training" # Path to the classification dataset base directory.
   target_class_list:
     - "001.Black_footed_Albatross"
     - "002.Laysan_Albatross"
