@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/mnt/data/caltech_training" # Path to the classification dataset base directory.
+  data_base_path: "/mnt/sdd/caltech_training" # Path to the classification dataset base directory.
   target_class_list:
     - '001.Black_footed_Albatross'
     - '002.Laysan_Albatross'
@@ -14,7 +14,6 @@ classification:
 
   linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
   lambda_aligns: [ 0.5, 0.6, 0.7, 0.8]
-  sensitivityanalysis_lambdas: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
