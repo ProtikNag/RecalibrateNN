@@ -8,3 +8,5 @@ model_weights/
 results/
 cav/
 xai_images/
+model_layers/
+consolidated_results/
