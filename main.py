@@ -1,9 +1,6 @@
 import copy
 import os.path
-from logger import Logger_Singleton
-
 import os
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -11,11 +8,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
+from logger import Logger_Singleton
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
 from ConfigSingleton import ConfigSingleton
+
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 from utils import (
@@ -300,13 +298,23 @@ if __name__ == "__main__":
         logging.info(f"Layer names present in this model are {LAYER_NAMES}")
         LAYER_NAMES = get_model_layers(MODEL)[2:]
         logging.info(f"Layer names trained now in this model are {LAYER_NAMES}")
+        print(f"Layer names trained now in this model are {LAYER_NAMES}")
+        if(config.OVERRIDE_RECALIB):
+            #
+            if(BASE_MODEL == 'vgg16'):
+                #Get the layers
+                LAYER_NAMES = config.VGG_RECALIB
+            if(BASE_MODEL == 'resnet50'):
+                LAYER_NAMES = config.RESNET50_RECALIB
+            if(BASE_MODEL == 'inception_v3'):
+                LAYER_NAMES = config.INCEPTION_V3_RECALIB
+            if(BASE_MODEL == 'mobilenet_v3_small'):
+                LAYER_NAMES = config.MOBILENET_V3_SMALL_RECALIB
+            if(BASE_MODEL == 'mobilenet_v3_large'):
+                LAYER_NAMES = config.MOBILENET_V3_LARGE_RECALIB
+            logging.info(f"Layer names Override the following layers {LAYER_NAMES} were considered in model {BASE_MODEL}")
         NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
-    else:
-        # Load the model
-        MODEL = DeepCNN(num_classes=NUM_CLASSES)
-        MODEL.load_state_dict(torch.load(BASE_MODEL_PATH, map_location=DEVICE, weights_only=True))
-        MODEL.to(DEVICE)
-        LAYER_NAMES = ["conv_block4.0"]
+        
     # Transformations
     TRAIN_TRANSFORM = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),

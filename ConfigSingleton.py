@@ -12,6 +12,7 @@ class ConfigSingleton:
             cls._instance = super(ConfigSingleton, cls).__new__(cls)
             cls._instance.config_file = config_file
             cls._instance._load_and_process_config()
+           
         return cls._instance
         
     def is_subset(self, list1, list2):
@@ -25,6 +26,7 @@ class ConfigSingleton:
         try:
             with open(self.config_file, 'r') as f:
                 config = yaml.safe_load(f)
+                self.config = config
         except FileNotFoundError:
             raise FileNotFoundError(f"Configuration file not found at {self.config_file}")
         #REad all the misc sections
@@ -56,7 +58,44 @@ class ConfigSingleton:
         self.LEARNING_RATE = float(config['hyperparameters']['learning_rate'])
         self.EPOCHS = int(config['hyperparameters']['epochs'])
         self.BATCH_SIZE = config['hyperparameters']['batch_size']
+        self.DEVICE = DEVICE
+        self._verify_all_paths(self.config)
+        self._instance._override_recalibration(self.config)
+        self._instance._read_xai_image_path(self.config)
+
         
+    def _override_recalibration(self, config):
+        #Recalibration 
+        self.OVERRIDE_RECALIB           = config['recalibration']['override_retraining']
+        self.VGG_RECALIB                = config['recalibration']['layers_to_train']['vgg16']
+        self.RESNET50_RECALIB           = config['recalibration']['layers_to_train']['resnet50']
+        self.INCEPTION_V3_RECALIB       = config['recalibration']['layers_to_train']['inception_v3'] 
+        self.MOBILENET_V3_SMALL_RECALIB = config['recalibration']['layers_to_train']['mobilnet_v3_small'] 
+        self.MOBILENET_V3_LARGE_RECALIB = config['recalibration']['layers_to_train']['mobilenet_v3_large'] 
+        self.LAMBDA_ALIGNS_RECALIB = config['recalibration']['lambda_aligns_recalib']
+        if(self.is_subset(self.LAMBDA_ALIGNS_RECALIB,self.LAMBDA_ALIGNS)):
+            print(" recalibration lambdas is subset of the lambda aligns ")
+        else:
+            raise("Exception in lambda aligns and sensiticvity analysis ")
+        
+        if(self.OVERRIDE_RECALIB):
+            print(" Overriding the recalibration layers and lambda aligns")
+            self.LAMBDA_ALIGNS = self.LAMBDA_ALIGNS_RECALIB
+        return True
+    
+    def _read_xai_image_path(self, config):
+        self.INTEGRATED_GRADIENT = config['xai_before_after']['integrated_gradients']
+        self.gradcam = config['xai_before_after']['grad_cam']
+        self.LIME = config['xai_before_after']['lime']
+        #Read all the xai image paths
+        self.XAI_IMAGE_PATH = config['xai_before_after']['image_path']
+        for i in self.XAI_IMAGE_PATH:
+            if(os.path.isfile(i)):
+                print(f"XAI image path {i} exists.")
+            elif(os.path.islink(i)):
+                print(f"XAI image path {i} is a broken or invalid link.")
+
+    def _verify_all_paths(self, config):
         # Catch if the links are missing and raise an exception in case its not found
         not_found = 0
         print(self.CONCEPT_FOLDER_LIST)
@@ -68,7 +107,7 @@ class ConfigSingleton:
         print(self.RANDOM_FOLDER)
         results = self._verify_files_links(self.RANDOM_FOLDER)
         if(results == -1):
-            print("Folder not found ",random_folder)
+            print("Folder not found ",self.RANDOM_FOLDER)
             notfound = 1
         base_path = self.CLASSIFICATION_DATA_BASE_PATH
         for target in self.TARGET_CLASS_LIST:
@@ -78,9 +117,6 @@ class ConfigSingleton:
         for target in self.TARGET_CLASS_LIST:
             folder_path = os.path.join(base_path,"valid/"+ target)
             results = self._verify_files_links(folder_path)
-        
-        
-        
         if(not_found == 1):
             raise(" Some of the folders are not found or an incorrect link ")
         
@@ -90,6 +126,7 @@ class ConfigSingleton:
             name for name in os.listdir(base_path)
             if os.path.isdir(os.path.join(base_path, name))
         ])
+        
         
     def _verify_files_links(self, base_path):
         """
@@ -101,7 +138,6 @@ class ConfigSingleton:
             # The path itself is a symbolic link
             print(f"The path '{base_path}' is a symbolic link.")
             return_value = 0
-            
             # You can also check what the link points to
             if os.path.isdir(base_path):
                 print("  It points to a directory.")
@@ -112,15 +148,12 @@ class ConfigSingleton:
             else:
                 print("  It is a broken or invalid link (target does not exist).")
                 return_value = -1
-                
         elif os.path.isdir(base_path):
             print(f"The path '{base_path}' is a regular directory.")
             return_value = 0
-            
         elif os.path.isfile(base_path):
             print(f"The path '{base_path}' is a regular file.")
             return_value = 0
-            
         else:
             print(f"The path '{base_path}' does not exist.")
             return_value = -1
@@ -151,7 +184,6 @@ if __name__ == '__main__':
     print("concept base path:", config.CONCEPT_FOLDER_LIST)
     print("Learning rate:", config.LEARNING_RATE)
     print("Batch size:", config.BATCH_SIZE)    
-        
     print("Number of classes:", config.NUM_CLASSES)
 
     print("-" * 20)
@@ -177,3 +209,17 @@ if __name__ == '__main__':
     for target in config.TARGET_CLASS_LIST:
         folder_path = os.path.join(base_path,"valid/"+ target)
         results = config._verify_files_links(folder_path)
+
+    print(f"Recalibration is enabled or not {config.OVERRIDE_RECALIB}")
+    print(f"Recalibration Layers of VGG16 {config.VGG_RECALIB}")
+    print(f"Recalibration Layers of ResNet50 {config.RESNET50_RECALIB}")
+    print(f"Recalibration Layers of Inception V3 {config.INCEPTION_V3_RECALIB}")
+    print(f"Recalibration Layers of MobileNet V3 Small {config.MOBILENET_V3_SMALL_RECALIB}")
+    print(f"Recalibration Layers of MobileNet V3 Large {config.MOBILENET_V3_LARGE_RECALIB}")
+    notfound = 1
+    #print(config.XAI_IMAGE_PATH)
+    for i in config.XAI_IMAGE_PATH:
+        if not (os.path.isfile(i) or os.path.islink(i)):
+            print(f"XAI image path {i} does not exist.")
+            notfound = notfound + 1
+    print(f"Total XAI image paths not found {notfound}")
