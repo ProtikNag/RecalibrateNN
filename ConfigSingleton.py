@@ -39,11 +39,6 @@ class ConfigSingleton:
         self.LINEAR_CLASSIFIER_TYPE = config['classification']['linear_classifier_type']
         self.NUM_CLASSES = self._get_num_classes(self.CLASSIFICATION_DATA_BASE_PATH)
         self.LAMBDA_ALIGNS = config['classification']['lambda_aligns']
-        self.SENSITIVITYANALYSIS_LAMBDAS = config['classification']['sensitivityanalysis_lambdas']
-        if(self.is_subset(self.LAMBDA_ALIGNS,self.SENSITIVITYANALYSIS_LAMBDAS)):
-            print(" sensitivity analysis lambdas is subset of the lambda aligns ")
-        else:
-            raise("Exception in lambda aligns and sensiticvity analysis ")
             
 
         #Read all the concept and random sections
