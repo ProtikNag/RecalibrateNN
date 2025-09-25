@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/mnt/sdd/caltech_training" # Path to the classification dataset base directory.
+  data_base_path: "/mnt/sdd/caltech_training/three_classes/" # Path to the classification dataset base directory.
   target_class_list:
     - '001.Black_footed_Albatross'
     - '002.Laysan_Albatross'
@@ -34,7 +34,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: true
+  override_retraining: false
   layers_to_train:
     vgg16:
       - 'features.5'
