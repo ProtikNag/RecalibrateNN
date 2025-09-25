@@ -82,13 +82,21 @@ class ConfigSingleton:
         self.INTEGRATED_GRADIENT = config['xai_before_after']['integrated_gradients']
         self.GRADCAM = config['xai_before_after']['grad_cam']
         self.LIME = config['xai_before_after']['lime']
-        #Read all the xai image paths
-        self.XAI_IMAGE_PATH = config['xai_before_after']['image_path']
-        for i in self.XAI_IMAGE_PATH:
-            if(os.path.isfile(i)):
-                print(f"XAI image path {i} exists.")
-            elif(os.path.islink(i)):
-                print(f"XAI image path {i} is a broken or invalid link.")
+        self.XAI_NUMCLASSES = int(config['xai_before_after']['num_classes'])
+        self.XAI_IMAGE_PATH = []
+        for i in range(0,self.XAI_NUMCLASSES):
+            #Read all the xai image paths
+            temp  = config['xai_before_after']['class_images']['class'+str(i)]
+            valid_images = []
+            for j in temp:
+                if(os.path.isfile(j)):
+                    print(f"XAI image path {j} exists.")
+                    valid_images.append(j)
+                elif(os.path.islink(j)):
+                    print(f"XAI image path {j} is a link.")
+                    valid_images.append(j)
+            self.XAI_IMAGE_PATH.append(valid_images)
+
 
     def _verify_all_paths(self, config):
         # Catch if the links are missing and raise an exception in case its not found
@@ -211,10 +219,13 @@ if __name__ == '__main__':
     print(f"Recalibration Layers of Inception V3 {config.INCEPTION_V3_RECALIB}")
     print(f"Recalibration Layers of MobileNet V3 Small {config.MOBILENET_V3_SMALL_RECALIB}")
     print(f"Recalibration Layers of MobileNet V3 Large {config.MOBILENET_V3_LARGE_RECALIB}")
-    notfound = 1
+    notfound = 0
     #print(config.XAI_IMAGE_PATH)
-    for i in config.XAI_IMAGE_PATH:
-        if not (os.path.isfile(i) or os.path.islink(i)):
-            print(f"XAI image path {i} does not exist.")
-            notfound = notfound + 1
+    for classIdx in range(0,config.XAI_NUMCLASSES):
+      print(f"Number of images in {classIdx} is {len(config.XAI_IMAGE_PATH[classIdx])}")
+      for i in config.XAI_IMAGE_PATH[classIdx]:
+          
+          if not (os.path.isfile(i) or os.path.islink(i)):
+              print(f"XAI image path {i} does not exist.")
+              notfound = notfound + 1
     print(f"Total XAI image paths not found {notfound}")

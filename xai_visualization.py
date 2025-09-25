@@ -1,6 +1,8 @@
 import torch
 """
-This script performs explainable AI (XAI) analysis using Integrated Gradients on a multiclass image classification model (e.g., VGG16) before and after modification. It loads two versions of a PyTorch model, identifies the last convolutional layer, and applies Integrated Gradients to a set of sample images from three classes (deer, horse, zebra). The results are saved to specified directories.
+This script performs explainable AI (XAI) analysis using Integrated Gradients on a multiclass image classification 
+model (e.g., VGG16) before and after modification. It loads two versions of a PyTorch model, identifies the last convolutional layer, 
+and applies Integrated Gradients to a set of sample images from three classes (deer, horse, zebra). The results are saved to specified directories.
 Main functionalities:
 - Loads original and modified PyTorch models from specified paths.
 - Identifies the last convolutional layer in each model.
@@ -27,8 +29,11 @@ import pandas as pd
 from torchvision import transforms
 from utils import get_base_model_image_size
 import os
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+from ConfigSingleton import ConfigSingleton
 from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch, xai_gradcam_explainer, xai_lime_explainer)
-from dataset import get_image_dataset , num_classes
 
 XAI_Integrated_gradients = True
 XAI_GradCAM              = True
@@ -38,6 +43,7 @@ MODEL = None
 TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
 LAYER_NAMES = None
+RECALIBRATED_MODEL = None
 
 activation = {}
 output_shape = {}
@@ -53,8 +59,6 @@ df = pd.DataFrame()
 #RECALIBRATED_MODEL = 'loss_mobilenet_v3_large_features.5_0.6.pth'
 
 ######################################
-MODEL_NAME = 'vgg16'
-RECALIBRATED_MODEL = 'loss_vgg16_features.12_0.7.pth'
 
 
 def get_activation(layer_name):
@@ -68,6 +72,7 @@ def get_model(model_path, modified_model_path=None):
     model = torch.load(model_path)
     if(modified_model_path is not None):
         model.load_state_dict(torch.load(modified_model_path, weights_only=True))
+        #print(model)
     model.eval()
     return model
     
@@ -77,14 +82,15 @@ if __name__ == '__main__':
     parser.add_argument("--org_model_path", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--modified_model_path", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
+    parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
     args = parser.parse_args()
-    
     """
     args = parser.parse_args([
         "--org_model_path", f"/home/srikanth/trained_models/pytorch/{MODEL_NAME}/{MODEL_NAME}.pth",
-        "--modified_model_path", f"/mnt/data/results/{MODEL_NAME}/{RECALIBRATED_MODEL}",
-        "--model_name", f"{MODEL_NAME}",
+        "--modified_model_path", f"./reslts/loss_vgg16_features.5_0.5.pth",
+        "--model_name", f"vgg16",
+        "--config_file", "./config_cub_3classes.yaml"
         "--save_dir", "./xai_images/integrated_gradient"
     ])
     """
@@ -92,7 +98,7 @@ if __name__ == '__main__':
     """    
 
     args = parser.parse_args([
-        "--org_model_path", f"/home/srikanth/trained_models/pytorch/{MODEL_NAME}/{MODEL_NAME}.pth",
+        "--org_model_path", f"/home/srikanth/trained_models/pytorch/caltech/vgg16/vgg16.pth",
         "--modified_model_path", f"/mnt/data/results/{MODEL_NAME}/{RECALIBRATED_MODEL}",
         "--model_name", f"{MODEL_NAME}",
         "--save_dir", "./xai_images/integrated_gradient"
@@ -103,37 +109,50 @@ if __name__ == '__main__':
     ''
     
     BASE_MODEL_PATH = args.org_model_path.strip()
+    #Replace the model base path from the path override
     MODIFIED_MODEL_PATH = args.modified_model_path.strip()
     MODEL_NAME = args.model_name.strip().lower()
-    IMAGES = get_image_dataset(MODEL_NAME)
-
+    config_file = args.config_file
+    config = ConfigSingleton(config_file)
+    
+    XAI_Integrated_gradients = config.INTEGRATED_GRADIENT
+    XAI_GradCAM              = config.GRADCAM
+    XAI_Lime                 = config.LIME
+    IMAGES                   = config.XAI_IMAGE_PATH
+    num_classes              = config.XAI_NUMCLASSES
+    save_dir                 = args.save_dir.strip()
+    #print(XAI_Integrated_gradients,XAI_GradCAM,XAI_Lime, IMAGES)
     ################################################################################################################
     ############# Integrated Gradients ##########################################################
     if(XAI_Integrated_gradients == True):
-        save_dir = args.save_dir.strip()
-        model = get_model(BASE_MODEL_PATH)
-        save_dir_before = os.path.join(save_dir, MODEL_NAME+'/before')
+            
+        print(BASE_MODEL_PATH)
+        try:
+          model = get_model(BASE_MODEL_PATH)
+        except Exception as e:
+          print(e)
+          exit()
+        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'integrated_gradient','before')
         xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before, title_prefix = "before")
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir_after = os.path.join(save_dir, MODEL_NAME+'/after')
+        save_dir_after = os.path.join(save_dir,MODEL_NAME, 'integrated_gradient','after')
         xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
     ################################################################################################################
     ############# GRAD CAM Implementation ##########################################################
     if(XAI_GradCAM == True):
         model = get_model(BASE_MODEL_PATH)
-        save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'before')
-        #def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir):
-        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir, title_prefix ="before")
-        save_dir = os.path.join('./xai_images/gradcam', MODEL_NAME,  'after')
+        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'gradcam', 'before')
+        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
+        save_dir_after = os.path.join(save_dir,MODEL_NAME,'gradcam',  'after')
+        print(save_dir_before, save_dir_after)
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir, title_prefix ="after")
+        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
     ################################################################################################################
     ############# Lime Implementation ##########################################################
     if(XAI_Lime == True):
         model = get_model(BASE_MODEL_PATH)
-        save_dir = os.path.join('./xai_images/lime', MODEL_NAME,  'before')
-        xai_lime_explainer(MODEL_NAME, model, IMAGES, num_classes, save_dir)
+        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'lime', 'before')
+        xai_lime_explainer(MODEL_NAME, model, IMAGES, num_classes, save_dir_before)
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir = os.path.join('./xai_images/lime', MODEL_NAME,  'after')
-        xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir)
-
+        save_dir_after = os.path.join(save_dir,MODEL_NAME, 'lime', 'after')
+        xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir_after)

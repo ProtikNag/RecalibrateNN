@@ -64,9 +64,12 @@ def get_image_array(MODEL_NAME, image_list):
         ])
     image_array = []
     for fname in image_list:
-        img =  Image.open(fname).convert('RGB') 
-        transformed_img = VALID_TRANSFORM(img)
-        image_array.append(transformed_img)
+        try:
+          img =  Image.open(fname).convert('RGB') 
+          transformed_img = VALID_TRANSFORM(img)
+          image_array.append(transformed_img)
+        except Exception as e:
+          pass
     image_array = np.array(image_array)
     image_array = torch.tensor(image_array).to(device)
     return (image_array)
@@ -150,19 +153,23 @@ def xai_integrated_gradients(model_name, model, num_classes,images,n_steps=200, 
             vis_result = viz.visualize_image_attr(
                 attr,
                 orig_img,
-                method='blended_heat_map',  # <-- changed here
+                method='heat_map', # <-- 'blended_heat_map',  # <-- changed here
                 cmap=default_cmap,
                 sign='positive',
                 show_colorbar=True,
                 outlier_perc=1,
                 use_pyplot  = False,
-                title=f"Integrated Gradients - Class {all_preds_tensors[i].item()} - {title_prefix}"
+                #title=f"Integrated Gradients - Class {all_preds_tensors[i].item()} - {title_prefix}"
             )
             fig, _ = vis_result
             if save_dir_new:
                 filename = f"integrated_gradients_{i}_class_{all_preds_tensors[i]}.png"
                 filepath = os.path.join(save_dir_new,filename)
                 fig.savefig(filepath, format='png')
+                
+                filename = f"integrated_gradients_{i}_class_{all_preds_tensors[i]}.pdf"
+                filepath = os.path.join(save_dir_new,filename)
+                fig.savefig(filepath, format='pdf')
     return 
 
  
@@ -243,6 +250,7 @@ def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir, title
     grad_cam = GradCAM(model, target_layer)
 
     for i in range(num_classes):
+        print(save_dir +f'/{i}')
         os.makedirs(save_dir +f'/{i}', exist_ok=True)
     for i in range(num_classes):
         image_array = get_image_array(MODEL_NAME, images[i])
@@ -263,8 +271,9 @@ def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir, title
                 fig, ax = plt.subplots()
                 ax.imshow(cam_image)
                 ax.axis('off')
-                ax.set_title(f"GradCAM - Class{i} - {title_prefix}", fontsize=12)
+                #ax.set_title(f"GradCAM - Class{i} - {title_prefix}", fontsize=12)
                 fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'), format='png', bbox_inches='tight')
+                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.pdf'), format='pdf', bbox_inches='tight')
                 plt.close(fig)
                 print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'))
             except Exception as e:
@@ -302,16 +311,21 @@ def lime_explainer(model, image_tensor,save_fig_path,  org_image_array=None):
             org_image = Image.open(org_image)
             org_image = np.array(org_image)
         axes[0].imshow(org_image if org_image is not None else image_tensor[i].cpu().numpy().transpose(1, 2, 0))
-        axes[0].set_title('Original image')
+        #axes[0].set_title('Original image')
         axes[0].axis('off')
         axes[1].imshow(mark_boundaries(image.astype(np.uint8), mask))
-        axes[1].set_title('LIME Explanation')
+        #axes[1].set_title('LIME Explanation')
         axes[1].axis('off')
         # Save the figure
-        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.png')
         plt.tight_layout()
+
+        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.png')
         plt.savefig(fig_path, bbox_inches='tight',format='png')
+
+        fig_path = os.path.join(save_fig_path, f'lime_explanation_{i}.pdf')
+        plt.savefig(fig_path, bbox_inches='tight',format='pdf')
         plt.close(fig)
+
         # Optionally show the figure
         if show_fig:
             plt.figure(fig.number)
