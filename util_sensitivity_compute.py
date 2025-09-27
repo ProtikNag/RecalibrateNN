@@ -97,9 +97,11 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--before_after", action='store_true', help="Default parameter for before after comparison if its true then before after comparison will be done")
     parser.add_argument("--config", type=str, default=None, help="specify the yaml file ")
+    parser.add_argument("--store_results", type=str, default=None, help="specify the location where teh results should be stored ")
     
     args = parser.parse_args()
     config_file = args.config
+    save_dir = args.store_results
     print(config_file)
     if config_file is not None:
         if not os.path.isfile(config_file):
@@ -124,14 +126,6 @@ if __name__ == "__main__":
     print("Config file loaded successfully.")
     # Get the training dataset and the validation dataset folders
     
-    # Take the parameters passed by the program instead of user as this is running in debug mode. 
-    if(os.getenv('DEBUG')):
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "vgg16"])
-        args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/resnet50/resnet50.pth", "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "resnet50"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_small/mobilenet_v3_small.pth", "--recal_model_basepath", "/mnt/data/results/" ,  "--model_name", "mobilenet_v3_small"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/mobilenet_v3_large/mobilenet_v3_large.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "mobilenet_v3_large"])
-        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/inception_v3/inception_v3.pth",  "--recal_model_basepath", "/mnt/data/results/" , "--model_name", "inception_v3"])
-
     before_after = args.before_after  
     BASE_MODEL_PATH = args.org_model_path
     MODEL_NAME = args.model_name
@@ -147,12 +141,17 @@ if __name__ == "__main__":
     print(f"Using org_model_path: {BASE_MODEL_PATH}, model_name: {MODEL_NAME}")
     formatted_datetime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     ############## Logging #################################
-    log_filename = f"results/{MODEL_NAME}/{formatted_datetime}_sensitivity_compute.log"
+    
+    save_folder = f"{save_dir}/{MODEL_NAME}"
+    os.makedirs(save_folder, exist_ok=True)
+    log_filename = os.path.join(save_folder , f"{formatted_datetime}_sensitivity_compute.log")
+
+    dataframe_filename = os.path.join(save_folder , f"sensitivity_audit_trail_{MODEL_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+
     
     logger = Logger_Singleton(log_filename)   
     logger.info(f"Using org_model_path: {BASE_MODEL_PATH}, model_name: {MODEL_NAME}")
     logger.info(f"Using device: {DEVICE}")
-    dataframe_filename = f"./results/{MODEL_NAME}/sensitivity_audit_trail_{MODEL_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     print(f"Results are stored in {log_filename}, {dataframe_filename}")
     # Set the device
     device = torch.device(DEVICE if torch.cuda.is_available() else "cpu")
