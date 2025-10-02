@@ -3,7 +3,7 @@ import sys
 import argparse
 import matplotlib.pyplot as plt
 
-columns_to_exclude = ['Full filepath']
+columns_to_exclude = ['Full filepath', 'Full Class Index','Index','ImageName']
 columns_to_rename = ['sensitivityscore_before_']
 
 def read_csv(csv_file):
@@ -22,13 +22,16 @@ def extract_box_plot(df):
     data_columns = [col for col in df.columns if col != 'Full Class Index']
     # Create a boxplot for each class index
     fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
-    for idx, class_value in enumerate([0, 1, 2]):    
-        subset = df[df['Full Class Index'] == class_value]
+    # Exclude the 'Full Class index' column from boxplot data
+    data_columns = [col for col in df.columns if col != 'ClassName']
+    # Create a separate boxplot for each class index
+    for idx, class_value in enumerate(['Deer', 'Horse', 'Zebra']):
+        subset = df[df['ClassName'] == class_value]
         subset[data_columns].boxplot(ax=axes[idx], grid=False)
         axes[idx].set_title(
-            f'Box Plot for Full Class index = {class_value}',
+            f'Box Plot for Class Name = {class_value}',
             fontname='Times New Roman',
-            fontsize=12
+            fontsize=8
         )
         axes[idx].set_ylabel('Values')
         axes[idx].set_xticklabels(data_columns, rotation=90)
@@ -37,20 +40,21 @@ def extract_box_plot(df):
     plt.tight_layout()
     plt.show()
 
-
 def extract_box_plot_individual(df):
     # Exclude the 'Full Class index' column from boxplot data
-    data_columns = [col for col in df.columns if col != 'Full Class Index']
+    data_columns = [col for col in df.columns if col != 'ClassName']
     # Create a separate boxplot for each class index
-    for class_value in [0, 1, 2]:
-        subset = df[df['Full Class Index'] == class_value]
+    for class_value in ['Deer', 'Horse', 'Zebra']:
+        subset = df[df['ClassName'] == class_value]
         plt.figure(figsize=(6, 6))
-        subset[data_columns].boxplot(grid=False)
-        plt.title(
-            f'Box Plot for Full Class index = {class_value}',
-            fontname='Times New Roman',
-            fontsize=12
-        )
+        box = subset[data_columns].boxplot(grid=False, showcaps=True, patch_artist=True, boxprops=dict(linewidth=1), whiskerprops=dict(linewidth=1), medianprops=dict(linewidth=1), flierprops=dict(marker='o', markersize=3))
+        # Remove the right border
+        ax = plt.gca()
+        ax.set_ylim([df[data_columns].min().min(), df[data_columns].max().max()])
+        plt.gcf().set_size_inches(6, 3)  # Reduce height to 3 inches
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.gca().set_xticklabels(data_columns, fontsize=8, fontname='Times New Roman')
         plt.ylabel('Values')
         plt.xticks(rotation=90)
         plt.tight_layout()
@@ -64,7 +68,7 @@ if(__name__ == "__main__"):
     args = parser.parse_args()
     csv_file = args.csv_file
     df = read_csv(csv_file)
-    extract_box_plot(df)
+    #extract_box_plot(df)
     extract_box_plot_individual(df)
 
 
