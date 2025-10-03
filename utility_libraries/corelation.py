@@ -1,32 +1,23 @@
 import pandas as pd
-import sys
-if len(sys.argv) < 2:
-    print("Usage: python corelation.py <csv_file>")
-    sys.exit(1)
-csv_file = sys.argv[1]
 
+# Replace 'your_file.csv' with the path to your CSV file
+file_name = r'C:\Users\srikant1\OneDrive - Intel Corporation\Documents\MobaXterm\slash\srikant1_soc5cg44242y1\RemoteFiles\1250082_3_41\sensitivity_audit_trail_vgg16_20250925_234304.csv'
+file_name = input("Enter the path to your CSV file: ")
+df = pd.read_csv(file_name)
+df = df.drop(columns=['Full filepath'])
+class_groups = dict(tuple(df.groupby('Full Class Index')))
 
-#csv_file = 'sensitivity_audit_trail_vgg16_20250927_222941.csv'
-df = pd.read_csv(csv_file)
-
-# Dictionary to hold DataFrames for each class index
-dfs_by_class = {}
-
-# Split the data based on "Full Class Index"
-for class_index in range(10):
-    dfs_by_class[class_index] = df[df['Full Class Index'] == class_index]
-
-# Compute Pearson correlation for each DataFrame
-correlations = {}
-for class_index, class_df in dfs_by_class.items():
-    #class_df = class_df.drop(columns=['Full FilePath', 'Full Class Index'])
-    
-    # Drop non-numeric columns for correlation calculation
-    numeric_df = class_df.select_dtypes(include='number').drop(columns=['Full Class Index'])
-    correlations[class_index] = numeric_df.corr(method='pearson')
-    numeric_df['class'] = class_index
-    # Example: print correlation for class 0
-    print(f"Pearson correlation for class {class_index}:")
-    print(correlations[class_index])
-    with pd.ExcelWriter('numeric_dfs_by_class.xlsx', mode='a' if class_index > 0 else 'w') as writer:
-        numeric_df.to_excel(writer, sheet_name=f'class_{class_index}', index=False)
+# Display the first few rows
+print(df.head())
+print(class_groups)
+for i in class_groups:
+    class_groups[i] = class_groups[i].drop(columns=['Full Class Index'])
+    class_groups[i].columns = [col.replace('sensitivityscore_before_', '') for col in class_groups[i].columns]
+    print(class_groups[i].head())  # Display first few rows of each class group
+    # Drop the 'sensitivity' column for group i and store in a new DataFrame
+    col_names = class_groups[i].columns.tolist()
+    correlation_matrix = class_groups[i].corr()
+    print(f"Correlation matrix for class group {i}:")
+    print(correlation_matrix)
+    with pd.ExcelWriter('correlation_matrices.xlsx', mode='a' if i != list(class_groups.keys())[0] else 'w') as writer:
+        correlation_matrix.to_excel(writer, sheet_name=f'Class_{i}')
