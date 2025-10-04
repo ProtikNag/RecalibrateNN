@@ -129,13 +129,21 @@ def main():
                 print(f"Error during initial evaluation: {e}")
                 continue
             try:
+                print(f"List of lambda values for while model will be trained {LAMBDA_ALIGNS}")
                 for LAMBDA_ALIGN in LAMBDA_ALIGNS:
                     LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
                     logging.info(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
                     print(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
                     model_trained = copy.deepcopy(MODEL).to(DEVICE)
-                    model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                    model_trained.train()
+                    try:
+                        model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                    except Exception as e:
+                        print(f"Obtained exception while registering forward hook for {layer}")
+                    try:
+                        model_trained.train()
+                    except Exception as e:
+                        print(f"Obtained exception while calling model train")
+                      
                     for name, param in model_trained.named_parameters():
                         param.requires_grad = (layer_name in name)
                     model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
@@ -246,6 +254,8 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
     parser.add_argument("--config_file", type=str, default=None, help="Specify a config file to override the default path")
+    parser.add_argument("--store_results", type=str, default=None, help="Specify a locaiton to store the results")
+    
     args = parser.parse_args()
     config_file = args.config_file
     print(config_file)
@@ -284,9 +294,12 @@ if __name__ == "__main__":
         BASE_MODEL = BASE_MODEL.strip().lower()
         MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
         # Configure logging
-        RESULTS_PATH = './results/' + BASE_MODEL + '/'
+        RESULTS_BASE_PATH = args.store_results
+        if(RESULTS_BASE_PATH == None):
+            RESULTS_BASE_PATH = './results' 
+        RESULTS_PATH = RESULTS_BASE_PATH +'/' + BASE_MODEL + '/'
         os.makedirs(RESULTS_PATH, exist_ok=True)
-        log_filename = f"./results/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        log_filename = f"{RESULTS_BASE_PATH}/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         logging = Logger_Singleton(log_filename)
         logging.info("Script started.")
         IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
