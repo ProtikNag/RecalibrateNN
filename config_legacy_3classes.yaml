@@ -110,24 +110,28 @@ recalibration:
 xai_before_after:
   integrated_gradients: true
   grad_cam: true
-  lime: true
+  lime: false
   num_classes: 3
   class_images:
     class0:
-      - '/home/datasets/train/deer/002d813bf4.jpg'
       - '/home/datasets/train/deer/0074441cc2.jpg'
-      - '/home/datasets/train/deer/007bbabf4a.jpg'
-      - '/home/datasets/train/deer/00e6f71d05.jpg'
       - '/home/datasets/train/deer/00fdcaa6df.jpg'
-      - '/home/datasets/train/deer/01135760.jpg'
+      #Best
+      - '/home/datasets/train/deer/image_77.jpg'
+      - '/home/datasets/train/deer/00fdcaa6df.jpg'
+      - '/home/datasets/valid/deer/00fdcaa6df.jpg'
     class1:
-      - '/home/datasets/train/horse/01_001.png'
-      - '/home/datasets/train/horse/01_002.png'
-      - '/home/datasets/train/horse/01_003.png'
-      - '/home/datasets/train/horse/01_004.png'
+      - '/home/datasets/train/horse/01_052.png'
+      - '/home/datasets/train/horse/03_088.png'
+      #best
+      - '/home/datasets/train/horse/03_089.png'
+      #best
+      - '/home/datasets/valid/horse/horse50-9.png'
 
     class2:
-      - '/home/datasets/train/zebra/001.jpg'
-      - '/home/datasets/train/zebra/002.jpg'
-      - '/home/datasets/train/zebra/003.jpg'
-      - '/home/datasets/train/zebra/004.jpg'
+      - '/home/datasets/train/zebra/image_15.jpeg'
+      - '/home/datasets/train/zebra/image_10.jpeg'
+      - '/home/datasets/train/zebra/369.jpg'
+      - '/home/datasets/valid/zebra/n02391049_3148.jpg'
+      - '/home/datasets/valid/zebra/251.jpg'
+      
