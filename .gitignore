@@ -14,3 +14,8 @@ temp/
 results_3classes/
 results_tmp/
 temp.sh
+results_10classes/
+xai_images_3classes/
+xai_images_inception_v3_Mixed_6e.branch1x1.conv_0.6/
+xai_images_vgg16_features.21_0.6/
+
