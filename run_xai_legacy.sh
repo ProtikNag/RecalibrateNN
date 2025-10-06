@@ -21,7 +21,7 @@ python xai_visualization.py --org_model_path "${ORIGINAL_MODEL}" --modified_mode
 #--------------------------------------   Incepion_V3  --------------------------------------
 export BASEPATH_RESULTS='/mnt/sdd/basics/'
 export LAYER='Mixed_6e.branch1x1.conv'
-export LAMBDA='0.5'
+export LAMBDA='0.6'
 export MODEL_NAME="inception_v3"
 export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/${MODEL_NAME}/${MODEL_NAME}.pth"
 
