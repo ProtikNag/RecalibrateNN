@@ -48,7 +48,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: true
+  override_retraining: false
   layers_to_train:
     vgg16:
       - 'features.7'
@@ -122,7 +122,7 @@ xai_before_after:
   integrated_gradients: true
   grad_cam: true
   lime: true
-  num_classes: 3
+  num_classes: 3 
   class_images:
     class0:
       - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0001_796111.jpg'

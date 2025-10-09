@@ -37,17 +37,17 @@ recalibration:
   override_retraining: true
   layers_to_train:
     vgg16:
-      - 'features.7'
+      #- 'features.7'
       - 'features.19'
       - 'features.20'
-      - 'features.21'
+      #- 'features.21'
       - 'features.22'
       - 'features.23'
       - 'features.24'
-      - 'features.25'
-      - 'features.26'
-      - 'features.27'
-      - 'features.28'
+      #- 'features.25'
+      #- 'features.26'
+      #- 'features.27'
+      #- 'features.28'
 
     inception_v3:
       - 'Mixed_6e.branch1x1.conv'
