@@ -121,7 +121,7 @@ recalibration:
 xai_before_after:
   integrated_gradients: true
   grad_cam: true
-  lime: true
+  lime: false
   num_classes: 5 
   class_images:
     class0:
