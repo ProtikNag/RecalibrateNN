@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PYTHON_SCRIPT="../xai_visualization.py"
 # Base settings
 export MODEL_NAME="inception_v3"
 export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_multiclass/${MODEL_NAME}/${MODEL_NAME}.pth"
@@ -34,7 +35,7 @@ for MODIFIED_MODEL in "${MODELS[@]}"; do
     SAVE_DIR="${RESULTS}${BASE_NAME}"
     mkdir -p "${SAVE_DIR}"
 
-    python xai_visualization.py \
+    python ${PYTHON_SCRIPT} \
         --org_model_path "${ORIGINAL_MODEL}" \
         --modified_model_path "${MODIFIED_MODEL}" \
         --model_name "${MODEL_NAME}" \
