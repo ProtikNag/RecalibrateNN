@@ -5,7 +5,7 @@ set -euo pipefail
 export BASEPATH_RESULTS='/mnt/sdd/basics/'
 export LAYER='features.21'
 export LAMBDA='0.6'
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_multiclass/vgg16/vgg16.pth"
 export MODEL_NAME="vgg16"
 export CONFIG_FILE='./config_cub_3classes.yaml'
 export RESULTS="/mnt/sdb2/cub_3c_xai/xai_images_cub_3c_vgg16_"
