@@ -6,7 +6,7 @@ export PYTHON_SCRIPT="../xai_visualization.py"
 export MODEL_NAME="inception_v3"
 export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_multiclass/${MODEL_NAME}/${MODEL_NAME}.pth"
 
-export CONFIG_FILE='./config_cub_multiclass.yaml'
+export CONFIG_FILE='../config_cub_multiclass.yaml'
 export RESULTS="/mnt/sdb2/cub_10c_xai/${MODEL_NAME}/"
 # Define array of model paths to iterate
 MODELS=(
