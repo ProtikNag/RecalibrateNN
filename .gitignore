@@ -8,6 +8,7 @@ model_weights/
 results/
 cav/
 ./scripts/results/
+temp_scripts/
 xai_images/
 model_layers/
 consolidated_results/
