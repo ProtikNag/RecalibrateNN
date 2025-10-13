@@ -6,17 +6,15 @@ export PYTHON_SCRIPT="../xai_visualization.py"
 export BASEPATH_RESULTS='/mnt/sdd/basics/'
 export LAYER='features.21'
 export LAMBDA='0.6'
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/legacy/mobilenet_v3_large/mobilenet_v3_large.pth"
-export MODEL_NAME="mobilenet_v3_large"
-export CONFIG_FILE='../../config_cub_3classes.yaml'
-export RESULTS="/mnt/sdb2/legacy_3c_xai/${MODEL_NAME}/xai_images_cub_3c_"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/legacy/vgg16/vgg16.pth"
+export MODEL_NAME="vgg16"
+export CONFIG_FILE='../config_cub_3classes.yaml'
+export RESULTS="/mnt/sdb2/legacy_3c_xai/xai_images_cub_3c_vgg16_"
 # Define array of model paths to iterate
 MODELS=(
-    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.7_0.6.pth"
-    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.12_0.5.pth"
-    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.12_0.6.pth"
-    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.7_0.5.pth"
-    
+    "/mnt/sdd/basics/vgg16/loss_vgg16_features.24_0.5.pth"
+    "/mnt/sdd/basics/vgg16/loss_vgg16_features.24_0.6.pth"
+    "/mnt/sdd/basics/vgg16/loss_vgg16_features.24_0.7.pth"
 )
 
 # Iterate through each model

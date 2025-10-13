@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # Base settings
-export PYTHON_SCRIPT="../xai_visualization.py"
+export PYTHON_SCRIPT="../../xai_visualization.py"
 export BASEPATH_RESULTS='/mnt/sdd/basics/'
 export LAYER='features.21'
 export LAMBDA='0.6'
 export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/legacy/mobilenet_v3_large/mobilenet_v3_large.pth"
 export MODEL_NAME="mobilenet_v3_large"
 export CONFIG_FILE='../../config_cub_3classes.yaml'
-export RESULTS="/mnt/sdb2/legacy_3c_xai/${MODEL_NAME}/xai_images_cub_3c_"
+export RESULTS="/mnt/sdb2/legacy_3c_xai/${MODEL_NAME}/xai_images_cub_3c"
 # Define array of model paths to iterate
 MODELS=(
     "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.7_0.6.pth"

@@ -31,7 +31,7 @@ from utils import get_base_model_image_size
 import os
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+from dotenv import load_dotenv
 from ConfigSingleton import ConfigSingleton
 from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch, xai_gradcam_explainer, xai_lime_explainer)
 
