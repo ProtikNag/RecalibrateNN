@@ -12,6 +12,7 @@ from logger import Logger_Singleton
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from datetime import datetime
 import argparse
+from dotenv import load_dotenv
 from ConfigSingleton import ConfigSingleton
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
