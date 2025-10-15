@@ -110,17 +110,18 @@ recalibration:
       - 'features.11.block.3.0'
 
     mobilenet_v3_large:
-      - 'features.11.block.2.fc1'
-      - 'features.11.block.2.fc2'
-      - 'features.12.block.2.fc1'
-      - 'features.12.block.2.fc2'
-      - 'features.13.block.2.fc1'
-      - 'features.13.block.2.fc2'
-      - 'features.14.block.2.fc1'
-      - 'features.14.block.2.fc2'
-      - 'features.15.block.2.fc1'
-      - 'features.15.block.2.fc2'
-      - 'features.16.0'
+      #- 'features.11.block.2.fc1'
+      #- 'features.11.block.2.fc2'
+      #- 'features.12.block.2.fc1'
+      #- 'features.12.block.2.fc2'
+      #- 'features.13.block.2.fc1'
+      #- 'features.13.block.2.fc2'
+      #- 'features.14.block.2.fc1'
+      #- 'features.14.block.2.fc2'
+      #- 'features.15.block.2.fc1'
+      #- 'features.15.block.2.fc2'
+      #- 'features.16.0'
+      - 'features.9.block.2.0'
     
   lambda_aligns_recalib: [0.5, 0.6]
   #lambda_aligns_recalib: [0.5]

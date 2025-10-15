@@ -29,6 +29,7 @@ import pandas as pd
 from torchvision import transforms
 from utils import get_base_model_image_size
 import os
+from dotenv import load_dotenv
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -37,7 +38,7 @@ from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch,
 
 XAI_Integrated_gradients = True
 XAI_GradCAM              = True
-XAI_Lime                 = True
+XAI_Lime                 = False
 
 MODEL = None
 TRAIN_TRANSFORM = None

@@ -16,6 +16,8 @@ MODELS=(
     "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.12_0.5.pth"
     "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.12_0.6.pth"
     "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_large_features.7_0.5.pth"
+    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_small_features.9.block.3.0_0.6"
+    "/mnt/sdd/basics/mobilenet_v3_large/loss_mobilenet_v3_small_features.9.block.3.0_0.6"
     
 )
 
