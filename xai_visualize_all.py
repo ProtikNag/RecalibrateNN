@@ -124,46 +124,42 @@ if __name__ == '__main__':
     save_dir                 = args.save_dir.strip()
     #print(XAI_Integrated_gradients,XAI_GradCAM,XAI_Lime, IMAGES)
     # Get image paths from config and create IMAGES list
-    image_dir = '/home/datasets/train/deer/'
-    IMAGES = [[] for _ in range(3)]  # Create a list of lists for each class
-    count = 0
-    # Iterate through all subdirectories
-    for root, dirs, files in os.walk(image_dir):
-        for file in files:
-            
-            # Check for common image extensions
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
-                IMAGES[0].append(os.path.join(root, file))
-                count = count + 1
-                if(count >=200) :
-                    break
-    image_dir = '/home/datasets/train/horse/'
-    count = 0
-    for root, dirs, files in os.walk(image_dir):
-        for file in files:
-            # Check for common image extensions
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
-                IMAGES[1].append(os.path.join(root, file))
-                count = count + 1
-                if(count >=200) :
-                    break
-
-    image_dir = '/home/datasets/train/zebra/'
-    count = 0
-    for root, dirs, files in os.walk(image_dir):
-        for file in files:
-            # Check for common image extensions
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
-                IMAGES[2].append(os.path.join(root, file))
-                count = count + 1
-                if(count >=200) :
-                    break
-
+    base_image_path = config.CLASSIFICATION_DATA_BASE_PATH
+    print(base_image_path)
+    base_image_path = os.path.join(base_image_path, "train")
+    print(base_image_path)
+    image_dirs = [os.path.join(base_image_path, d) for d in os.listdir(base_image_path) if os.path.isdir(os.path.join(base_image_path, d))]
+    image_dirs = sorted(image_dirs)
+    IMAGES = [[] for _ in range(0,len(image_dirs))]  # Create a list of lists for each class
+    for i in range(0,len(image_dirs)):
+        count  = 0
+        # Iterate through all subdirectories
+        for root, dirs, files in os.walk(image_dirs[i]):
+            for file in files:
+                
+                # Check for common image extensions
+                if file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
+                    IMAGES[i].append(os.path.join(root, file))
+                    count = count + 1
+                    if(count >=200) :
+                        break
     # Sort the paths for consistent ordering
-
+    #for i in range(0,len(IMAGES)):
+	  #  print(f"Image files in {IMAGES[i]}")
     if not IMAGES:
-        print(f"No images found in {image_dir}")
+        print(f"No images found in {image_dirs}")
         exit()
+    ################################################################################################################
+    ############# GRAD CAM Implementation ##########################################################
+    if(XAI_GradCAM == True):
+        model = get_model(BASE_MODEL_PATH)
+        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'gradcam', 'before')
+        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
+        save_dir_after = os.path.join(save_dir,MODEL_NAME,'gradcam',  'after')
+        print(save_dir_before, save_dir_after)
+        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
+    ################################################################################################################
     ################################################################################################################
     ############# Integrated Gradients ##########################################################
     
@@ -180,17 +176,7 @@ if __name__ == '__main__':
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
         save_dir_after = os.path.join(save_dir,MODEL_NAME, 'integrated_gradient','after')
         xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
-    ################################################################################################################
-    ############# GRAD CAM Implementation ##########################################################
-    if(XAI_GradCAM == True):
-        model = get_model(BASE_MODEL_PATH)
-        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'gradcam', 'before')
-        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
-        save_dir_after = os.path.join(save_dir,MODEL_NAME,'gradcam',  'after')
-        print(save_dir_before, save_dir_after)
-        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
-    ################################################################################################################
+
     ############# Lime Implementation ##########################################################
     if(XAI_Lime == True):
         model = get_model(BASE_MODEL_PATH)

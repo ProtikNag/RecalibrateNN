@@ -7,33 +7,34 @@ set -euo pipefail
 #    parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
 #    parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
 
-export BASE_PATH_RES="/mnt/sdb2/cub_3c_full/"
-export CONFIG_FILE='../../config_cub_3classes.yaml'
+export BASE_PATH_RES="/mnt/sdb2/cub_10c_full/"
+export CONFIG_FILE='../../config_cub_multiclass.yaml'
 
 export MODEL_NAME="vgg16"
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MODEL_NAME}/${MODEL_NAME}.pth"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_10c_models/${MODEL_NAME}/${MODEL_NAME}.pth"
 export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
-export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_features.24_0.5.pth"
+export MODEFIED_MODEL="/mnt/sdd/cub_10c/${MODEL_NAME}/loss_${MODEL_NAME}_features.24_0.5.pth"
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
 
-
+#"/mnt/sdd/basics/${MODEL_NAME}/loss_${MODEL_NAME}_features.7.block.3.0_0.5.pth"
+export BASE_PATH_RES="/mnt/sdb2/cub_3c_full/"
 
 export MODEL_NAME="mobilenet_v3_small"
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MODEL_NAME}/${MODEL_NAME}.pth"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_10c_models/${MODEL_NAME}/${MODEL_NAME}.pth"
 export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
-export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_features.7.block.3.0_0.5.pth"
+export MODEFIED_MODEL="/mnt/sdd/cub_10c/${MODEL_NAME}/loss_${MODEL_NAME}_features.7.block.3.0_0.5.pth"
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
 
 export MODEL_NAME="mobilenet_v3_large"
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MODEL_NAME}/${MODEL_NAME}.pth"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_10c_models/${MODEL_NAME}/${MODEL_NAME}.pth"
 export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
 
-export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_features.13.block.2.fc2_0.5.pth"
+export MODEFIED_MODEL="/mnt/sdd/cub_10c/${MODEL_NAME}/loss_${MODEL_NAME}_features.13.block.2.fc2_0.5.pth"
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
 
 
 export MODEL_NAME="resnet50"
-export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MODEL_NAME}/${MODEL_NAME}.pth"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_10c_models/${MODEL_NAME}/${MODEL_NAME}.pth"
 export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
-export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_layer4.2.conv2_0.5.pth"
+export MODEFIED_MODEL="/mnt/sdd/cub_10c/${MODEL_NAME}/loss_${MODEL_NAME}_layer3.0.conv3_0.5.pth"
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}

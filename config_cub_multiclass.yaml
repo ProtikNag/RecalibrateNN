@@ -122,7 +122,7 @@ xai_before_after:
   integrated_gradients: true
   grad_cam: true
   lime: false
-  num_classes: 5 
+  num_classes: 10 
   class_images:
     class0:
       - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0001_796111.jpg'
@@ -354,4 +354,20 @@ xai_before_after:
       - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0052_794952.jpg'
       - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0067_785249.jpg'
       - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0077_785257.jpg'
+    class5:
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0004_795112.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0005_795119.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0007_795123.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0008_795071.jpg'
+    class6:
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0001_795972.jpg'
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0003_795982.jpg'
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0007_795932.jpg'
+      
+    class7:
+      - '/mnt/data/caltech_training/train/008.Rhinoceros_Auklet/Rhinoceros_Auklet_0003_797535.jpg'
+    class8:
+      - '/mnt/data/caltech_training/train/009.Brewer_Blackbird/Brewer_Blackbird_0002_2278.jpg'
+    class9:
+      - '/mnt/data/caltech_training/train/010.Red_winged_Blackbird/Red_Winged_Blackbird_0005_5636.jpg'
       
