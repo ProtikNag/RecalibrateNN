@@ -13,6 +13,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from logger import Logger_Singleton
+from dotenv import load_dotenv
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 
 from ConfigSingleton import ConfigSingleton

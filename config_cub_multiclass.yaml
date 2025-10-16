@@ -48,7 +48,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: false
+  override_retraining: true
   layers_to_train:
     vgg16:
       - 'features.7'

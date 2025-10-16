@@ -17,7 +17,7 @@ export MODEFIED_MODEL="/mnt/sdd/cub_10c/${MODEL_NAME}/loss_${MODEL_NAME}_feature
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
 
 #"/mnt/sdd/basics/${MODEL_NAME}/loss_${MODEL_NAME}_features.7.block.3.0_0.5.pth"
-export BASE_PATH_RES="/mnt/sdb2/cub_3c_full/"
+
 
 export MODEL_NAME="mobilenet_v3_small"
 export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_10c_models/${MODEL_NAME}/${MODEL_NAME}.pth"
