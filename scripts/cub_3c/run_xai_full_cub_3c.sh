@@ -37,3 +37,10 @@ export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MO
 export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
 export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_layer4.2.conv2_0.5.pth"
 python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
+
+
+export MODEL_NAME="inception_v3"
+export ORIGINAL_MODEL="/home/srikanth/trained_models/pytorch/caltech_3class/${MODEL_NAME}/${MODEL_NAME}.pth"
+export RESULTS="${BASE_PATH_RES}${MODEL_NAME}"
+export MODEFIED_MODEL="/mnt/sdd/cub_3c/${MODEL_NAME}/loss_${MODEL_NAME}_Mixed_6e.branch7x7_1.conv_0.5.pth"
+python ../../xai_visualize_all.py --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL}  --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE}  --save_dir ${RESULTS}
