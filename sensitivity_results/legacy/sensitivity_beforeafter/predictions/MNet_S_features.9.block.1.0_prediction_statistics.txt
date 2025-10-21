@@ -1,0 +1,25 @@
+PREDICTION STATISTICS
+==================================================
+
+Overall Accuracy: 0.9447 (94.47%)
+
+Per-Class Statistics:
+------------------------------
+horse:
+  Precision: 0.8505
+  Recall: 0.9322
+  F1-Score: 0.8895
+  Support: 177.0
+
+zebra:
+  Precision: 0.9506
+  Recall: 0.9390
+  F1-Score: 0.9448
+  Support: 246.0
+
+deer:
+  Precision: 0.9873
+  Recall: 0.9535
+  F1-Score: 0.9701
+  Support: 409.0
+

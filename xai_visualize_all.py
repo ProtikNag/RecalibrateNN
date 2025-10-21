@@ -85,6 +85,13 @@ if __name__ == '__main__':
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
+
+    parser.add_argument(
+        "--override_image_path", 
+        action='store_true', 
+        default=False, 
+        help="Flag to enable image path override. If set, --image_path must be provided."
+    )    
     args = parser.parse_args()
     """
     args = parser.parse_args([
@@ -125,6 +132,9 @@ if __name__ == '__main__':
     #print(XAI_Integrated_gradients,XAI_GradCAM,XAI_Lime, IMAGES)
     # Get image paths from config and create IMAGES list
     base_image_path = config.CLASSIFICATION_DATA_BASE_PATH
+    print(args.override_image_path )
+    if(args.override_image_path == True):
+      base_image_path = input("? --override_image_path flag is set. Please enter the image path: ")        
     print(base_image_path)
     base_image_path = os.path.join(base_image_path, "train")
     print(base_image_path)
