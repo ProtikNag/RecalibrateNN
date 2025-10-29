@@ -1,3 +1,36 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on```python
+# Copyright [2025] [Srikanth KS]
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+"""
+/*
+ * Copyright (c) 2025 Srikanth K S. All rights reserved.
+ * Licensed under the APACHE2 License.
+ * Author : Srikanth K S
+ * Version 1.0
+ */
+"""
+
 import copy
 import os.path
 import os
@@ -81,7 +114,19 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
     return scores.float().mean().item()
 
 
-def main():
+def main(random_state=42):
+    # Set random seeds for reproducibility at the beginning of main function
+    torch.manual_seed(random_state)
+    if(DEVICE == 'cuda'):
+      torch.cuda.manual_seed(random_state)
+      torch.cuda.manual_seed_all(random_state)  # For multi-GPU setups
+    np.random.seed(random_state)
+    random.seed(random_state)
+    
+    if(DEVICE == 'cuda'):
+      # Ensure deterministic behavior (may impact performance)
+      torch.backends.cudnn.deterministic = True
+      torch.backends.cudnn.benchmark = False
     logging.info("Main function started.")
     try:
         for layer_name in LAYER_NAMES:
@@ -132,6 +177,13 @@ def main():
             try:
                 print(f"List of lambda values for while model will be trained {LAMBDA_ALIGNS}")
                 for LAMBDA_ALIGN in LAMBDA_ALIGNS:
+                    
+                    # Reset random seeds before each training iteration for consistency
+                    torch.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    torch.cuda.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    np.random.seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    random.seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                                    
                     LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
                     logging.info(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
                     print(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
@@ -139,7 +191,7 @@ def main():
                     try:
                         model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                     except Exception as e:
-                        print(f"Obtained exception while registering forward hook for {layer}")
+                        print(f"Obtained exception while registering forward hook for {layer_name}")
                     try:
                         model_trained.train()
                     except Exception as e:
@@ -148,6 +200,9 @@ def main():
                     for name, param in model_trained.named_parameters():
                         param.requires_grad = (layer_name in name)
                     model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+                    # Set random seed for optimizer initialization
+                    torch.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    
                     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
                     loss_history = {"total": [], "cls": [], "align": []}
                     for epoch in range(EPOCHS):
