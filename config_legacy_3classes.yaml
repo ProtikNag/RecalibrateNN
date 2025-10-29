@@ -17,14 +17,24 @@ classification:
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
+
 concept:
-  base_path: '/home/concept'
+  base_path: "/home/srikanth/study1/scratchpad_model/geti_conceptextraction/concepts/"
   target_folders:
-    - 'deer/coat'
-    - 'horse/horse_skin'
-    - 'zebra/stripes'
+    - "deer/face_607"
+    - "horse/H_Coat_225"
+    - "zebra/zebra_face_681"
+  random_folder: "/home/concept/random"
+
+
+#concept:
+#  base_path: '/home/concept'
+#  target_folders:
+#    - 'deer/coat'
+#    - 'horse/horse_skin'
+#    - 'zebra/stripes'
     
-  random_folder: '/home/concept/random'
+#  random_folder: '/home/concept/random'
 
 hyperparameters:
   learning_rate: 1e-03

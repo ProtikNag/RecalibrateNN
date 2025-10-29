@@ -60,10 +60,24 @@ MODEL = None
 TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
 LAYER_NAMES = None
-
+RANDOM_STATE = 132
 activation = {}
 output_shape = {}
 
+def set_seed(seed=RANDOM_STATE):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+def worker_init_fn(worker_id):
+    worker_seed = RANDOM_STATE + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+# Set global seed
+set_seed(RANDOM_STATE)
 
 def get_activation(layer_name):
     def hook(model, input, output):
@@ -410,7 +424,11 @@ if __name__ == "__main__":
         train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
         val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
         print("Loading val datasets stand by")
-        dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        generator = torch.Generator()
+        generator.manual_seed(random_state)    
+        dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, 
+	                            shuffle=True, generator=generator,
+	                            worker_init_fn=worker_init_fn)
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
         class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name  ),
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]

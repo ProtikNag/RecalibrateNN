@@ -1,3 +1,35 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on```python
+# Copyright [2025] [Srikanth KS]
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+"""
+/*
+ * Copyright (c) 2025 Srikanth K S. All rights reserved.
+ * Licensed under the APACHE2 License.
+ * Author : Srikanth K S
+ * Version 1.0
+ */
+"""
 import os
 import numpy as np
 import torch
@@ -101,16 +133,17 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC'):
+def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC', random_state=132):
+    np.random.seed(random_state)
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
 
     if classifier_type == 'LinearSVC':
-        clf = LinearSVC(max_iter=1500)
+        clf = LinearSVC(max_iter=1500, random_state=random_state)
     elif classifier_type == 'SGDClassifier':
         clf = SGDClassifier(loss='hinge', max_iter=1000, tol=1e-3)  # hinge = SVM-like
     elif classifier_type == 'LogisticRegression':
-        clf = LogisticRegression(max_iter=1000, solver='liblinear')
+        clf = LogisticRegression(max_iter=1000, solver='liblinear', random_state=random_state)
 
     clf.fit(X, y)
     cav_vector = clf.coef_.squeeze()
@@ -332,8 +365,24 @@ def load_model_statedict(model, model_path):
     model.load_state_dict(torch.load(model_path, weights_only=True))
     return model
 
+def set_seed(seed=RANDOM_STATE):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
-def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE):
+def worker_init_fn(worker_id):
+    worker_seed = RANDOM_STATE + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE, random_state=RANDOM_STATE):
+    generator = torch.Generator()
+    generator.manual_seed(random_state)    
+    # Set global seed
+    set_seed(random_state)
     logger = Logger_Singleton()
     # Transformations
     IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
@@ -351,12 +400,19 @@ def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZ
     train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
     logger.info(f"Training folders: {train_folders} and the validation folders: {valid_folders}")
     train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
-    dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, 
+                                 shuffle=True,
+                                 generator=generator,
+                                 worker_init_fn=worker_init_fn)
     val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     return  dataset_loader, val_loader,TRAIN_TRANSFORM,VALID_TRANSFORM, class_names
 
-def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_folder_list, BATCH_SIZE):
+def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_folder_list, BATCH_SIZE, random_state = random_state):
+    generator = torch.Generator()
+    generator.manual_seed(random_state)    
+    # Set global seed
+    set_seed(random_state)
     logger = Logger_Singleton()
     IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
     TRAIN_TRANSFORM = transforms.Compose([
@@ -372,8 +428,14 @@ def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_fo
         ])
     logger.info(f"Loading concept datasets stand by from the folders {concept_folder_list}")
     print("Loading concept datasets stand by")
-    concept_loader = [DataLoader(SingleClassDataLoader(path, transform=TRAIN_TRANSFORM ), batch_size=BATCH_SIZE, shuffle=True) for path in concept_folder_list]
+    concept_loader = [DataLoader(SingleClassDataLoader(path, transform=TRAIN_TRANSFORM ), 
+                                 batch_size = BATCH_SIZE, shuffle = True,
+                                 generator = generator,worker_init_fn = worker_init_fn
+                                 ) for path in concept_folder_list]
     logger.info(f"Loading random datasets stand by from the folder {random_folder_list}")
     print("Loading random datasets stand by")
-    random_loader = DataLoader(SingleClassDataLoader(random_folder_list, transform=TRAIN_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+    random_loader = DataLoader(SingleClassDataLoader(random_folder_list, transform=TRAIN_TRANSFORM), 
+                               batch_size=BATCH_SIZE, shuffle=True,
+                               generator = generator,worker_init_fn = worker_init_fn
+                               ) 
     return concept_loader, random_loader

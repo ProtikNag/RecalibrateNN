@@ -27,6 +27,21 @@ from tcav_utils import (util_compute_cav, util_compute_sensitivity_score, util_c
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
+RANDOM_STATE = 132
+def set_seed(seed=RANDOM_STATE):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+def worker_init_fn(worker_id):
+    worker_seed = RANDOM_STATE + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+# Set global seed
+set_seed(RANDOM_STATE)
 def get_model_path(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_path='./results'):
     base_path = None
     if(recalibrated_model_base_path != None):
@@ -110,9 +125,17 @@ if __name__ == "__main__":
     else:
         raise FileNotFoundError(f"Config file parameter not provided in the command line")
     config = ConfigSingleton(config_file)
-    SEED = config.SEED
-    np.random.seed(SEED)
-    torch.manual_seed(SEED)
+    # Set random seeds for reproducibility
+    torch.manual_seed(RANDOM_STATE)
+    if(device =='cuda'):
+      torch.cuda.manual_seed(RANDOM_STATE)
+      torch.cuda.manual_seed_all(RANDOM_STATE)  # For multi-GPU setups
+    np.random.seed(RANDOM_STATE)
+    random.seed(RANDOM_STATE)
+    if(device =='cuda'):
+      # Ensure deterministic behavior (may impact performance)
+      torch.backends.cudnn.deterministic = True
+      torch.backends.cudnn.benchmark = False
     CLASSIFICATION_DATA_BASE_PATH = config.CLASSIFICATION_DATA_BASE_PATH
     TARGET_CLASS_LIST = config.TARGET_CLASS_LIST
     RANDOM_FOLDER = config.RANDOM_FOLDER
@@ -172,7 +195,7 @@ if __name__ == "__main__":
         layers = get_model_layers(MODEL)
         del (MODEL)
     ############## Load data #################################
-    dataset_loader, val_loader,TRAIN_TRANSFORM , VALID_TRANSFORM, class_names = load_train_valid_dataset(MODEL_NAME,CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE)
+    dataset_loader, val_loader,TRAIN_TRANSFORM , VALID_TRANSFORM, class_names = load_train_valid_dataset(MODEL_NAME,CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE, random_state = RANDOM_STATE)
     TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
     class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH,"train",class_name), \
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
