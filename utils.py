@@ -44,11 +44,11 @@ from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from torchvision.models import resnet50, vgg16,inception_v3, mobilenet_v3_large, mobilenet_v3_small
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
+import random
 
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+RANDOM_STATE = 132
 
 
 # Dynamically determine the number of classes
@@ -133,17 +133,17 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
-def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC', random_state=132):
+def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC', random_state=RANDOM_STATE):
     np.random.seed(random_state)
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
 
     if classifier_type == 'LinearSVC':
-        clf = LinearSVC(max_iter=1500, random_state=random_state)
+        clf = LinearSVC(max_iter=1500, random_state = random_state)
     elif classifier_type == 'SGDClassifier':
         clf = SGDClassifier(loss='hinge', max_iter=1000, tol=1e-3)  # hinge = SVM-like
     elif classifier_type == 'LogisticRegression':
-        clf = LogisticRegression(max_iter=1000, solver='liblinear', random_state=random_state)
+        clf = LogisticRegression(max_iter=1000, solver='liblinear', random_state = random_state)
 
     clf.fit(X, y)
     cav_vector = clf.coef_.squeeze()
@@ -408,7 +408,7 @@ def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZ
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     return  dataset_loader, val_loader,TRAIN_TRANSFORM,VALID_TRANSFORM, class_names
 
-def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_folder_list, BATCH_SIZE, random_state = random_state):
+def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_folder_list, BATCH_SIZE, random_state = RANDOM_STATE):
     generator = torch.Generator()
     generator.manual_seed(random_state)    
     # Set global seed

@@ -15,6 +15,7 @@ from torchvision import transforms
 from logger import Logger_Singleton
 from dotenv import load_dotenv
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
+import random
 
 from ConfigSingleton import ConfigSingleton
 from utils import (
@@ -127,12 +128,12 @@ if __name__ == "__main__":
     config = ConfigSingleton(config_file)
     # Set random seeds for reproducibility
     torch.manual_seed(RANDOM_STATE)
-    if(device =='cuda'):
+    if(DEVICE =='cuda'):
       torch.cuda.manual_seed(RANDOM_STATE)
       torch.cuda.manual_seed_all(RANDOM_STATE)  # For multi-GPU setups
     np.random.seed(RANDOM_STATE)
     random.seed(RANDOM_STATE)
-    if(device =='cuda'):
+    if(DEVICE =='cuda'):
       # Ensure deterministic behavior (may impact performance)
       torch.backends.cudnn.deterministic = True
       torch.backends.cudnn.benchmark = False
