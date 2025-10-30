@@ -1,0 +1,48 @@
+# This is a full-line comment describing the entire file.
+# Path to the caltech dataset
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on```python
+# Copyright [2025] [Srikanth KS]
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+#
+# * Copyright (c) 2025 Srikanth K S. All rights reserved.
+# * Licensed under the APACHE2 License.
+# * Author : Srikanth K S
+# * Version 1.0
+# */
+#
+
+# Export any paths here for your python scripts
+export PATH=../../:${PATH}
+export BASE_MODEL_PATH="Enter path of your base model"
+export CONFIG_FILE_PATH="Enter path where you want to store your results"
+
+export MODEL='resnet50' && python ../../main.py --model_name ${MODEL} --model_path ${BASE_MODEL_PATH} --config ${CONFIG_FILE_PATH}  --store_results --store_results ${BASE_MODEL_PATH}/recalib
+
+export MODEL='inception_v3' && python ../../main.py --model_name ${MODEL} --model_path ${BASE_MODEL_PATH} --config ${CONFIG_FILE_PATH}  --store_results ${BASE_MODEL_PATH}/recalib
+
+export MODEL='mobilenet_v3_small' && python ../../main.py --model_name ${MODEL} --model_path ${BASE_MODEL_PATH} --config ${CONFIG_FILE_PATH}  --store_results ${BASE_MODEL_PATH}/recalib
+
+export MODEL='mobilenet_v3_large' && python ../../main.py --model_name ${MODEL} --model_path ${BASE_MODEL_PATH} --config ${CONFIG_FILE_PATH}  --store_results ${BASE_MODEL_PATH}/recalib
+
+export MODEL='vgg16' && python ../../main.py --model_name ${MODEL}  --model_path ${BASE_MODEL_PATH} --config ${CONFIG_FILE_PATH}  --store_results ${BASE_MODEL_PATH}/recalib 

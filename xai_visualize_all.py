@@ -196,9 +196,9 @@ if __name__ == '__main__':
     ############# GRAD CAM Implementation ##########################################################
     if(XAI_GradCAM == True):
         model = get_model(BASE_MODEL_PATH)
-        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'gradcam', 'before')
+        save_dir_before = os.path.join(save_dir, 'gradcam', 'before')
         xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
-        save_dir_after = os.path.join(save_dir,MODEL_NAME,'gradcam',  'after')
+        save_dir_after = os.path.join(save_dir,'gradcam',  'after')
         print(save_dir_before, save_dir_after)
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
         xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
@@ -214,10 +214,10 @@ if __name__ == '__main__':
         except Exception as e:
           print(e)
           exit()
-        save_dir_before = os.path.join(save_dir,MODEL_NAME, 'integrated_gradient','before')
+        save_dir_before = os.path.join(save_dir, 'integrated_gradient','before')
         xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before, title_prefix = "before")
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir_after = os.path.join(save_dir,MODEL_NAME, 'integrated_gradient','after')
+        save_dir_after = os.path.join(save_dir,'integrated_gradient','after')
         xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
 
     ############# Lime Implementation ##########################################################
@@ -226,5 +226,5 @@ if __name__ == '__main__':
         save_dir_before = os.path.join(save_dir,MODEL_NAME, 'lime', 'before')
         xai_lime_explainer(MODEL_NAME, model, IMAGES, num_classes, save_dir_before)
         model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir_after = os.path.join(save_dir,MODEL_NAME, 'lime', 'after')
+        save_dir_after = os.path.join(save_dir, 'lime', 'after')
         xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir_after)
