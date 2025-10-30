@@ -9,25 +9,30 @@ set -euo pipefail
 
 
 ####################################################################################################################
-#  Commom variables
-# ####################################################################################################################
+
+source ./common_params.sh
+source ../utility_scripts.sh
 PYTHON_SCRIPT="../../xai_visualize_all.py"
-BASE_MODEL_DIR="/home/srikanth/trained_models/pytorch/legacy"
-CONFIG_FILE='../../config_legacy_3classes.yaml'
-RECALIBRATED_MODELS_BASE="/mnt/sdd/basics"
-RESULTS_BASE="/tmp/legacy_full"
-MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50") 
-####################################################################################################################
+
 VGG_XAI=false
 RNET_XAI=false
 IV3_XAI=true
 MET_S_XAI=true
 MET_L_XAI=true
 
-source ../utility_scripts.sh
+
 # Call the function to display parameters and get confirmation
 print_parameters
 
+echo -e "\033[32m XAI FOR VGG16 \033[0m $VGG_XAI"
+echo -e "\033[32m XAI FOR RNET \033[0m $RNET_XAI"
+echo -e "\033[32m XAI FOR IV3 \033[0m $IV3_XAI"
+echo -e "\033[32m XAI FOR MNET_S \033[0m $MET_S_XAI"
+echo -e "\033[32m XAI FOR MNET_L \033[0m $MET_L_XAI"
+
+wait_for_user
+
+####################################################################################################################
 #process_xai_selected models
 if [ "$VGG_XAI" = true ]; then
     MODEL="vgg16"
@@ -40,10 +45,10 @@ if [ "$VGG_XAI" = true ]; then
                          "loss_vgg16_features.7_0.4.pth"
                          "loss_vgg16_features.14_0.3.pth")
 fi
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
   # Takes 2 parameters Model name and pth file array
   process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 #process_xai_selected models
 if [ "$RNET_XAI" = true ]; then
@@ -53,10 +58,10 @@ if [ "$RNET_XAI" = true ]; then
                          "loss_resnet50_layer4.2.conv3_0.6.pth"
                          "loss_resnet50_layer2.3.conv1_0.6.pth")
 fi
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
   # Takes 2 parameters Model name and pth file array
   process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
 
@@ -68,10 +73,10 @@ if [ "$IV3_XAI" = true ]; then
                          "loss_inception_v3_Mixed_6e.branch7x7_1.conv_0.6.pth"
                          "loss_inception_v3_Mixed_6e.branch7x7_1.conv_0.7.pth")
 fi
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
   # Takes 2 parameters Model name and pth file array
   process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
 #process_xai_selected models
@@ -82,10 +87,10 @@ if [ "$MET_S_XAI" = true ]; then
                          "loss_mobilenet_v3_small_features.8.block.3.0_0.7.pth"
                          "loss_mobilenet_v3_small_features.8.block.0.0_0.5.pth")
 fi
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
   # Takes 2 parameters Model name and pth file array
   process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
 #process_xai_selected models
@@ -96,14 +101,14 @@ if [ "$MET_L_XAI" = true ]; then
                          "loss_mobilenet_v3_large_features.15.block.2.fc2_0.6.pth"
                          "loss_mobilenet_v3_large_features.16.0_0.6.pth")
 fi
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
   # Takes 2 parameters Model name and pth file array
   process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
-################ DO NOT EDIT BEYOND THIS POINT ##############################
+################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
 
-################ End of script ##############################
+################ End of script #####################################################################################
 
 
-################ End of script ##############################
+
