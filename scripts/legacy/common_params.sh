@@ -3,7 +3,7 @@
 # ####################################################################################################################
 
 BASE_MODEL_DIR="/home/srikanth/trained_models/pytorch/legacy"
-CONFIG_FILE='../../config_legacy_3classes.yaml'
+CONFIG_FILE='../../config/legacy/config_legacy_3classes.yaml'
 MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50")
 
 #Recalibration Results location
