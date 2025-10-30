@@ -27,7 +27,7 @@ process_pth_file() {
     if [ -n "$pth_file" ] && [ -n "$model_name" ]; then
         export MODEL_NAME="$model_name"
         export ORIGINAL_MODEL="${BASE_MODEL_DIR}/${MODEL_NAME}/${MODEL_NAME}.pth"
-        export RESULTS="${RESULTS_BASE}/${MODEL_NAME}/$(basename "${pth_file%.*}")"
+        export RESULTS="${XAI_RESULTS_LOCATION}/${MODEL_NAME}/$(basename "${pth_file%.*}")"
         mkdir -p "$RESULTS"
         export MODEFIED_MODEL="$pth_file"
         echo "command: python ${PYTHON_SCRIPT} --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL} --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE} --save_dir ${RESULTS}"

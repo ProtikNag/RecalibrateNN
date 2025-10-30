@@ -1,0 +1,373 @@
+# This is a full-line comment describing the entire file.
+
+# Path to the caltech dataset
+misc:
+   seed: 0
+
+classification:
+  data_base_path: "/mnt/sdd/caltech_training_multiclass" # Path to the classification dataset base directory.
+  target_class_list:
+    - "001.Black_footed_Albatross"
+    - "002.Laysan_Albatross"
+    - "003.Sooty_Albatross"
+    - "004.Groove_billed_Ani"
+    - "005.Crested_Auklet"
+    - "006.Least_Auklet"
+    - "007.Parakeet_Auklet"
+    - "008.Rhinoceros_Auklet"
+    - "009.Brewer_Blackbird"
+    - "010.Red_winged_Blackbird"
+
+
+  linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
+  lambda_aligns: [ 0.5, 0.6, 0.7, 0.8]
+
+# --- CONCEPT CONFIGURATIONS ---
+# This section defines the paths for various concepts.
+concept:
+  base_path: '/mnt/sdd/parts'
+  target_folders:
+    - "001.Black_footed_Albatross/beak"
+    - "002.Laysan_Albatross/beak"
+    - "003.Sooty_Albatross/beak"
+    - "004.Groove_billed_Ani/beak"
+    - "005.Crested_Auklet/beak"
+    - "006.Least_Auklet/beak"
+    - "007.Parakeet_Auklet/beak"
+    - "008.Rhinoceros_Auklet/beak"
+    - "009.Brewer_Blackbird/beak"
+    - "010.Red_winged_Blackbird/beak"
+    
+  random_folder: "/home/concept/random"
+
+hyperparameters:
+  learning_rate: 1e-03
+  epochs: 30
+  batch_size: 64
+  
+# --- MODEL CONFIGURATIONS ---
+# This section specifies model-specific settings, including layers to train.  
+recalibration:
+  override_retraining: true
+  layers_to_train:
+    vgg16:
+      - 'features.7'
+      - 'features.19'
+      - 'features.20'
+      - 'features.21'
+      - 'features.22'
+      - 'features.23'
+      - 'features.24'
+      - 'features.25'
+      - 'features.26'
+      - 'features.27'
+      - 'features.28'
+    inception_v3:
+      - 'Mixed_6e.branch1x1.conv'
+      - 'Mixed_6e.branch1x1'
+      - 'Mixed_6e.branch7x7_1.conv'
+      - 'Mixed_6e.branch7x7_2.conv'
+      - 'Mixed_6e.branch7x7_3.conv'
+      - 'Mixed_6e.branch7x7dbl_1.conv'
+      - 'Mixed_7b.branch1x1.conv'
+      - 'Mixed_7b.branch3x3_1.conv'
+      - 'Mixed_7b.branch3x3_2a.conv'
+      - 'Mixed_7b.branch3x3_2b.conv'
+      - 'Mixed_7b.branch3x3dbl_3a'
+      - 'Mixed_7b.branch_pool.conv'
+    resnet50:
+      - 'layer1.0.conv1'
+      - 'layer1.0.conv2'
+      - 'layer1.0.conv3'
+      - 'layer4.0.conv1'
+      - 'layer4.0.conv2'
+      - 'layer4.0.conv3'
+      - 'layer4.1.conv1'
+      - 'layer4.1.conv2'
+      - 'layer4.1.conv3'
+      - 'layer4.2.conv1'
+      - 'layer4.2.conv2'
+      - 'layer4.2.conv3'
+    mobilnet_v3_small:
+      - 'features.5.block.0.0'
+      - 'features.5.block.1.0'
+      - 'features.5.block.2.fc2'
+      - 'features.5.block.3.0'
+      - 'features.6.block.0.0'
+      - 'features.6.block.1.0'
+      - 'features.6.block.2.fc2'
+      - 'features.6.block.3.0'
+      - 'features.7.block.0.0'
+      - 'features.7.block.1.0'
+      - 'features.7.block.2.fc2'
+      - 'features.7.block.3.0'
+    mobilenet_v3_large:
+      - 'features.11.block.2.fc1'
+      - 'features.11.block.2.fc2'
+      - 'features.12.block.2.fc1'
+      - 'features.12.block.2.fc2'
+      - 'features.13.block.2.fc1'
+      - 'features.13.block.2.fc2'
+      - 'features.14.block.2.fc1'
+      - 'features.14.block.2.fc2'
+      - 'features.15.block.2.fc1'
+      - 'features.15.block.2.fc2'
+      - 'features.16.0'
+  
+  lambda_aligns_recalib: [0.5, 0.6, 0.7, 0.8]
+  #lambda_aligns_recalib: [0.5]
+# --- END OF CONFIGURATIONS ---
+# Note all the XAI images can be captured here for before after comparison
+xai_before_after:
+  integrated_gradients: true
+  grad_cam: true
+  lime: false
+  num_classes: 10 
+  class_images:
+    class0:
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0001_796111.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0002_55.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0003_796136.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0005_796090.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0006_796065.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0007_796138.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0008_796083.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0009_34.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0010_796097.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0014_89.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0016_796067.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0019_796104.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0023_796059.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0024_796089.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0025_796057.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0032_796115.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0033_796086.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0035_796140.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0036_796127.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0038_212.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0039_796132.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0040_796066.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0041_796108.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0042_796071.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0045_796129.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0046_18.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0047_796064.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0049_796063.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0050_796125.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0053_796109.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0058_796074.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0060_796076.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0064_796101.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0065_796068.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0067_170.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0068_796135.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0069_796139.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0071_796113.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0076_417.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0077_796114.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0078_796126.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0079_796122.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0080_796096.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0082_796121.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0085_92.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0086_796062.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0088_796133.jpg'
+      - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0089_796069.jpg'
+    class1:
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0001_545.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0003_1033.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0004_930.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0005_565.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0006_702.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0012_696.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0013_910.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0017_614.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0018_492.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0021_737.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0023_1059.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0029_482.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0033_658.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0034_628.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0035_876.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0037_699.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0040_472.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0044_784.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0047_619.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0049_918.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0050_870.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0051_1020.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0055_570.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0056_500.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0058_637.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0059_488.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0060_777.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0061_563.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0065_809.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0068_726.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0071_792.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0073_927.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0075_668.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0076_671.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0079_506.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0080_821.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0081_800.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0082_524.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0083_756.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0088_883.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0091_602.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0092_834.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0096_673.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0099_869.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0100_735.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0102_611.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0103_504.jpg'
+      - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0104_630.jpg'
+    class2:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0002_796395.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0003_1078.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0005_796342.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0006_796390.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0007_796372.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0010_796355.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0013_796402.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0014_796373.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0016_1075.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0017_796349.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0019_796391.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0021_796339.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0022_796398.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0023_796401.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0024_1161.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0025_796361.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0029_796357.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0030_1122.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0031_1066.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0032_1149.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0033_1128.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0038_1065.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0040_796375.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0042_1210.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0045_1162.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0046_1211.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0048_1130.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0049_796350.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0050_796351.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0054_796347.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0057_796354.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0058_796360.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0063_1101.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0064_796343.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0065_796367.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0066_796382.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0067_796376.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0068_796353.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0070_796346.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0071_1116.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0072_796371.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0073_1171.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0074_1221.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0075_796352.jpg'
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0076_796365.jpg'
+    class3:
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0002_1670.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0027_1754.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0053_1672.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0074_1730.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0091_1728.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0004_1528.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0031_1588.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0055_1501.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0075_1617.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0094_1540.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0005_1750.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0032_1776.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0058_1751.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0076_1661.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0100_1646.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0006_1763.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0033_1494.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0059_1480.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0077_1724.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0101_1700.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0009_1522.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0035_1591.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0060_1505.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0078_1780.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0105_1562.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0010_1704.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0036_1604.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0062_1767.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0080_1549.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0107_1590.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0012_1784.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0040_1715.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0068_1538.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0082_1697.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0108_1639.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0014_1755.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0044_1731.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0069_1546.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0085_1612.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0109_1592.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0015_1653.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0047_1706.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0071_1559.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0087_1765.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0019_1585.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0051_1650.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0072_1696.jpg'
+      - '/mnt/data/caltech_training/train/004.Groove_billed_Ani/Groove_Billed_Ani_0088_1678.jpg'
+    class4:
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0001_794941.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0013_794914.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0040_794912.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0053_794966.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0068_785253.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0003_794962.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0018_1817.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0042_794902.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0057_794932.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0069_785258.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0005_794922.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0021_794938.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0044_1825.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0059_794929.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0072_785260.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0006_1813.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0028_794951.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0045_794940.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0061_794904.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0073_785248.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0010_794907.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0029_1824.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0047_794918.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0062_794968.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0074_794949.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0011_794927.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0032_794931.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0048_1791.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0066_785251.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0076_785252.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0012_794960.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0033_794964.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0052_794952.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0067_785249.jpg'
+      - '/mnt/data/caltech_training/train/005.Crested_Auklet/Crested_Auklet_0077_785257.jpg'
+    class5:
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0004_795112.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0005_795119.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0007_795123.jpg'
+      - '/mnt/data/caltech_training/train/006.Least_Auklet/Least_Auklet_0008_795071.jpg'
+    class6:
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0001_795972.jpg'
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0003_795982.jpg'
+      - '/mnt/data/caltech_training/train/007.Parakeet_Auklet/Parakeet_Auklet_0007_795932.jpg'
+      
+    class7:
+      - '/mnt/data/caltech_training/train/008.Rhinoceros_Auklet/Rhinoceros_Auklet_0003_797535.jpg'
+    class8:
+      - '/mnt/data/caltech_training/train/009.Brewer_Blackbird/Brewer_Blackbird_0002_2278.jpg'
+    class9:
+      - '/mnt/data/caltech_training/train/010.Red_winged_Blackbird/Red_Winged_Blackbird_0005_5636.jpg'
+      

@@ -43,6 +43,7 @@ def worker_init_fn(worker_id):
     random.seed(worker_seed)
 # Set global seed
 set_seed(RANDOM_STATE)
+
 def get_model_path(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_path='./results'):
     base_path = None
     if(recalibrated_model_base_path != None):
@@ -217,7 +218,8 @@ if __name__ == "__main__":
         model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
         print("Computing the cav vectors can take a while stand by")
         logger.info("Computing the cav vectors can take a while stand by")
-        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+        #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
         stored_cav_vector[layer_name] = cav_vectors 
         logger.info("Computing the sensitivity score can take a while stand by")
         independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
@@ -252,7 +254,8 @@ if __name__ == "__main__":
                         logger.info("Computing the cav vectors can take a while stand by")
                         try:
                             print(concept_loader_list , random_loader) 
-                            cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation,LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+                            #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation,LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+                            cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
                             stored_cav_vector[layer_name] = cav_vectors 
                             logger.info("Computing the sensitivity score can take a while stand by")
                             independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \

@@ -57,6 +57,13 @@ from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
     compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader
 )
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+if(DEVICE =='cuda'):
+  torch.backends.cudnn.deterministic = True
+  torch.backends.cudnn.benchmark = False
+
+
+torch.use_deterministic_algorithms(True, warn_only=True)
 
 
 MODEL = None
@@ -131,7 +138,7 @@ def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx
     return scores.float().mean().item()
 
 
-def main(random_state=42):
+def main(random_state=132):
     # Set random seeds for reproducibility at the beginning of main function
     torch.manual_seed(random_state)
     if(DEVICE == 'cuda'):
@@ -142,7 +149,8 @@ def main(random_state=42):
     
     if(DEVICE == 'cuda'):
       # Ensure deterministic behavior (may impact performance)
-      torch.backends.cudnn.deterministic = True
+      torch.use_deterministic_algorithms(True, warn_only=True)
+
       torch.backends.cudnn.benchmark = False
     logging.info("Main function started.")
     try:
@@ -404,7 +412,7 @@ if __name__ == "__main__":
     # Transformations
     TRAIN_TRANSFORM = transforms.Compose([
         transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.RandomHorizontalFlip(),
+
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
@@ -425,13 +433,13 @@ if __name__ == "__main__":
         TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
         print("Loading train datasets stand by")
         train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
-        val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
-        print("Loading val datasets stand by")
         generator = torch.Generator()
-        generator.manual_seed(random_state)    
+        generator.manual_seed(RANDOM_STATE)    
         dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, 
 	                            shuffle=True, generator=generator,
 	                            worker_init_fn=worker_init_fn)
+        print("Loading val datasets stand by")
+        val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
         validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
         class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name  ),
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]

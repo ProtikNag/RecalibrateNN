@@ -123,7 +123,8 @@ def get_class_folder_dicts(base_dir):
     return train_class_folders, valid_class_folders, classes
     
 
-def get_orthogonal_vector(cav_vector):
+def get_orthogonal_vector(cav_vector, random_state=RANDOM_STATE):
+    np.random.seed(random_state)
     random_vector = np.random.randn(*cav_vector.shape)
     projection = np.dot(random_vector, cav_vector) * cav_vector
     orthogonal_vector = random_vector - projection
@@ -133,27 +134,33 @@ def get_orthogonal_vector(cav_vector):
     return orthogonal_vector
 
 
+
 def train_cav(concept_activations, random_activations, orthogonal=False, classifier_type='LinearSVC', random_state=RANDOM_STATE):
+    # Ensure deterministic behavior
     np.random.seed(random_state)
+    torch.manual_seed(random_state)
+    
     X = np.vstack((concept_activations, random_activations))
     y = np.array([1] * len(concept_activations) + [0] * len(random_activations))
 
     if classifier_type == 'LinearSVC':
-        clf = LinearSVC(max_iter=1500, random_state = random_state)
+        clf = LinearSVC(max_iter=1500, random_state=random_state, dual=False)  # Add dual=False for consistency
     elif classifier_type == 'SGDClassifier':
-        clf = SGDClassifier(loss='hinge', max_iter=1000, tol=1e-3)  # hinge = SVM-like
+        clf = SGDClassifier(loss='hinge', max_iter=1000, tol=1e-3, random_state=random_state)
     elif classifier_type == 'LogisticRegression':
-        clf = LogisticRegression(max_iter=1000, solver='liblinear', random_state = random_state)
+        clf = LogisticRegression(max_iter=1000, solver='liblinear', random_state=random_state)
 
     clf.fit(X, y)
     cav_vector = clf.coef_.squeeze()
     cav_vector /= np.linalg.norm(cav_vector)  # Normalize the CAV vector
 
     if orthogonal:
+        # Set seed before generating orthogonal vector
+        np.random.seed(random_state + 1)
         cav_vector = get_orthogonal_vector(cav_vector)
 
     return cav_vector
-
+    
 
 def evaluate_accuracy(model, loader):
     """
@@ -378,6 +385,8 @@ def worker_init_fn(worker_id):
     worker_seed = RANDOM_STATE + worker_id
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+
+
 def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE, random_state=RANDOM_STATE):
     generator = torch.Generator()
     generator.manual_seed(random_state)    
@@ -388,7 +397,6 @@ def load_train_valid_dataset(MODEL_NAME, CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZ
     IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
     TRAIN_TRANSFORM = transforms.Compose([
             transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
@@ -417,7 +425,6 @@ def load_train_dataset_concept_random(MODEL_NAME, concept_folder_list, random_fo
     IMAGE_SIZE = get_base_model_image_size(MODEL_NAME)
     TRAIN_TRANSFORM = transforms.Compose([
             transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])

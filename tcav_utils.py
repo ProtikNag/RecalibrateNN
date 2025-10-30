@@ -91,8 +91,12 @@ def uils_getlayers(model_name):
     
 
 
-def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, LINEAR_CLASSIFIER_TYPE, orthogonal=False, dump_cav=True):
+def util_compute_cav(model, loader_positive, loader_random, layer_name, activation, LINEAR_CLASSIFIER_TYPE,random_state, orthogonal=False,  dump_cav=True):
     logging = Logger_Singleton()
+    # Set seeds for this specific CAV computation
+    np.random.seed(random_state)
+    torch.manual_seed(random_state)
+    
     pos_acts, rnd_acts = [], []
     model.eval()
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -108,7 +112,7 @@ def util_compute_cav(model, loader_positive, loader_random, layer_name, activati
     pos_acts = np.vstack(pos_acts)
     rnd_acts = np.vstack(rnd_acts)
     
-    cav = train_cav(pos_acts, rnd_acts, orthogonal, LINEAR_CLASSIFIER_TYPE)
+    cav = train_cav(pos_acts, rnd_acts, orthogonal, LINEAR_CLASSIFIER_TYPE, random_state=random_state)
     if(dump_cav == True):
       cav_filename = '.'+os.sep+'cav'+os.sep+f"{layer_name}_cav.pkl"
       os.makedirs('.'+os.sep+'cav', exist_ok=True)
