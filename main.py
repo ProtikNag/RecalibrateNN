@@ -47,6 +47,9 @@ from datetime import datetime
 import argparse
 from dotenv import load_dotenv
 from ConfigSingleton import ConfigSingleton
+import random
+import numpy as np
+
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
