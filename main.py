@@ -30,6 +30,12 @@
  * Version 1.0
  */
 """
+"""
+Known bug
+/mnt/data/python_venv/lib/python3.12/site-packages/torch/autograd/graph.py:825: UserWarning: adaptive_avg_pool2d_backward_cuda does not have a deterministic implementation, but you set 'torch.use_deterministic_algorithms(True, warn_only=True)'. You can file an issue at https://github.com/pytorch/pytorch/issues to help us prioritize adding deterministic support for this operation. (Triggered internally at ../aten/src/ATen/Context.cpp:91.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+
+"""
 
 import copy
 import os.path
@@ -221,14 +227,23 @@ def main(random_state=132):
                         model_trained.train()
                     except Exception as e:
                         print(f"Obtained exception while calling model train")
-                      
-                    for name, param in model_trained.named_parameters():
-                        param.requires_grad = (layer_name in name)
-                    model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+                    try:   
+                        for name, param in model_trained.named_parameters():
+                            param.requires_grad = (layer_name in name)
+                            
+                        model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+                    except Exception as e:
+                        print(param.requires_grad)
+                        print(f"Obtained exception while applying forward hooks  line 225")
+                    
                     # Set random seed for optimizer initialization
                     torch.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
-                    
-                    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
+                    try:
+                        optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
+                    except Exception as e:
+                        print(optimizer)
+                        print(f"Obtained exception   line 239")
+                        
                     loss_history = {"total": [], "cls": [], "align": []}
                     for epoch in range(EPOCHS):
                         total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0

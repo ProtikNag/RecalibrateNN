@@ -2,7 +2,7 @@
 #  Commom variables
 # ####################################################################################################################
 
-BASE_MODEL_DIR="/home/srikanth/trained_models/pytorch/legacy"
+BASE_MODEL_DIR="/mnt/sdd/basics/base_models"
 CONFIG_FILE='../../config/legacy/config_legacy_3classes.yaml'
 MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50")
 

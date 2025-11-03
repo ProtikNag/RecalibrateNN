@@ -13,7 +13,7 @@ classification:
 
 
   linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
-  lambda_aligns: [ 0.5, 0.6 ]
+  lambda_aligns: [ 0.5, 0.6]
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
@@ -21,9 +21,9 @@ classification:
 concept:
   base_path: "/home/srikanth/study1/scratchpad_model/geti_conceptextraction/concepts/"
   target_folders:
-    - "deer/face_607"
-    - "horse/H_Coat_225"
-    - "zebra/zebra_face_681"
+    - "deer/background"
+    - "horse/horse_legacy_coat"
+    - "zebra/legacy_zebra_stripes"
   random_folder: "/home/concept/random"
 
 
