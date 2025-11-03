@@ -37,6 +37,7 @@ import seaborn as sns
 from scipy import stats
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 # Replace 'your_file.csv' with the path to your CSV file
 #file_name = input("Enter the path to your CSV file: ")
