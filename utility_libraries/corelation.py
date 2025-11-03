@@ -39,7 +39,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Replace 'your_file.csv' with the path to your CSV file
-file_name = input("Enter the path to your CSV file: ")
+#file_name = input("Enter the path to your CSV file: ")
+# Replace 'your_file.csv' with the path to your CSV file
+if len(sys.argv) != 2:
+    print("Usage: python corelation.py <csv_file_path>")
+    sys.exit(1)
+
+file_name = sys.argv[1]
+
 df = pd.read_csv(file_name)
 df = df.drop(columns=['Full filepath'])
 class_groups = dict(tuple(df.groupby('Full Class Index')))
