@@ -435,6 +435,9 @@ def verify_normality(df,sheet_name, output_xls):
             normality_df.to_excel(writer, sheet_name=sheet_name, index=False)
     return normality_results
 
+def save_bargraph_data(desc_stats_transposed, i):
+    pass
+
 if(__name__ == '__main__'):
     if len(sys.argv) < 3:
         print("Usage: python anova.py <input_csv_file example input.csv> <output_xls_file example output.xlsx>")
@@ -451,10 +454,16 @@ if(__name__ == '__main__'):
     
     #Get descriptive statistics of each class and store it in the excel file
     with pd.ExcelWriter(output_xls, engine='openpyxl', mode='a') as writer:
-        class_0_df.describe().to_excel(output_xls, sheet_name='Class_0_Descriptive_Stats')
+        class_0_df.describe().to_excel(writer, sheet_name='Class_0_Descriptive_Stats')
         class_1_df.describe().to_excel(writer, sheet_name='Class_1_Descriptive_Stats')
         class_2_df.describe().to_excel(writer, sheet_name='Class_2_Descriptive_Stats')
-    
+        average_df = pd.DataFrame({
+            'Class 0 Mean': class_0_df.mean(),
+            'Class 1 Mean': class_1_df.mean(),
+            'Class 2 Mean': class_2_df.mean()
+        })
+        average_df.to_excel(writer, sheet_name='Class_Averages')
+
     class_0_melted = create_melted_data(class_0_df, sheet_name='Class0_Melted', output_xls=output_xls)
     
     class_1_melted = create_melted_data(class_1_df, sheet_name='Class1_Melted', output_xls=output_xls)
