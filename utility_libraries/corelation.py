@@ -38,16 +38,17 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
-
+import os
 # Replace 'your_file.csv' with the path to your CSV file
 #file_name = input("Enter the path to your CSV file: ")
 # Replace 'your_file.csv' with the path to your CSV file
-if len(sys.argv) != 2:
-    print("Usage: python corelation.py <csv_file_path>")
+if len(sys.argv) != 3:
+    print("Usage: python corelation.py <csv_file_path>  <output xlsx file name>")
     sys.exit(1)
 
 file_name = sys.argv[1]
-
+output_xlsx = sys.argv[2]
+images_path = os.path.dirname(output_xlsx)
 df = pd.read_csv(file_name)
 df = df.drop(columns=['Full filepath'])
 class_groups = dict(tuple(df.groupby('Full Class Index')))
@@ -68,7 +69,7 @@ for i in class_groups:
     mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
     masked_correlation = correlation_matrix.mask(mask)
     print(f"Masked correlation matrix for class group {i} (lower triangle only):")    
-    with pd.ExcelWriter('correlation_matrices.xlsx', mode='a' if i != list(class_groups.keys())[0] else 'w') as writer:
+    with pd.ExcelWriter(output_xlsx, mode='a' if i != list(class_groups.keys())[0] else 'w') as writer:
         masked_correlation.to_excel(writer, sheet_name=f'Class_{i}')
     
 
@@ -81,7 +82,7 @@ for i in class_groups:
     plt.xticks(rotation=45)
     plt.yticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f'correlation_heatmap_class_{i}.png')
+    plt.savefig(os.path.join(images_path, f'correlation_heatmap_class_{i}.png'))
     plt.close()
     print(f"Correlation heatmap for class group {i} saved as 'correlation_heatmap_class_{i}.png'")
     # Get the last row of the correlation matrix
@@ -112,7 +113,7 @@ for i in class_groups:
     else:
         print(f"No positive correlations found in last row for class group {i}")
     # Save subset correlation matrix to Excel file
-    with pd.ExcelWriter('correlation_matrices.xlsx', mode='a') as writer:
+    with pd.ExcelWriter(output_xlsx, mode='a') as writer:
         # Create mask for upper triangle and apply it to subset matrix
         subset_mask = np.triu(np.ones_like(subset_matrix, dtype=bool))
         masked_subset_matrix = subset_matrix.mask(subset_mask)

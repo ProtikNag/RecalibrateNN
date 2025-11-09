@@ -1,0 +1,31 @@
+#########################################################
+
+mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/vgg16
+mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/resnet50
+mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/inception_v3
+mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small
+mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_large
+
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100930.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/vgg16/corelation_face_vgg16.xlsx
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/resnet50/sensitivity_audit_trail_resnet50_20251101_171317.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/resnet50/corelation_face_resnet50.xlsx
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/inception_v3/sensitivity_audit_trail_inception_v3_20251026_164812.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/inception_v3/corelation_face_inception_v3.xlsx
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_large/sensitivity_audit_trail_mobilenet_v3_large_20251101_134401.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_large/corelation_face_mobilenet_v3_large.xlsx
+
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251101_110050.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small/corelation_face_mobilenet_v3_small.xlsx
+
+python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100930.csv  /mnt/sdb2/sensitivity_analysis_paper/corelation_face/vgg16/anova_face_vgg16.xlsx
+
+python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/resnet50/sensitivity_audit_trail_resnet50_20251101_171317.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/resnet50/anova_face_resnet50.xlsx
+
+python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/inception_v3/sensitivity_audit_trail_inception_v3_20251026_164812.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/inception_v3/anova_face_inception_v3.xlsx
+
+python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_large/sensitivity_audit_trail_mobilenet_v3_large_20251101_134401.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_large/anova_face_mobilenet_v3_large.xlsx
+
+python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251101_110050.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small/anova_face_mobilenet_v3_small.xlsx
+
+
