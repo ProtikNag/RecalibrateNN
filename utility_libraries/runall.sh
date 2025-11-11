@@ -7,8 +7,9 @@ mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_all/inception_v3
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_all/mobilenet_v3_small
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_all/mobilenet_v3_large
 
-python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/vgg16/sensitivity_audit_trail_vgg16_20251027_074803.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/vgg16/corelation_all_vgg16.xlsx
+if [ "$run_corel" -eq 1 ]; then
 
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/vgg16/sensitivity_audit_trail_vgg16_20251027_074803.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/vgg16/corelation_all_vgg16.xlsx
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/resnet50/sensitivity_audit_trail_resnet50_20251027_081738.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/resnet50/corelation_all_resnet50.xlsx
 
@@ -18,7 +19,9 @@ python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_confi
 
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251027_102648.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/mobilenet_v3_small/corelation_all_mobilenet_v3_small.xlsx
+fi
 
+if [ "$run_anova" -eq 1 ]; then
 
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/vgg16/sensitivity_audit_trail_vgg16_20251027_074803.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/vgg16/anova_all_vgg16.xlsx
 
@@ -31,3 +34,4 @@ python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_d
 
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_all_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251027_102648.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_all/mobilenet_v3_small/anova_all_mobilenet_v3_small.xlsx
 
+fi

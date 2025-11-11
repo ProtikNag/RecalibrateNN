@@ -435,8 +435,13 @@ def verify_normality(df,sheet_name, output_xls):
             normality_df.to_excel(writer, sheet_name=sheet_name, index=False)
     return normality_results
 
-def save_bargraph_data(desc_stats_transposed, i):
-    pass
+def compute_tcav_score(df):
+    positive_counts = (df.select_dtypes(include=['number']) > 0).sum()
+    lengths = df.shape[0]
+    tcav_scores = positive_counts / lengths
+    print(tcav_scores)
+
+    return tcav_scores
 
 if(__name__ == '__main__'):
     if len(sys.argv) < 3:
@@ -463,9 +468,21 @@ if(__name__ == '__main__'):
             'Class 2 Mean': class_2_df.mean()
         })
         average_df.to_excel(writer, sheet_name='Class_Averages')
+        
+    tcav_class_0 = compute_tcav_score(class_0_df)
+    tcav_class_1 = compute_tcav_score(class_1_df)
+    tcav_class_2 = compute_tcav_score(class_2_df)
+    #create a dataframe to store tcav scores
+    tcav_scores_df = pd.DataFrame({
+        'Class 0 TCAV Score': tcav_class_0,
+        'Class 1 TCAV Score': tcav_class_1,
+        'Class 2 TCAV Score': tcav_class_2})
+    with pd.ExcelWriter(output_xls, engine='openpyxl', mode='a') as writer:
+        tcav_scores_df.to_excel(writer, sheet_name='TCAVScores')
+        
+
 
     class_0_melted = create_melted_data(class_0_df, sheet_name='Class0_Melted', output_xls=output_xls)
-    
     class_1_melted = create_melted_data(class_1_df, sheet_name='Class1_Melted', output_xls=output_xls)
     class_2_melted = create_melted_data(class_2_df, sheet_name='Class2_Melted', output_xls=output_xls)
 

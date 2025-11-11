@@ -107,7 +107,7 @@ for i in class_groups:
         #plt.xticks(rotation=45)
         #plt.yticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(f'subset_heatmap_class_{i}.png')
+        plt.savefig(os.path.join(images_path,f'subset_heatmap_class_{i}.png'))
         plt.close()
         print(f"Subset heatmap for class group {i} saved as 'subset_heatmap_class_{i}.png'")
     else:

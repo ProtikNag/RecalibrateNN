@@ -6,7 +6,7 @@ mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/inception_v3
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_large
 
-
+if [ "$run_corel" -eq 1 ]; then
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100930.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/vgg16/corelation_face_vgg16.xlsx
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/resnet50/sensitivity_audit_trail_resnet50_20251101_171317.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/resnet50/corelation_face_resnet50.xlsx
@@ -17,6 +17,10 @@ python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_confi
 
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251101_110050.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small/corelation_face_mobilenet_v3_small.xlsx
+
+fi
+
+if [ "$run_anova" -eq 1 ]; then
 
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100930.csv  /mnt/sdb2/sensitivity_analysis_paper/corelation_face/vgg16/anova_face_vgg16.xlsx
 
@@ -29,3 +33,4 @@ python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_d
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_face_607_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251101_110050.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_face/mobilenet_v3_small/anova_face_mobilenet_v3_small.xlsx
 
 
+fi

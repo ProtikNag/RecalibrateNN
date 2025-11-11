@@ -4,8 +4,10 @@ mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/inception_v3
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/mobilenet_v3_small
 mkdir -p /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/mobilenet_v3_large
 
-python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100612.csv  /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/vgg16/corelation_coat_vgg16.xlsx
 
+if [ "$run_corel" -eq 1 ]; then
+
+python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100612.csv  /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/vgg16/corelation_coat_vgg16.xlsx
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/resnet50/sensitivity_audit_trail_resnet50_20251101_164013.csv    /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/resnet50/corelation_coat_resnet50.xlsx
 
@@ -15,6 +17,9 @@ python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_confi
 
 
 python corelation.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/mobilenet_v3_large/sensitivity_audit_trail_mobilenet_v3_large_20251101_132439.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/mobilenet_v3_large/corelation_coat_mobilenet_v3_large.xlsx
+fi
+
+if [ "$run_anova" -eq 1 ]; then
 
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/vgg16/sensitivity_audit_trail_vgg16_20251101_100612.csv  /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/vgg16/anova_coat_vgg16.xlsx
 
@@ -25,3 +30,4 @@ python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_d
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/mobilenet_v3_small/sensitivity_audit_trail_mobilenet_v3_small_20251101_104640.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/mobilenet_v3_small/anova_coat_mobilenet_v3_small.xlsx
 
 python anova.py /mnt/sdb2/sensitivity_analysis_paper/sensitivity_full_config_s_deer_coat_626_OK/mobilenet_v3_large/sensitivity_audit_trail_mobilenet_v3_large_20251101_132439.csv /mnt/sdb2/sensitivity_analysis_paper/corelation_coat/mobilenet_v3_large/anova_coat_mobilenet_v3_large.xlsx
+fi
