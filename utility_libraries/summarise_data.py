@@ -39,15 +39,34 @@ def summarise_tcav_scores(
         try:
             # Read the TCAVScores sheet
             df = pd.read_excel(excel_file, sheet_name='TCAVScores')
+            #Store the first column once then drop it from subsequent dataframes
+            if not all_dataframes:
+                all_dataframes.append(df.iloc[:, [0]])
+                df = df.drop(df.columns[0], axis=1)
+            else:
+                df = df.drop(df.columns[0], axis=1)
+                
             # Add a column to identify the source directory
-            df['Source'] = directory
-            # Append to list
-            all_dataframes.append(df)
+            for columns in df.columns:
+                
+                if columns == 'Unnamed: 0':
+                    df = df.rename(columns={'Unnamed: 0':model_name})
+                else:  
+                    temp = f"{directory.split(os.sep)[-2]}_{columns}"
+                    temp = temp.replace("corelation_", "").strip()
+                    df = df.rename(columns={columns: temp})
+                    print(temp)
+            # If this is the first dataframe, use it as base
+            if not all_dataframes:
+                all_dataframes.append(df)
+            else:
+                # Merge with existing dataframe by adding new columns
+                all_dataframes[0] = pd.concat([all_dataframes[0], df], axis=1)
         except Exception as e:
             print(f"Error processing {excel_file}: {e}")
     # Combine all dataframes
     if all_dataframes:
-        summary_df = pd.concat(all_dataframes, ignore_index=True)
+        summary_df = pd.concat(all_dataframes, ignore_index=False)
         # Write to summary Excel file
         with pd.ExcelWriter(destination_file, engine='openpyxl') as writer:
             summary_df.to_excel(writer, sheet_name=summarysheet_name, index=False)
@@ -57,22 +76,23 @@ def summarise_tcav_scores(
         
         
 if(__name__ == '__main__'):
-    if(sys.argv.__len__() > 2):
-        model = sys.argv[1]
-        destination_dir = sys.argv[2] 
+    if(sys.argv.__len__() > 1):
+        destination_dir = sys.argv[1] 
     else:
         print("Please provide the model name as a command-line argument. and the destination directory")
-        print("Example: python anova.py resnet50 /mnt/sdb2/sensitivity_analysis_paper/")
-        sys.exit(1)
-    filename_pattern = f'anova*{model}*.xlsx'
-    summarysheet_name = f'summary_{model}.xlsx'
+        print("Example: python summarize_data.py  /mnt/sdb2/sensitivity_analysis_paper/")
+        destination_dir = f'/mnt/sdb2/sensitivity_analysis_paper/'
+        #sys.exit(1)
+    models = ['vgg16','inception_v3', 'resnet50', 'mobilenet_v3_small', 'mobilenet_v3_large']
     
-    destination_file = os.path.join(destination_dir, summarysheet_name)
-    print(f"Model: {model}")
-    print(f"Filename pattern: {filename_pattern}")
-    print(f"Summary sheet name: {summarysheet_name}")
-    print(f"Destination file: {destination_file}")
-    
-    # List to store all dataframes
-    summarise_tcav_scores(directories, model, filename_pattern, destination_file, summarysheet_name) 
+    for model in models:
+        filename_pattern = f'anova*{model}*.xlsx'
+        summarysheet_name = f'summary_{model}.xlsx'
+        destination_file = os.path.join(destination_dir, summarysheet_name)
+        print(f"Model: {model}")
+        print(f"Filename pattern: {filename_pattern}")
+        print(f"Summary sheet name: {summarysheet_name}")
+        print(f"Destination file: {destination_file}")
+        # List to store all dataframes
+        summarise_tcav_scores(directories, model, filename_pattern, destination_file, summarysheet_name) 
 
