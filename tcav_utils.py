@@ -100,6 +100,7 @@ def util_compute_cav(model, loader_positive, loader_random, layer_name, activati
     pos_acts, rnd_acts = [], []
     model.eval()
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = model.to(DEVICE)
     with torch.no_grad():
         for imgs in loader_positive:
             imgs = imgs.to(DEVICE)
