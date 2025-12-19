@@ -183,6 +183,7 @@ if __name__ == "__main__":
     device = torch.device(DEVICE if torch.cuda.is_available() else "cpu")
     ############## Model BEFORE #################################   
     #Load the model
+    print(MODEL_NAME, BASE_MODEL_PATH)
     model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
     model_trained.to(device)
     full_filelist = []

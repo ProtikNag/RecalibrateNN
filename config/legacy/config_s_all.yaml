@@ -19,11 +19,11 @@ classification:
 # This section defines the paths for various concepts.
 
 concept:
-  base_path: "/home/srikanth/study1/scratchpad_model/geti_conceptextraction/concepts/"
+  base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
   target_folders:
-    - "deer/deer_legacy_coat"
-    - "horse/horse_legacy_coat"
-    - "zebra/legacy_zebra_stripes"
+    - "deer/all"
+    - "horse/all"
+    - "zebra/all"
   random_folder: "/home/concept/random"
 
 
@@ -146,75 +146,12 @@ xai_before_after:
   num_classes: 3
   class_images:
     class0:
-      - '/home/datasets/train/deer/deb4e8d7c9.jpg'
-      - '/home/datasets/train/deer/61860dd81c.jpg'
-      - '/home/datasets/train/deer/3028e909d9.jpg'
-      - '/home/datasets/train/deer/54ad7f6e17.jpg'
-      - '/home/datasets/train/deer/4d03862792.jpg'
-      - '/home/datasets/train/deer/f47f34dd0c.jpg'
-      - '/home/datasets/train/deer/a72c338713.jpg'
-      - '/home/datasets/train/deer/2d6f0e6c80.jpg'
-      - '/home/datasets/train/deer/ca61ab1b1f.jpg'
-      - '/home/datasets/train/deer/2637fbf170.jpg'
-      - '/home/datasets/train/deer/9afe2488bf.jpg'
-      - '/home/datasets/train/deer/09818957b7.jpg'
-      - '/home/datasets/train/deer/7cd5dab486.jpg'
-      - '/home/datasets/train/deer/a1a47404e7.jpg'
-      - '/home/datasets/train/deer/804d8063d6.jpg'
-      - '/home/datasets/train/deer/image_24.jpg'
-      - '/home/datasets/train/deer/image_76.jpg'
-      - '/home/datasets/train/deer/a794f45187.jpg'
       - '/home/datasets/train/deer/818c7331ca.jpg'
       - '/home/datasets/train/deer/f54b6f43cd.jpg'
-      #Best
-      - '/home/datasets/train/deer/image_77.jpg'
-      - '/home/datasets/train/deer/00fdcaa6df.jpg'
-      - '/home/datasets/valid/deer/00fdcaa6df.jpg'
     class1:
-      - '/home/datasets/train/horse/horse12-7.png'
-      - '/home/datasets/train/horse/06_095.png'
-      - '/home/datasets/train/horse/01_020.png'
-      - '/home/datasets/train/horse/07_053.png'
-      - '/home/datasets/train/horse/horse16-6.png'
-      - '/home/datasets/train/horse/02_101.png'
-      - '/home/datasets/train/horse/01_080.png'
-      - '/home/datasets/train/horse/horse19-8.png'
-      - '/home/datasets/train/horse/01_117.png'
-      - '/home/datasets/train/horse/02_024.png'
-      - '/home/datasets/train/horse/horse44-2.png'
-      - '/home/datasets/train/horse/06_028.png'
-      - '/home/datasets/train/horse/02_077.png'
-      - '/home/datasets/train/horse/05_026.png'
-      - '/home/datasets/train/horse/01_027.png'
-      - '/home/datasets/train/horse/04_023.png'
-      - '/home/datasets/train/horse/horse09-6.png'
-      - '/home/datasets/train/horse/01_076.png'
       - '/home/datasets/train/horse/02_047.png'
       - '/home/datasets/train/horse/02_087.png'
-      #best
-      - '/home/datasets/train/horse/03_089.png'
-      #best
-      - '/home/datasets/valid/horse/horse50-9.png'
-
     class2:
-      - '/home/datasets/train/zebra/n02391049_2585.jpg'
-      - '/home/datasets/train/zebra/n02391049_3326.jpg'
-      - '/home/datasets/train/zebra/378.jpg'
-      - '/home/datasets/train/zebra/n02391049_37.jpg'
-      - '/home/datasets/train/zebra/n02391049_834.jpg'
-      - '/home/datasets/train/zebra/n02391049_10209.jpg'
-      - '/home/datasets/train/zebra/142.jpg'
-      - '/home/datasets/train/zebra/331.jpg'
-      - '/home/datasets/train/zebra/n02391049_4445.jpg'
-      - '/home/datasets/train/zebra/317.jpg'
-      - '/home/datasets/train/zebra/n02391049_2407.jpg'
-      - '/home/datasets/train/zebra/n02391049_251.jpg'
-      - '/home/datasets/train/zebra/n02391049_5503.jpg'
-      - '/home/datasets/train/zebra/n02391049_2229.jpg'
-      - '/home/datasets/train/zebra/image_136.jpeg'
-      - '/home/datasets/train/zebra/061.jpg'
-      - '/home/datasets/train/zebra/n02391049_7466.jpg'
-      - '/home/datasets/train/zebra/n02391049_6385.jpg'
       - '/home/datasets/train/zebra/n02391049_9051.jpg'
       - '/home/datasets/train/zebra/n02391049_2704.jpg'
       
