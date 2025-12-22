@@ -8,7 +8,7 @@ source ../utility_scripts.sh
 
 PYTHON_SCRIPT="../../util_sensitivity_compute.py"
 
-ARTIFACT=background
+ARTIFACT=legs
 #force update sensitivity result location
 SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/sensitivity_config_s_${ARTIFACT}"
 #CONFIG_FILES=(   "../../config/legacy/config_s_deer_all.yaml"  
@@ -21,11 +21,7 @@ SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/sensitivity_co
 #2
 CONFIG_FILE="../../config/legacy/config_s_${ARTIFACT}.yaml"
 #MODELS_ARRAY=("inception_v3")
-<<<<<<< HEAD
-#print_parameters
-=======
 print_parameters
->>>>>>> 80247ba5180aa81dfc83a0181cc2fc81571d8f5d
 BEFORE_AFTER=false
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 
@@ -35,11 +31,7 @@ else
   BEFORE_AFTER_OPTION=""
 fi
 
-<<<<<<< HEAD
 #wait_for_user
-=======
-wait_for_user
->>>>>>> 80247ba5180aa81dfc83a0181cc2fc81571d8f5d
 
 ###########################################################################################
 

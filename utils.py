@@ -358,8 +358,12 @@ def load_model(model_name, model_path):
     Load the model state dictionary from the specified path.
     """
     print(model_path)
-    model = torch.load(model_path)
-    model.eval()
+    try:
+      model = torch.load(model_path)
+      model.eval()
+    except Exception as e:
+      model = torch.load(model_path, weights_only=False)
+      model.eval()
     return model
 
 def load_model_statedict(model, model_path):
