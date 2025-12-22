@@ -1,0 +1,639 @@
+Mobilenet_v3_small
+
+Mean Delta Logit per Layer per Class:
+                    Layer Name Class Name   Delta Logit
+                  classifier.0       deer  8.416193e-06
+                  classifier.0      horse -8.578252e-06
+                  classifier.0      zebra -7.331292e-06
+                  classifier.3       deer  5.355540e-05
+                  classifier.3      horse  9.817073e-07
+                  classifier.3      zebra -3.550031e-05
+                  features.0.0       deer -1.879119e-05
+                  features.0.0      horse  6.115752e-05
+                  features.0.0      zebra  7.383344e-05
+          features.1.block.0.0       deer  2.284830e-04
+          features.1.block.0.0      horse -7.082622e-05
+          features.1.block.0.0      zebra -6.245573e-04
+          features.1.block.0.2       deer  2.318565e-04
+          features.1.block.0.2      horse -2.112673e-04
+          features.1.block.0.2      zebra  1.168800e-04
+ features.1.block.1.activation       deer -2.991619e-05
+ features.1.block.1.activation      horse -2.551728e-05
+ features.1.block.1.activation      zebra  1.502572e-05
+        features.1.block.1.fc1       deer  0.000000e+00
+        features.1.block.1.fc1      horse  0.000000e+00
+        features.1.block.1.fc1      zebra  0.000000e+00
+        features.1.block.1.fc2       deer -2.937784e-04
+        features.1.block.1.fc2      horse  6.544106e-05
+        features.1.block.1.fc2      zebra -6.540906e-05
+          features.1.block.2.0       deer -1.106392e-05
+          features.1.block.2.0      horse  5.082317e-05
+          features.1.block.2.0      zebra  1.293754e-05
+         features.10.block.0.0       deer  2.445881e-05
+         features.10.block.0.0      horse -1.452236e-05
+         features.10.block.0.0      zebra  2.243111e-05
+         features.10.block.1.0       deer -9.758807e-05
+         features.10.block.1.0      horse  2.591169e-04
+         features.10.block.1.0      zebra -1.726822e-04
+features.10.block.2.activation       deer  5.239489e-05
+features.10.block.2.activation      horse  4.854167e-05
+features.10.block.2.activation      zebra -3.841396e-05
+       features.10.block.2.fc1       deer  2.921307e-05
+       features.10.block.2.fc1      horse  3.104980e-05
+       features.10.block.2.fc1      zebra  3.925291e-07
+       features.10.block.2.fc2       deer -3.267187e-05
+       features.10.block.2.fc2      horse -4.305996e-05
+       features.10.block.2.fc2      zebra -4.735640e-05
+         features.10.block.3.0       deer  4.334801e-05
+         features.10.block.3.0      horse -1.447358e-05
+         features.10.block.3.0      zebra  3.195713e-05
+         features.11.block.0.0       deer -2.068182e-06
+         features.11.block.0.0      horse  2.613313e-05
+         features.11.block.0.0      zebra  9.739130e-06
+         features.11.block.1.0       deer -1.390909e-05
+         features.11.block.1.0      horse -8.070122e-05
+         features.11.block.1.0      zebra  1.203797e-05
+features.11.block.2.activation       deer -1.875426e-05
+features.11.block.2.activation      horse  1.387602e-05
+features.11.block.2.activation      zebra -3.023944e-05
+       features.11.block.2.fc1       deer  6.958807e-06
+       features.11.block.2.fc1      horse  1.950407e-05
+       features.11.block.2.fc1      zebra  1.799143e-05
+       features.11.block.2.fc2       deer -3.355114e-06
+       features.11.block.2.fc2      horse  3.861789e-07
+       features.11.block.2.fc2      zebra  5.970239e-05
+         features.11.block.3.0       deer  2.129261e-06
+         features.11.block.3.0      horse -1.399797e-05
+         features.11.block.3.0      zebra  1.135762e-05
+                 features.12.0       deer -1.671875e-06
+                 features.12.0      horse  1.565041e-07
+                 features.12.0      zebra  4.746479e-06
+          features.2.block.0.0       deer -7.686648e-05
+          features.2.block.0.0      horse  2.706707e-05
+          features.2.block.0.0      zebra -3.454378e-06
+          features.2.block.0.2       deer -2.858821e-04
+          features.2.block.0.2      horse -1.367500e-04
+          features.2.block.0.2      zebra  2.320147e-05
+          features.2.block.1.0       deer -1.186875e-04
+          features.2.block.1.0      horse  1.521931e-04
+          features.2.block.1.0      zebra  5.367299e-05
+          features.2.block.1.2       deer -1.992614e-05
+          features.2.block.1.2      horse -1.415193e-04
+          features.2.block.1.2      zebra  3.117453e-05
+          features.2.block.2.0       deer  2.547727e-05
+          features.2.block.2.0      horse  1.933841e-05
+          features.2.block.2.0      zebra  7.313778e-05
+          features.3.block.0.0       deer -1.202131e-05
+          features.3.block.0.0      horse  4.285569e-06
+          features.3.block.0.0      zebra  5.486222e-05
+          features.3.block.0.2       deer  5.751705e-05
+          features.3.block.0.2      horse  1.878364e-04
+          features.3.block.0.2      zebra  1.582168e-04
+          features.3.block.1.0       deer  1.831250e-05
+          features.3.block.1.0      horse  7.802642e-05
+          features.3.block.1.0      zebra  2.602547e-04
+          features.3.block.1.2       deer  6.475568e-05
+          features.3.block.1.2      horse  7.123679e-05
+          features.3.block.1.2      zebra  1.738824e-04
+          features.3.block.2.0       deer -1.617187e-05
+          features.3.block.2.0      horse -7.974593e-06
+          features.3.block.2.0      zebra  5.015738e-05
+          features.4.block.0.0       deer -3.397727e-06
+          features.4.block.0.0      horse  1.670427e-05
+          features.4.block.0.0      zebra  4.053276e-05
+          features.4.block.1.0       deer -1.372159e-04
+          features.4.block.1.0      horse  1.062226e-04
+          features.4.block.1.0      zebra  3.487691e-05
+ features.4.block.2.activation       deer -5.303977e-06
+ features.4.block.2.activation      horse  1.408943e-05
+ features.4.block.2.activation      zebra  7.120392e-05
+        features.4.block.2.fc1       deer -2.866477e-06
+        features.4.block.2.fc1      horse  3.221545e-07
+        features.4.block.2.fc1      zebra  6.354562e-06
+        features.4.block.2.fc2       deer -6.371591e-05
+        features.4.block.2.fc2      horse -7.609756e-05
+        features.4.block.2.fc2      zebra  3.363748e-05
+          features.4.block.3.0       deer -8.825284e-06
+          features.4.block.3.0      horse -3.058943e-07
+          features.4.block.3.0      zebra  4.272076e-05
+          features.5.block.0.0       deer  3.083097e-05
+          features.5.block.0.0      horse  1.357724e-06
+          features.5.block.0.0      zebra  1.433803e-05
+          features.5.block.1.0       deer  1.324645e-04
+          features.5.block.1.0      horse -1.225833e-04
+          features.5.block.1.0      zebra  1.341402e-04
+ features.5.block.2.activation       deer  8.529830e-06
+ features.5.block.2.activation      horse  1.888211e-06
+ features.5.block.2.activation      zebra  5.181017e-05
+        features.5.block.2.fc1       deer -1.564915e-05
+        features.5.block.2.fc1      horse -5.238923e-05
+        features.5.block.2.fc1      zebra  6.654623e-06
+        features.5.block.2.fc2       deer  4.140483e-05
+        features.5.block.2.fc2      horse -1.385976e-05
+        features.5.block.2.fc2      zebra  1.690998e-05
+          features.5.block.3.0       deer -3.116477e-05
+          features.5.block.3.0      horse -4.925203e-05
+          features.5.block.3.0      zebra  1.467177e-05
+          features.6.block.0.0       deer -1.247585e-05
+          features.6.block.0.0      horse  6.602642e-06
+          features.6.block.0.0      zebra  2.516963e-05
+          features.6.block.1.0       deer  2.097145e-04
+          features.6.block.1.0      horse  9.612398e-05
+          features.6.block.1.0      zebra  1.264795e-04
+ features.6.block.2.activation       deer -2.196023e-05
+ features.6.block.2.activation      horse  5.954776e-05
+ features.6.block.2.activation      zebra  3.932945e-05
+        features.6.block.2.fc1       deer  1.153835e-05
+        features.6.block.2.fc1      horse -2.083130e-05
+        features.6.block.2.fc1      zebra  1.811513e-05
+        features.6.block.2.fc2       deer  9.653977e-05
+        features.6.block.2.fc2      horse  5.819106e-06
+        features.6.block.2.fc2      zebra -5.418249e-06
+          features.6.block.3.0       deer -5.048295e-06
+          features.6.block.3.0      horse  1.458232e-05
+          features.6.block.3.0      zebra  5.300490e-05
+          features.7.block.0.0       deer  2.921307e-05
+          features.7.block.0.0      horse -3.077033e-05
+          features.7.block.0.0      zebra  5.216167e-06
+          features.7.block.1.0       deer -1.560057e-04
+          features.7.block.1.0      horse -1.288923e-05
+          features.7.block.1.0      zebra  4.568892e-05
+ features.7.block.2.activation       deer -1.448580e-05
+ features.7.block.2.activation      horse -8.721545e-06
+ features.7.block.2.activation      zebra  1.070116e-05
+        features.7.block.2.fc1       deer  1.093892e-05
+        features.7.block.2.fc1      horse -1.690244e-05
+        features.7.block.2.fc1      zebra  6.255358e-06
+        features.7.block.2.fc2       deer  2.017045e-06
+        features.7.block.2.fc2      horse -1.648272e-05
+        features.7.block.2.fc2      zebra  1.384568e-06
+          features.7.block.3.0       deer  4.394886e-06
+          features.7.block.3.0      horse -2.831199e-05
+          features.7.block.3.0      zebra  8.265156e-06
+          features.8.block.0.0       deer  6.684659e-06
+          features.8.block.0.0      horse  1.139126e-05
+          features.8.block.0.0      zebra  6.932027e-07
+          features.8.block.1.0       deer  1.928750e-04
+          features.8.block.1.0      horse -1.416778e-04
+          features.8.block.1.0      zebra -9.524985e-05
+ features.8.block.2.activation       deer  2.569744e-05
+ features.8.block.2.activation      horse -3.197053e-05
+ features.8.block.2.activation      zebra  4.594550e-05
+        features.8.block.2.fc1       deer -7.987216e-06
+        features.8.block.2.fc1      horse -1.603557e-05
+        features.8.block.2.fc1      zebra  4.606859e-05
+        features.8.block.2.fc2       deer  2.858949e-05
+        features.8.block.2.fc2      horse -3.775711e-05
+        features.8.block.2.fc2      zebra  3.227618e-05
+          features.8.block.3.0       deer -1.898011e-05
+          features.8.block.3.0      horse -9.351220e-05
+          features.8.block.3.0      zebra  7.696142e-05
+          features.9.block.0.0       deer -1.740625e-05
+          features.9.block.0.0      horse  2.969512e-06
+          features.9.block.0.0      zebra -9.452541e-06
+          features.9.block.1.0       deer -6.829545e-05
+          features.9.block.1.0      horse  5.963923e-05
+          features.9.block.1.0      zebra  2.914758e-05
+ features.9.block.2.activation       deer  3.856676e-05
+ features.9.block.2.activation      horse -2.505691e-05
+ features.9.block.2.activation      zebra -8.325781e-06
+        features.9.block.2.fc1       deer  2.914063e-05
+        features.9.block.2.fc1      horse -2.884553e-05
+        features.9.block.2.fc1      zebra  3.087998e-05
+        features.9.block.2.fc2       deer  3.073153e-05
+        features.9.block.2.fc2      horse -1.555894e-05
+        features.9.block.2.fc2      zebra  8.819351e-06
+          features.9.block.3.0       deer  5.536648e-05
+          features.9.block.3.0      horse -1.440041e-05
+          features.9.block.3.0      zebra  1.342560e-05
+
+deer - Layer Statistics:
+                    Layer Name  Mean of Mean Activation  Std of Mean Activation
+                  classifier.0                 0.253207                0.116940
+                  classifier.3                 0.340478                0.261158
+                  features.0.0                -0.354058                0.437931
+          features.1.block.0.0                 0.141778                0.248350
+          features.1.block.0.2                 0.981517                0.045035
+ features.1.block.1.activation                 0.000000                0.000000
+        features.1.block.1.fc1                -0.002185                0.000104
+        features.1.block.1.fc2                 0.007690                0.000000
+          features.1.block.2.0                 1.483664                0.061259
+         features.10.block.0.0                -0.359358                0.043423
+         features.10.block.1.0                -0.062222                0.006566
+features.10.block.2.activation                 0.358781                0.084681
+       features.10.block.2.fc1                -0.709098                0.286366
+       features.10.block.2.fc2                -2.979940                0.529535
+         features.10.block.3.0                -0.049670                0.007099
+         features.11.block.0.0                -0.266583                0.116581
+         features.11.block.1.0                -0.095962                0.023069
+features.11.block.2.activation                 0.299287                0.122514
+       features.11.block.2.fc1                -1.284621                0.785426
+       features.11.block.2.fc2                -2.869052                0.958988
+         features.11.block.3.0                 0.003346                0.011973
+                 features.12.0                -0.307558                0.219373
+          features.2.block.0.0                -0.039507                0.057661
+          features.2.block.0.2                 0.462905                0.027917
+          features.2.block.1.0                -0.105290                0.024128
+          features.2.block.1.2                 0.465007                0.036151
+          features.2.block.2.0                -0.672608                0.130818
+          features.3.block.0.0                 0.153551                0.149854
+          features.3.block.0.2                 0.365204                0.008968
+          features.3.block.1.0                -0.064485                0.013053
+          features.3.block.1.2                 0.398134                0.009195
+          features.3.block.2.0                 0.165729                0.072479
+          features.4.block.0.0                -0.137522                0.117792
+          features.4.block.1.0                -0.628432                0.074629
+ features.4.block.2.activation                 0.001694                0.008756
+        features.4.block.2.fc1                -0.170347                0.125942
+        features.4.block.2.fc2                 0.291316                0.072898
+          features.4.block.3.0                 0.209988                0.109474
+          features.5.block.0.0                 0.005465                0.027429
+          features.5.block.1.0                -0.033978                0.005008
+ features.5.block.2.activation                 0.439319                0.087918
+        features.5.block.2.fc1                 0.115615                0.152595
+        features.5.block.2.fc2                -1.350019                0.078515
+          features.5.block.3.0                -0.033172                0.020622
+          features.6.block.0.0                -0.013182                0.099708
+          features.6.block.1.0                -0.027626                0.005556
+ features.6.block.2.activation                 0.397400                0.078441
+        features.6.block.2.fc1                 0.171129                0.085279
+        features.6.block.2.fc2                -1.495388                0.159445
+          features.6.block.3.0                -0.061440                0.021486
+          features.7.block.0.0                -0.274276                0.727081
+          features.7.block.1.0                -0.036146                0.032376
+ features.7.block.2.activation                 0.260684                0.103729
+        features.7.block.2.fc1                 0.031650                0.512963
+        features.7.block.2.fc2                 1.849762                0.080055
+          features.7.block.3.0                 0.418285                0.056555
+          features.8.block.0.0                -0.092478                0.059593
+          features.8.block.1.0                -0.077521                0.010674
+ features.8.block.2.activation                 0.518779                0.151180
+        features.8.block.2.fc1                 0.427643                0.354563
+        features.8.block.2.fc2                -1.413069                0.464967
+          features.8.block.3.0                -0.039308                0.009251
+          features.9.block.0.0                -0.219454                0.150418
+          features.9.block.1.0                -0.162195                0.039229
+ features.9.block.2.activation                 0.408429                0.449037
+        features.9.block.2.fc1                 0.161302                0.630307
+        features.9.block.2.fc2                -0.690317                0.986284
+          features.9.block.3.0                -0.031142                0.017720
+
+horse - Layer Statistics:
+                    Layer Name  Mean of Mean Activation  Std of Mean Activation
+                  classifier.0                 0.231603                0.086785
+                  classifier.3                 0.465262                0.254279
+                  features.0.0                 0.011095                0.287451
+          features.1.block.0.0                 0.019151                0.202289
+          features.1.block.0.2                 0.963522                0.037042
+ features.1.block.1.activation                 0.000000                0.000000
+        features.1.block.1.fc1                -0.002185                0.000081
+        features.1.block.1.fc2                 0.007690                0.000000
+          features.1.block.2.0                 1.467251                0.045876
+         features.10.block.0.0                -0.372003                0.034660
+         features.10.block.1.0                -0.064232                0.003517
+features.10.block.2.activation                 0.378468                0.037233
+       features.10.block.2.fc1                -0.609037                0.141858
+       features.10.block.2.fc2                -2.981299                0.224209
+         features.10.block.3.0                -0.047429                0.005919
+         features.11.block.0.0                -0.260254                0.105976
+         features.11.block.1.0                -0.091734                0.009677
+features.11.block.2.activation                 0.297684                0.050039
+       features.11.block.2.fc1                -1.342519                0.419896
+       features.11.block.2.fc2                -2.900596                0.444928
+         features.11.block.3.0                 0.002823                0.012051
+                 features.12.0                -0.263672                0.187033
+          features.2.block.0.0                 0.002900                0.038883
+          features.2.block.0.2                 0.452112                0.017358
+          features.2.block.1.0                -0.103532                0.020682
+          features.2.block.1.2                 0.457481                0.026855
+          features.2.block.2.0                -0.674110                0.103734
+          features.3.block.0.0                 0.197094                0.111504
+          features.3.block.0.2                 0.365688                0.008139
+          features.3.block.1.0                -0.054643                0.009660
+          features.3.block.1.2                 0.403516                0.006091
+          features.3.block.2.0                 0.154698                0.051501
+          features.4.block.0.0                -0.222251                0.105717
+          features.4.block.1.0                -0.653972                0.054757
+ features.4.block.2.activation                 0.000230                0.002350
+        features.4.block.2.fc1                -0.168797                0.087352
+        features.4.block.2.fc2                 0.279126                0.019568
+          features.4.block.3.0                 0.152863                0.085640
+          features.5.block.0.0                 0.023753                0.026305
+          features.5.block.1.0                -0.033644                0.005573
+ features.5.block.2.activation                 0.434102                0.075109
+        features.5.block.2.fc1                 0.139977                0.122073
+        features.5.block.2.fc2                -1.356396                0.075541
+          features.5.block.3.0                -0.025233                0.017591
+          features.6.block.0.0                -0.069751                0.100322
+          features.6.block.1.0                -0.025257                0.003825
+ features.6.block.2.activation                 0.399761                0.044563
+        features.6.block.2.fc1                 0.167138                0.062130
+        features.6.block.2.fc2                -1.487405                0.082004
+          features.6.block.3.0                -0.049094                0.017518
+          features.7.block.0.0                -0.583879                0.593391
+          features.7.block.1.0                -0.081520                0.023098
+ features.7.block.2.activation                 0.238473                0.040230
+        features.7.block.2.fc1                 0.003619                0.201369
+        features.7.block.2.fc2                 1.834749                0.051320
+          features.7.block.3.0                 0.447670                0.051898
+          features.8.block.0.0                -0.110785                0.047896
+          features.8.block.1.0                -0.080698                0.007808
+ features.8.block.2.activation                 0.503970                0.077631
+        features.8.block.2.fc1                 0.427074                0.162061
+        features.8.block.2.fc2                -1.415779                0.217152
+          features.8.block.3.0                -0.040324                0.008367
+          features.9.block.0.0                -0.256076                0.116874
+          features.9.block.1.0                -0.169161                0.014736
+ features.9.block.2.activation                 0.368778                0.181505
+        features.9.block.2.fc1                 0.186952                0.251516
+        features.9.block.2.fc2                -0.596252                0.404277
+          features.9.block.3.0                -0.047708                0.017038
+
+zebra - Layer Statistics:
+                    Layer Name  Mean of Mean Activation  Std of Mean Activation
+                  classifier.0                 0.326604                0.102409
+                  classifier.3                 0.240856                0.251795
+                  features.0.0                -0.122573                0.334581
+          features.1.block.0.0                 0.471429                0.372075
+          features.1.block.0.2                 1.037789                0.055797
+ features.1.block.1.activation                 0.000000                0.000000
+        features.1.block.1.fc1                -0.002178                0.000092
+        features.1.block.1.fc2                 0.007690                0.000000
+          features.1.block.2.0                 1.477533                0.064988
+         features.10.block.0.0                -0.406664                0.043436
+         features.10.block.1.0                -0.066945                0.003598
+features.10.block.2.activation                 0.360086                0.028689
+       features.10.block.2.fc1                -0.717968                0.117088
+       features.10.block.2.fc2                -3.056430                0.184231
+         features.10.block.3.0                -0.054233                0.007072
+         features.11.block.0.0                -0.246808                0.100298
+         features.11.block.1.0                -0.095813                0.008404
+features.11.block.2.activation                 0.287731                0.033628
+       features.11.block.2.fc1                -1.460463                0.348690
+       features.11.block.2.fc2                -2.973269                0.325007
+         features.11.block.3.0                 0.001972                0.010213
+                 features.12.0                -0.171560                0.187631
+          features.2.block.0.0                -0.006023                0.060648
+          features.2.block.0.2                 0.486280                0.033301
+          features.2.block.1.0                -0.059846                0.035655
+          features.2.block.1.2                 0.519301                0.048681
+          features.2.block.2.0                -0.943067                0.221171
+          features.3.block.0.0                -0.081544                0.197451
+          features.3.block.0.2                 0.376197                0.016148
+          features.3.block.1.0                -0.070600                0.013130
+          features.3.block.1.2                 0.404068                0.012974
+          features.3.block.2.0                 0.230665                0.073885
+          features.4.block.0.0                -0.262793                0.117016
+          features.4.block.1.0                -0.699091                0.131994
+ features.4.block.2.activation                 0.000572                0.005748
+        features.4.block.2.fc1                -0.341937                0.212254
+        features.4.block.2.fc2                 0.281969                0.047859
+          features.4.block.3.0                 0.152525                0.152017
+          features.5.block.0.0                 0.007867                0.031825
+          features.5.block.1.0                -0.037359                0.006068
+ features.5.block.2.activation                 0.425266                0.080366
+        features.5.block.2.fc1                 0.145964                0.126736
+        features.5.block.2.fc2                -1.293793                0.072221
+          features.5.block.3.0                -0.042620                0.021662
+          features.6.block.0.0                -0.085278                0.125571
+          features.6.block.1.0                -0.028832                0.005137
+ features.6.block.2.activation                 0.380993                0.046866
+        features.6.block.2.fc1                 0.115872                0.080894
+        features.6.block.2.fc2                -1.534763                0.106434
+          features.6.block.3.0                -0.041636                0.019597
+          features.7.block.0.0                -0.470293                0.601720
+          features.7.block.1.0                -0.045725                0.031178
+ features.7.block.2.activation                 0.258550                0.054438
+        features.7.block.2.fc1                 0.058905                0.194581
+        features.7.block.2.fc2                 1.809533                0.076686
+          features.7.block.3.0                 0.344890                0.061899
+          features.8.block.0.0                -0.128359                0.053003
+          features.8.block.1.0                -0.082405                0.007633
+ features.8.block.2.activation                 0.517806                0.077787
+        features.8.block.2.fc1                 0.453175                0.159157
+        features.8.block.2.fc2                -1.394696                0.211411
+          features.8.block.3.0                -0.038845                0.009359
+          features.9.block.0.0                -0.215284                0.124248
+          features.9.block.1.0                -0.158223                0.012319
+ features.9.block.2.activation                 0.397761                0.148699
+        features.9.block.2.fc1                 0.172195                0.189309
+        features.9.block.2.fc2                -0.757326                0.349048
+          features.9.block.3.0                -0.042332                0.018054
+
+Deer Layer-wise causal summary:
+                    Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+                  classifier.0          0.000008         0.000398   0.000000         1.550233         1.550241
+                  classifier.3          0.000054         0.001014   0.000000         1.550233         1.550286
+                  features.0.0         -0.000019         0.001689   0.000000         1.550233         1.550214
+          features.1.block.0.0          0.000228         0.009598   0.001420         1.550233         1.550461
+          features.1.block.0.2          0.000232         0.003807   0.000000         1.550233         1.550464
+ features.1.block.1.activation         -0.000030         0.000644   0.000000         1.550233         1.550203
+        features.1.block.1.fc1          0.000000         0.000000   0.000000         1.550233         1.550233
+        features.1.block.1.fc2         -0.000294         0.003593   0.001420         1.550233         1.549939
+          features.1.block.2.0         -0.000011         0.002231   0.000000         1.550233         1.550222
+         features.10.block.0.0          0.000024         0.000590   0.000000         1.550233         1.550257
+         features.10.block.1.0         -0.000098         0.004129   0.000000         1.550233         1.550135
+features.10.block.2.activation          0.000052         0.001670   0.000000         1.550233         1.550285
+       features.10.block.2.fc1          0.000029         0.000992   0.000000         1.550233         1.550262
+       features.10.block.2.fc2         -0.000033         0.001265   0.000000         1.550233         1.550200
+         features.10.block.3.0          0.000043         0.001519   0.000000         1.550233         1.550276
+         features.11.block.0.0         -0.000002         0.000412   0.000000         1.550233         1.550231
+         features.11.block.1.0         -0.000014         0.002074   0.000000         1.550233         1.550219
+features.11.block.2.activation         -0.000019         0.001276   0.000000         1.550233         1.550214
+       features.11.block.2.fc1          0.000007         0.000679   0.000000         1.550233         1.550240
+       features.11.block.2.fc2         -0.000003         0.001030   0.000000         1.550233         1.550229
+         features.11.block.3.0          0.000002         0.000834   0.000000         1.550233         1.550235
+                 features.12.0         -0.000002         0.000132   0.000000         1.550233         1.550231
+          features.2.block.0.0         -0.000077         0.001364   0.000000         1.550233         1.550156
+          features.2.block.0.2         -0.000286         0.007611   0.002841         1.550233         1.549947
+          features.2.block.1.0         -0.000119         0.003992   0.000000         1.550233         1.550114
+          features.2.block.1.2         -0.000020         0.002852   0.000000         1.550233         1.550213
+          features.2.block.2.0          0.000025         0.001105   0.000000         1.550233         1.550258
+          features.3.block.0.0         -0.000012         0.000991   0.000000         1.550233         1.550221
+          features.3.block.0.2          0.000058         0.002258   0.000000         1.550233         1.550290
+          features.3.block.1.0          0.000018         0.001717   0.000000         1.550233         1.550251
+          features.3.block.1.2          0.000065         0.001676   0.000000         1.550233         1.550297
+          features.3.block.2.0         -0.000016         0.001013   0.000000         1.550233         1.550216
+          features.4.block.0.0         -0.000003         0.000836   0.000000         1.550233         1.550229
+          features.4.block.1.0         -0.000137         0.002869   0.000000         1.550233         1.550095
+ features.4.block.2.activation         -0.000005         0.000955   0.000000         1.550233         1.550227
+        features.4.block.2.fc1         -0.000003         0.000194   0.000000         1.550233         1.550230
+        features.4.block.2.fc2         -0.000064         0.001472   0.000000         1.550233         1.550169
+          features.4.block.3.0         -0.000009         0.000954   0.000000         1.550233         1.550224
+          features.5.block.0.0          0.000031         0.000794   0.000000         1.550233         1.550263
+          features.5.block.1.0          0.000132         0.004584   0.000000         1.550233         1.550365
+ features.5.block.2.activation          0.000009         0.000974   0.000000         1.550233         1.550241
+        features.5.block.2.fc1         -0.000016         0.000889   0.000000         1.550233         1.550217
+        features.5.block.2.fc2          0.000041         0.000885   0.000000         1.550233         1.550274
+          features.5.block.3.0         -0.000031         0.001469   0.000000         1.550233         1.550201
+          features.6.block.0.0         -0.000012         0.000679   0.000000         1.550233         1.550220
+          features.6.block.1.0          0.000210         0.004872   0.000000         1.550233         1.550442
+ features.6.block.2.activation         -0.000022         0.001329   0.000000         1.550233         1.550211
+        features.6.block.2.fc1          0.000012         0.001056   0.000000         1.550233         1.550244
+        features.6.block.2.fc2          0.000097         0.001100   0.000000         1.550233         1.550329
+          features.6.block.3.0         -0.000005         0.001557   0.000000         1.550233         1.550228
+          features.7.block.0.0          0.000029         0.000542   0.000000         1.550233         1.550262
+          features.7.block.1.0         -0.000156         0.004211   0.001420         1.550233         1.550077
+ features.7.block.2.activation         -0.000014         0.000552   0.000000         1.550233         1.550218
+        features.7.block.2.fc1          0.000011         0.000458   0.000000         1.550233         1.550244
+        features.7.block.2.fc2          0.000002         0.000573   0.000000         1.550233         1.550235
+          features.7.block.3.0          0.000004         0.000582   0.000000         1.550233         1.550237
+          features.8.block.0.0          0.000007         0.000539   0.000000         1.550233         1.550239
+          features.8.block.1.0          0.000193         0.003720   0.001420         1.550233         1.550426
+ features.8.block.2.activation          0.000026         0.001040   0.000000         1.550233         1.550258
+        features.8.block.2.fc1         -0.000008         0.000910   0.000000         1.550233         1.550225
+        features.8.block.2.fc2          0.000029         0.000897   0.000000         1.550233         1.550261
+          features.8.block.3.0         -0.000019         0.001421   0.000000         1.550233         1.550214
+          features.9.block.0.0         -0.000017         0.000487   0.000000         1.550233         1.550215
+          features.9.block.1.0         -0.000068         0.003901   0.001420         1.550233         1.550164
+ features.9.block.2.activation          0.000039         0.001020   0.000000         1.550233         1.550271
+        features.9.block.2.fc1          0.000029         0.000750   0.000000         1.550233         1.550262
+        features.9.block.2.fc2          0.000031         0.000908   0.000000         1.550233         1.550263
+          features.9.block.3.0          0.000055         0.001167   0.000000         1.550233         1.550288
+
+Horse Layer-wise causal summary:
+                    Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+                  classifier.0     -8.578252e-06         0.000398   0.000000          1.73544         1.735431
+                  classifier.3      9.817073e-07         0.001014   0.000000          1.73544         1.735441
+                  features.0.0      6.115752e-05         0.001820   0.000000          1.73544         1.735501
+          features.1.block.0.0     -7.082622e-05         0.010598   0.002033          1.73544         1.735369
+          features.1.block.0.2     -2.112673e-04         0.004089   0.001016          1.73544         1.735228
+ features.1.block.1.activation     -2.551728e-05         0.000729   0.000000          1.73544         1.735414
+        features.1.block.1.fc1      0.000000e+00         0.000000   0.000000          1.73544         1.735440
+        features.1.block.1.fc2      6.544106e-05         0.005343   0.001016          1.73544         1.735505
+          features.1.block.2.0      5.082317e-05         0.002428   0.000000          1.73544         1.735491
+         features.10.block.0.0     -1.452236e-05         0.000624   0.000000          1.73544         1.735425
+         features.10.block.1.0      2.591169e-04         0.004346   0.000000          1.73544         1.735699
+features.10.block.2.activation      4.854167e-05         0.001913   0.000000          1.73544         1.735488
+       features.10.block.2.fc1      3.104980e-05         0.001184   0.000000          1.73544         1.735471
+       features.10.block.2.fc2     -4.305996e-05         0.001559   0.000000          1.73544         1.735397
+         features.10.block.3.0     -1.447358e-05         0.001509   0.000000          1.73544         1.735425
+         features.11.block.0.0      2.613313e-05         0.000419   0.000000          1.73544         1.735466
+         features.11.block.1.0     -8.070122e-05         0.002100   0.000000          1.73544         1.735359
+features.11.block.2.activation      1.387602e-05         0.001416   0.000000          1.73544         1.735454
+       features.11.block.2.fc1      1.950407e-05         0.000686   0.000000          1.73544         1.735459
+       features.11.block.2.fc2      3.861789e-07         0.001152   0.000000          1.73544         1.735440
+         features.11.block.3.0     -1.399797e-05         0.000892   0.000000          1.73544         1.735426
+                 features.12.0      1.565041e-07         0.000140   0.000000          1.73544         1.735440
+          features.2.block.0.0      2.706707e-05         0.001514   0.000000          1.73544         1.735467
+          features.2.block.0.2     -1.367500e-04         0.009292   0.001016          1.73544         1.735303
+          features.2.block.1.0      1.521931e-04         0.004404   0.001016          1.73544         1.735592
+          features.2.block.1.2     -1.415193e-04         0.003230   0.000000          1.73544         1.735298
+          features.2.block.2.0      1.933841e-05         0.001272   0.000000          1.73544         1.735459
+          features.3.block.0.0      4.285569e-06         0.000947   0.000000          1.73544         1.735444
+          features.3.block.0.2      1.878364e-04         0.002414   0.002033          1.73544         1.735628
+          features.3.block.1.0      7.802642e-05         0.002009   0.000000          1.73544         1.735518
+          features.3.block.1.2      7.123679e-05         0.001752   0.000000          1.73544         1.735511
+          features.3.block.2.0     -7.974593e-06         0.000981   0.000000          1.73544         1.735432
+          features.4.block.0.0      1.670427e-05         0.000785   0.000000          1.73544         1.735456
+          features.4.block.1.0      1.062226e-04         0.002892   0.000000          1.73544         1.735546
+ features.4.block.2.activation      1.408943e-05         0.000981   0.000000          1.73544         1.735454
+        features.4.block.2.fc1      3.221545e-07         0.000091   0.000000          1.73544         1.735440
+        features.4.block.2.fc2     -7.609756e-05         0.001619   0.000000          1.73544         1.735364
+          features.4.block.3.0     -3.058943e-07         0.000934   0.000000          1.73544         1.735439
+          features.5.block.0.0      1.357724e-06         0.000812   0.000000          1.73544         1.735441
+          features.5.block.1.0     -1.225833e-04         0.004610   0.000000          1.73544         1.735317
+ features.5.block.2.activation      1.888211e-06         0.001053   0.000000          1.73544         1.735442
+        features.5.block.2.fc1     -5.238923e-05         0.001036   0.000000          1.73544         1.735387
+        features.5.block.2.fc2     -1.385976e-05         0.000883   0.000000          1.73544         1.735426
+          features.5.block.3.0     -4.925203e-05         0.001485   0.000000          1.73544         1.735390
+          features.6.block.0.0      6.602642e-06         0.000713   0.000000          1.73544         1.735446
+          features.6.block.1.0      9.612398e-05         0.004881   0.001016          1.73544         1.735536
+ features.6.block.2.activation      5.954776e-05         0.001208   0.000000          1.73544         1.735499
+        features.6.block.2.fc1     -2.083130e-05         0.001105   0.000000          1.73544         1.735419
+        features.6.block.2.fc2      5.819106e-06         0.001069   0.000000          1.73544         1.735446
+          features.6.block.3.0      1.458232e-05         0.001587   0.000000          1.73544         1.735454
+          features.7.block.0.0     -3.077033e-05         0.000559   0.000000          1.73544         1.735409
+          features.7.block.1.0     -1.288923e-05         0.004600   0.001016          1.73544         1.735427
+ features.7.block.2.activation     -8.721545e-06         0.000537   0.000000          1.73544         1.735431
+        features.7.block.2.fc1     -1.690244e-05         0.000458   0.000000          1.73544         1.735423
+        features.7.block.2.fc2     -1.648272e-05         0.000615   0.000000          1.73544         1.735423
+          features.7.block.3.0     -2.831199e-05         0.000632   0.000000          1.73544         1.735411
+          features.8.block.0.0      1.139126e-05         0.000563   0.000000          1.73544         1.735451
+          features.8.block.1.0     -1.416778e-04         0.003673   0.000000          1.73544         1.735298
+ features.8.block.2.activation     -3.197053e-05         0.001172   0.000000          1.73544         1.735408
+        features.8.block.2.fc1     -1.603557e-05         0.001108   0.000000          1.73544         1.735424
+        features.8.block.2.fc2     -3.775711e-05         0.000970   0.000000          1.73544         1.735402
+          features.8.block.3.0     -9.351220e-05         0.001462   0.000000          1.73544         1.735346
+          features.9.block.0.0      2.969512e-06         0.000478   0.000000          1.73544         1.735443
+          features.9.block.1.0      5.963923e-05         0.004609   0.001016          1.73544         1.735499
+ features.9.block.2.activation     -2.505691e-05         0.001003   0.000000          1.73544         1.735415
+        features.9.block.2.fc1     -2.884553e-05         0.000847   0.000000          1.73544         1.735411
+        features.9.block.2.fc2     -1.555894e-05         0.000958   0.000000          1.73544         1.735424
+          features.9.block.3.0     -1.440041e-05         0.001232   0.000000          1.73544         1.735425
+
+Zebra Layer-wise causal summary:
+                    Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+                  classifier.0     -7.331292e-06         0.000435        0.0         3.467079         3.467072
+                  classifier.3     -3.550031e-05         0.001041        0.0         3.467079         3.467044
+                  features.0.0      7.383344e-05         0.001602        0.0         3.467079         3.467153
+          features.1.block.0.0     -6.245573e-04         0.008756        0.0         3.467079         3.466455
+          features.1.block.0.2      1.168800e-04         0.003526        0.0         3.467079         3.467196
+ features.1.block.1.activation      1.502572e-05         0.000670        0.0         3.467079         3.467094
+        features.1.block.1.fc1      0.000000e+00         0.000000        0.0         3.467079         3.467079
+        features.1.block.1.fc2     -6.540906e-05         0.004034        0.0         3.467079         3.467014
+          features.1.block.2.0      1.293754e-05         0.002085        0.0         3.467079         3.467092
+         features.10.block.0.0      2.243111e-05         0.000587        0.0         3.467079         3.467102
+         features.10.block.1.0     -1.726822e-04         0.004301        0.0         3.467079         3.466907
+features.10.block.2.activation     -3.841396e-05         0.001667        0.0         3.467079         3.467041
+       features.10.block.2.fc1      3.925291e-07         0.000968        0.0         3.467079         3.467080
+       features.10.block.2.fc2     -4.735640e-05         0.001390        0.0         3.467079         3.467032
+         features.10.block.3.0      3.195713e-05         0.001735        0.0         3.467079         3.467111
+         features.11.block.0.0      9.739130e-06         0.000490        0.0         3.467079         3.467089
+         features.11.block.1.0      1.203797e-05         0.002178        0.0         3.467079         3.467091
+features.11.block.2.activation     -3.023944e-05         0.001606        0.0         3.467079         3.467049
+       features.11.block.2.fc1      1.799143e-05         0.000846        0.0         3.467079         3.467097
+       features.11.block.2.fc2      5.970239e-05         0.001373        0.0         3.467079         3.467139
+         features.11.block.3.0      1.135762e-05         0.000992        0.0         3.467079         3.467091
+                 features.12.0      4.746479e-06         0.000146        0.0         3.467079         3.467084
+          features.2.block.0.0     -3.454378e-06         0.001350        0.0         3.467079         3.467076
+          features.2.block.0.2      2.320147e-05         0.006864        0.0         3.467079         3.467102
+          features.2.block.1.0      5.367299e-05         0.003553        0.0         3.467079         3.467133
+          features.2.block.1.2      3.117453e-05         0.002543        0.0         3.467079         3.467110
+          features.2.block.2.0      7.313778e-05         0.001118        0.0         3.467079         3.467152
+          features.3.block.0.0      5.486222e-05         0.000975        0.0         3.467079         3.467134
+          features.3.block.0.2      1.582168e-04         0.002262        0.0         3.467079         3.467237
+          features.3.block.1.0      2.602547e-04         0.001850        0.0         3.467079         3.467340
+          features.3.block.1.2      1.738824e-04         0.001690        0.0         3.467079         3.467253
+          features.3.block.2.0      5.015738e-05         0.000982        0.0         3.467079         3.467129
+          features.4.block.0.0      4.053276e-05         0.000813        0.0         3.467079         3.467120
+          features.4.block.1.0      3.487691e-05         0.003034        0.0         3.467079         3.467114
+ features.4.block.2.activation      7.120392e-05         0.000913        0.0         3.467079         3.467150
+        features.4.block.2.fc1      6.354562e-06         0.000169        0.0         3.467079         3.467086
+        features.4.block.2.fc2      3.363748e-05         0.002020        0.0         3.467079         3.467113
+          features.4.block.3.0      4.272076e-05         0.000950        0.0         3.467079         3.467122
+          features.5.block.0.0      1.433803e-05         0.000796        0.0         3.467079         3.467094
+          features.5.block.1.0      1.341402e-04         0.004756        0.0         3.467079         3.467213
+ features.5.block.2.activation      5.181017e-05         0.001248        0.0         3.467079         3.467131
+        features.5.block.2.fc1      6.654623e-06         0.001036        0.0         3.467079         3.467086
+        features.5.block.2.fc2      1.690998e-05         0.001059        0.0         3.467079         3.467096
+          features.5.block.3.0      1.467177e-05         0.001541        0.0         3.467079         3.467094
+          features.6.block.0.0      2.516963e-05         0.000734        0.0         3.467079         3.467104
+          features.6.block.1.0      1.264795e-04         0.005225        0.0         3.467079         3.467206
+ features.6.block.2.activation      3.932945e-05         0.001491        0.0         3.467079         3.467119
+        features.6.block.2.fc1      1.811513e-05         0.001149        0.0         3.467079         3.467097
+        features.6.block.2.fc2     -5.418249e-06         0.001251        0.0         3.467079         3.467074
+          features.6.block.3.0      5.300490e-05         0.001601        0.0         3.467079         3.467132
+          features.7.block.0.0      5.216167e-06         0.000545        0.0         3.467079         3.467084
+          features.7.block.1.0      4.568892e-05         0.004785        0.0         3.467079         3.467125
+ features.7.block.2.activation      1.070116e-05         0.000603        0.0         3.467079         3.467090
+        features.7.block.2.fc1      6.255358e-06         0.000507        0.0         3.467079         3.467085
+        features.7.block.2.fc2      1.384568e-06         0.000793        0.0         3.467079         3.467081
+          features.7.block.3.0      8.265156e-06         0.000646        0.0         3.467079         3.467087
+          features.8.block.0.0      6.932027e-07         0.000563        0.0         3.467079         3.467080
+          features.8.block.1.0     -9.524985e-05         0.003583        0.0         3.467079         3.466984
+ features.8.block.2.activation      4.594550e-05         0.001141        0.0         3.467079         3.467125
+        features.8.block.2.fc1      4.606859e-05         0.001064        0.0         3.467079         3.467125
+        features.8.block.2.fc2      3.227618e-05         0.001037        0.0         3.467079         3.467112
+          features.8.block.3.0      7.696142e-05         0.001511        0.0         3.467079         3.467156
+          features.9.block.0.0     -9.452541e-06         0.000461        0.0         3.467079         3.467070
+          features.9.block.1.0      2.914758e-05         0.004509        0.0         3.467079         3.467108
+ features.9.block.2.activation     -8.325781e-06         0.001214        0.0         3.467079         3.467071
+        features.9.block.2.fc1      3.087998e-05         0.000895        0.0         3.467079         3.467110
+        features.9.block.2.fc2      8.819351e-06         0.001101        0.0         3.467079         3.467088
+          features.9.block.3.0      1.342560e-05         0.001205        0.0         3.467079         3.467093
+Excel workbook saved to layer_activations_mobilenet_v3_small.xlsx
+Deer samples: 47872
+Horse samples: 66912
+Zebra samples: 111044
+((python_venv) ) root@intel-ArcherCity:/home/srikanth/study1/RecalibrateNN/utility_libraries#

@@ -1,0 +1,349 @@
+VGG16 Summary
+Mean Delta Logit per Layer per Class:
+  Layer Name Class Name   Delta Logit
+classifier.0       deer -1.245313e-05
+classifier.0      horse  3.649390e-06
+classifier.0      zebra -9.167177e-07
+classifier.1       deer -1.069034e-05
+classifier.1      horse -1.765752e-05
+classifier.1      zebra  1.533558e-05
+classifier.3       deer  6.034091e-06
+classifier.3      horse  6.046748e-07
+classifier.3      zebra -8.274954e-06
+classifier.4       deer  7.281250e-06
+classifier.4      horse  1.110772e-05
+classifier.4      zebra  2.147336e-05
+classifier.6       deer  1.883949e-05
+classifier.6      horse -3.814634e-05
+classifier.6      zebra -5.668096e-06
+  features.0       deer -2.431534e-05
+  features.0      horse -1.505081e-05
+  features.0      zebra -9.951010e-07
+  features.1       deer  8.921875e-06
+  features.1      horse -2.131911e-05
+  features.1      zebra -1.428659e-06
+ features.10       deer  3.563920e-06
+ features.10      horse -6.684959e-06
+ features.10      zebra  9.326393e-06
+ features.11       deer  1.668324e-05
+ features.11      horse -9.209350e-06
+ features.11      zebra  4.483772e-06
+ features.12       deer  1.519886e-05
+ features.12      horse -4.242886e-06
+ features.12      zebra  5.248010e-06
+ features.13       deer  7.244318e-06
+ features.13      horse -7.442073e-06
+ features.13      zebra -4.264544e-06
+ features.14       deer -8.940341e-06
+ features.14      horse  1.691057e-06
+ features.14      zebra  4.575628e-06
+ features.15       deer -4.589673e-04
+ features.15      horse -7.011372e-04
+ features.15      zebra -1.189260e-03
+ features.16       deer  2.007102e-06
+ features.16      horse -4.335366e-06
+ features.16      zebra  2.858543e-06
+ features.17       deer -6.704545e-07
+ features.17      horse -4.654472e-06
+ features.17      zebra  4.495407e-06
+ features.18       deer -1.877841e-06
+ features.18      horse -1.279065e-05
+ features.18      zebra -9.442131e-06
+ features.19       deer -7.732955e-06
+ features.19      horse -6.148374e-06
+ features.19      zebra -6.981017e-07
+  features.2       deer  2.558665e-05
+  features.2      horse -3.730691e-06
+  features.2      zebra  2.724495e-05
+ features.20       deer  5.696023e-07
+ features.20      horse -1.120732e-05
+ features.20      zebra -2.324740e-05
+ features.21       deer  9.534091e-06
+ features.21      horse -5.489837e-06
+ features.21      zebra  6.704838e-06
+ features.22       deer -1.540345e-03
+ features.22      horse -2.775032e-03
+ features.22      zebra -1.407807e-03
+ features.23       deer  1.477415e-05
+ features.23      horse -1.740142e-05
+ features.23      zebra -7.755664e-06
+ features.24       deer -5.284091e-06
+ features.24      horse  2.621951e-07
+ features.24      zebra  2.826087e-06
+ features.25       deer -7.197443e-06
+ features.25      horse -4.733740e-06
+ features.25      zebra -1.452848e-05
+ features.26       deer -1.588068e-06
+ features.26      horse -2.981707e-06
+ features.26      zebra  1.025720e-06
+ features.27       deer -1.581534e-05
+ features.27      horse -1.129980e-05
+ features.27      zebra -1.158359e-05
+ features.28       deer  6.984375e-06
+ features.28      horse -3.170732e-07
+ features.28      zebra  1.778322e-06
+ features.29       deer -8.248010e-03
+ features.29      horse -7.160770e-03
+ features.29      zebra -1.071829e-02
+  features.3       deer -1.585436e-03
+  features.3      horse -5.500041e-04
+  features.3      zebra -7.939878e-04
+ features.30       deer -3.500000e-06
+ features.30      horse -2.987805e-07
+ features.30      zebra  6.017146e-06
+  features.4       deer  2.431534e-05
+  features.4      horse  1.041362e-05
+  features.4      zebra  8.278628e-06
+  features.5       deer  3.195312e-05
+  features.5      horse  2.784553e-07
+  features.5      zebra -5.834660e-06
+  features.6       deer  2.567614e-05
+  features.6      horse -5.691057e-08
+  features.6      zebra -4.891611e-06
+  features.7       deer  2.020881e-05
+  features.7      horse  1.826220e-06
+  features.7      zebra -1.225658e-05
+  features.8       deer -3.099815e-04
+  features.8      horse -4.903679e-04
+  features.8      zebra -2.729167e-04
+  features.9       deer -3.285511e-06
+  features.9      horse -6.443089e-07
+  features.9      zebra -1.535824e-06
+
+deer - Layer Statistics:
+  Layer Name  Mean of Mean Activation  Std of Mean Activation
+classifier.0                 0.302891                0.062335
+classifier.1                 0.302891                0.062335
+classifier.3                 0.173468                0.029016
+classifier.4                 0.173468                0.029016
+classifier.6                 0.233455                0.145066
+  features.0                 0.311483                0.050548
+  features.1                 0.311483                0.050548
+ features.10                 1.177360                0.194626
+ features.11                 1.177360                0.194626
+ features.12                 1.250874                0.196472
+ features.13                 1.250874                0.196472
+ features.14                 0.872398                0.167649
+ features.15                 0.872398                0.167649
+ features.16                 1.993005                0.418099
+ features.17                 1.019143                0.169769
+ features.18                 1.019143                0.169769
+ features.19                 0.734879                0.111566
+  features.2                 0.561055                0.131416
+ features.20                 0.734879                0.111566
+ features.21                 0.294689                0.052433
+ features.22                 0.294689                0.052433
+ features.23                 0.656544                0.122128
+ features.24                 0.531632                0.085541
+ features.25                 0.531632                0.085541
+ features.26                 0.401485                0.074968
+ features.27                 0.401485                0.074968
+ features.28                 0.168628                0.037474
+ features.29                 0.168628                0.037474
+  features.3                 0.561055                0.131416
+ features.30                 0.322952                0.069523
+  features.4                 0.946579                0.280612
+  features.5                 0.761646                0.129251
+  features.6                 0.761646                0.129251
+  features.7                 0.876331                0.188219
+  features.8                 0.876331                0.188219
+  features.9                 1.845627                0.447294
+
+horse - Layer Statistics:
+  Layer Name  Mean of Mean Activation  Std of Mean Activation
+classifier.0                 0.312741                0.073365
+classifier.1                 0.312741                0.073365
+classifier.3                 0.166529                0.027383
+classifier.4                 0.166529                0.027383
+classifier.6                -0.012219                0.097784
+  features.0                 0.302507                0.034410
+  features.1                 0.302507                0.034410
+ features.10                 1.117120                0.167494
+ features.11                 1.117120                0.167494
+ features.12                 1.189292                0.152905
+ features.13                 1.189292                0.152905
+ features.14                 0.799835                0.127464
+ features.15                 0.799835                0.127464
+ features.16                 1.810657                0.308751
+ features.17                 0.998710                0.149232
+ features.18                 0.998710                0.149232
+ features.19                 0.729376                0.096010
+  features.2                 0.478922                0.090362
+ features.20                 0.729376                0.096010
+ features.21                 0.279624                0.048796
+ features.22                 0.279624                0.048796
+ features.23                 0.621864                0.113538
+ features.24                 0.518921                0.075113
+ features.25                 0.518921                0.075113
+ features.26                 0.391588                0.071461
+ features.27                 0.391588                0.071461
+ features.28                 0.149044                0.034620
+ features.29                 0.149044                0.034620
+  features.3                 0.478922                0.090362
+ features.30                 0.281823                0.062273
+  features.4                 0.784327                0.209164
+  features.5                 0.702631                0.104272
+  features.6                 0.702631                0.104272
+  features.7                 0.758914                0.131638
+  features.8                 0.758914                0.131638
+  features.9                 1.589731                0.310370
+
+zebra - Layer Statistics:
+  Layer Name  Mean of Mean Activation  Std of Mean Activation
+classifier.0                 0.747107                0.229069
+classifier.1                 0.747107                0.229069
+classifier.3                 0.230821                0.040414
+classifier.4                 0.230821                0.040414
+classifier.6                -0.161302                0.144059
+  features.0                 0.375424                0.069692
+  features.1                 0.375424                0.069692
+ features.10                 1.521650                0.322262
+ features.11                 1.521650                0.322262
+ features.12                 1.435548                0.258886
+ features.13                 1.435548                0.258886
+ features.14                 0.982097                0.202409
+ features.15                 0.982097                0.202409
+ features.16                 2.175381                0.455177
+ features.17                 1.194731                0.230807
+ features.18                 1.194731                0.230807
+ features.19                 0.833520                0.148098
+  features.2                 0.697223                0.155468
+ features.20                 0.833520                0.148098
+ features.21                 0.360729                0.081628
+ features.22                 0.360729                0.081628
+ features.23                 0.746678                0.169920
+ features.24                 0.617035                0.128636
+ features.25                 0.617035                0.128636
+ features.26                 0.479859                0.107875
+ features.27                 0.479859                0.107875
+ features.28                 0.200680                0.049519
+ features.29                 0.200680                0.049519
+  features.3                 0.697223                0.155468
+ features.30                 0.359233                0.084130
+  features.4                 1.324387                0.362010
+  features.5                 0.998382                0.215954
+  features.6                 0.998382                0.215954
+  features.7                 1.009706                0.203729
+  features.8                 1.009706                0.203729
+  features.9                 2.143354                0.448164
+
+Deer Layer-wise causal summary:
+  Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+classifier.0     -1.245313e-05         0.000170        0.0         3.508006         3.507994
+classifier.1     -1.069034e-05         0.000476        0.0         3.508006         3.507996
+classifier.3      6.034091e-06         0.000325        0.0         3.508006         3.508012
+classifier.4      7.281250e-06         0.000664        0.0         3.508006         3.508014
+classifier.6      1.883949e-05         0.000924        0.0         3.508006         3.508025
+  features.0     -2.431534e-05         0.000591        0.0         3.508006         3.507982
+  features.1      8.921875e-06         0.000710        0.0         3.508006         3.508015
+ features.10      3.563920e-06         0.000257        0.0         3.508006         3.508010
+ features.11      1.668324e-05         0.000281        0.0         3.508006         3.508023
+ features.12      1.519886e-05         0.000237        0.0         3.508006         3.508021
+ features.13      7.244318e-06         0.000246        0.0         3.508006         3.508014
+ features.14     -8.940341e-06         0.000213        0.0         3.508006         3.507997
+ features.15     -4.589673e-04         0.000498        0.0         3.508006         3.507547
+ features.16      2.007102e-06         0.000231        0.0         3.508006         3.508008
+ features.17     -6.704545e-07         0.000185        0.0         3.508006         3.508006
+ features.18     -1.877841e-06         0.000223        0.0         3.508006         3.508004
+ features.19     -7.732955e-06         0.000166        0.0         3.508006         3.507998
+  features.2      2.558665e-05         0.000431        0.0         3.508006         3.508032
+ features.20      5.696023e-07         0.000207        0.0         3.508006         3.508007
+ features.21      9.534091e-06         0.000163        0.0         3.508006         3.508016
+ features.22     -1.540345e-03         0.001226        0.0         3.508006         3.506466
+ features.23      1.477415e-05         0.000217        0.0         3.508006         3.508021
+ features.24     -5.284091e-06         0.000136        0.0         3.508006         3.508001
+ features.25     -7.197443e-06         0.000207        0.0         3.508006         3.507999
+ features.26     -1.588068e-06         0.000117        0.0         3.508006         3.508005
+ features.27     -1.581534e-05         0.000223        0.0         3.508006         3.507990
+ features.28      6.984375e-06         0.000124        0.0         3.508006         3.508013
+ features.29     -8.248010e-03         0.002760        0.0         3.508006         3.499758
+  features.3     -1.585436e-03         0.001035        0.0         3.508006         3.506421
+ features.30     -3.500000e-06         0.000285        0.0         3.508006         3.508003
+  features.4      2.431534e-05         0.000464        0.0         3.508006         3.508031
+  features.5      3.195312e-05         0.000326        0.0         3.508006         3.508038
+  features.6      2.567614e-05         0.000370        0.0         3.508006         3.508032
+  features.7      2.020881e-05         0.000305        0.0         3.508006         3.508026
+  features.8     -3.099815e-04         0.000482        0.0         3.508006         3.507696
+  features.9     -3.285511e-06         0.000331        0.0         3.508006         3.508003
+
+Horse Layer-wise causal summary:
+  Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+classifier.0      3.649390e-06         0.000150        0.0         3.278723         3.278727
+classifier.1     -1.765752e-05         0.000382        0.0         3.278723         3.278706
+classifier.3      6.046748e-07         0.000312        0.0         3.278723         3.278724
+classifier.4      1.110772e-05         0.000645        0.0         3.278723         3.278734
+classifier.6     -3.814634e-05         0.001043        0.0         3.278723         3.278685
+  features.0     -1.505081e-05         0.000473        0.0         3.278723         3.278708
+  features.1     -2.131911e-05         0.000537        0.0         3.278723         3.278702
+ features.10     -6.684959e-06         0.000176        0.0         3.278723         3.278717
+ features.11     -9.209350e-06         0.000191        0.0         3.278723         3.278714
+ features.12     -4.242886e-06         0.000166        0.0         3.278723         3.278719
+ features.13     -7.442073e-06         0.000169        0.0         3.278723         3.278716
+ features.14      1.691057e-06         0.000154        0.0         3.278723         3.278725
+ features.15     -7.011372e-04         0.000410        0.0         3.278723         3.278022
+ features.16     -4.335366e-06         0.000166        0.0         3.278723         3.278719
+ features.17     -4.654472e-06         0.000135        0.0         3.278723         3.278719
+ features.18     -1.279065e-05         0.000153        0.0         3.278723         3.278711
+ features.19     -6.148374e-06         0.000123        0.0         3.278723         3.278717
+  features.2     -3.730691e-06         0.000326        0.0         3.278723         3.278720
+ features.20     -1.120732e-05         0.000152        0.0         3.278723         3.278712
+ features.21     -5.489837e-06         0.000122        0.0         3.278723         3.278718
+ features.22     -2.775032e-03         0.000955        0.0         3.278723         3.275948
+ features.23     -1.740142e-05         0.000166        0.0         3.278723         3.278706
+ features.24      2.621951e-07         0.000107        0.0         3.278723         3.278724
+ features.25     -4.733740e-06         0.000162        0.0         3.278723         3.278719
+ features.26     -2.981707e-06         0.000088        0.0         3.278723         3.278720
+ features.27     -1.129980e-05         0.000154        0.0         3.278723         3.278712
+ features.28     -3.170732e-07         0.000102        0.0         3.278723         3.278723
+ features.29     -7.160770e-03         0.002061        0.0         3.278723         3.271563
+  features.3     -5.500041e-04         0.000816        0.0         3.278723         3.278173
+ features.30     -2.987805e-07         0.000228        0.0         3.278723         3.278723
+  features.4      1.041362e-05         0.000354        0.0         3.278723         3.278734
+  features.5      2.784553e-07         0.000230        0.0         3.278723         3.278724
+  features.6     -5.691057e-08         0.000250        0.0         3.278723         3.278723
+  features.7      1.826220e-06         0.000212        0.0         3.278723         3.278725
+  features.8     -4.903679e-04         0.000374        0.0         3.278723         3.278233
+  features.9     -6.443089e-07         0.000219        0.0         3.278723         3.278723
+
+Zebra Layer-wise causal summary:
+  Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+classifier.0     -9.167177e-07         0.000148        0.0         6.062637         6.062636
+classifier.1      1.533558e-05         0.000303        0.0         6.062637         6.062652
+classifier.3     -8.274954e-06         0.000279        0.0         6.062637         6.062628
+classifier.4      2.147336e-05         0.000647        0.0         6.062637         6.062658
+classifier.6     -5.668096e-06         0.000974        0.0         6.062637         6.062631
+  features.0     -9.951010e-07         0.000556        0.0         6.062637         6.062636
+  features.1     -1.428659e-06         0.000609        0.0         6.062637         6.062635
+ features.10      9.326393e-06         0.000300        0.0         6.062637         6.062646
+ features.11      4.483772e-06         0.000316        0.0         6.062637         6.062641
+ features.12      5.248010e-06         0.000278        0.0         6.062637         6.062642
+ features.13     -4.264544e-06         0.000289        0.0         6.062637         6.062632
+ features.14      4.575628e-06         0.000243        0.0         6.062637         6.062641
+ features.15     -1.189260e-03         0.000616        0.0         6.062637         6.061447
+ features.16      2.858543e-06         0.000273        0.0         6.062637         6.062639
+ features.17      4.495407e-06         0.000224        0.0         6.062637         6.062641
+ features.18     -9.442131e-06         0.000248        0.0         6.062637         6.062627
+ features.19     -6.981017e-07         0.000206        0.0         6.062637         6.062636
+  features.2      2.724495e-05         0.000446        0.0         6.062637         6.062664
+ features.20     -2.324740e-05         0.000235        0.0         6.062637         6.062613
+ features.21      6.704838e-06         0.000198        0.0         6.062637         6.062643
+ features.22     -1.407807e-03         0.001497        0.0         6.062637         6.061229
+ features.23     -7.755664e-06         0.000253        0.0         6.062637         6.062629
+ features.24      2.826087e-06         0.000166        0.0         6.062637         6.062639
+ features.25     -1.452848e-05         0.000244        0.0         6.062637         6.062622
+ features.26      1.025720e-06         0.000129        0.0         6.062637         6.062638
+ features.27     -1.158359e-05         0.000208        0.0         6.062637         6.062625
+ features.28      1.778322e-06         0.000112        0.0         6.062637         6.062638
+ features.29     -1.071829e-02         0.001694        0.0         6.062637         6.051918
+  features.3     -7.939878e-04         0.000879        0.0         6.062637         6.061843
+ features.30      6.017146e-06         0.000276        0.0         6.062637         6.062643
+  features.4      8.278628e-06         0.000466        0.0         6.062637         6.062645
+  features.5     -5.834660e-06         0.000353        0.0         6.062637         6.062631
+  features.6     -4.891611e-06         0.000390        0.0         6.062637         6.062632
+  features.7     -1.225658e-05         0.000335        0.0         6.062637         6.062624
+  features.8     -2.729167e-04         0.000487        0.0         6.062637         6.062364
+  features.9     -1.535824e-06         0.000344        0.0         6.062637         6.062635
+Excel workbook saved to layer_activations_vgg16.xlsx
+Deer samples: 25344
+Horse samples: 35424
+Zebra samples: 58788
