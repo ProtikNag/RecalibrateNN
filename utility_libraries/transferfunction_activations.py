@@ -24,6 +24,32 @@ destination_csv = f'layer_activations_{model_name}.csv'  # Output CSV file
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
+def forward_with_layer_perturbation(model, layer, input_tensor, epsilon=1e-3):
+    """
+    Runs a forward pass where noise is injected ONLY at the given layer.
+    Returns original logits and perturbed logits.
+    """
+
+    noise_holder = {}
+
+    def perturb_hook(module, input, output):
+        noise = epsilon * torch.randn_like(output)
+        noise_holder['noise'] = noise
+        return output + noise
+
+    hook = layer.register_forward_hook(perturb_hook)
+
+    with torch.no_grad():
+        perturbed_logits = model(input_tensor)
+
+    hook.remove()
+
+    with torch.no_grad():
+        original_logits = model(input_tensor)
+        
+
+    return original_logits, perturbed_logits
+
 
 # Prepare image
 def preprocess_image(image_path):
@@ -84,10 +110,24 @@ if(__name__ == "__main__"):
     # Save results to CSV
     with open(destination_csv, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
+        writer.writerow(['Image Path', 'Class Label', 'Class Name',
+                        'Layer Name', 'Layer Type', 'Transfer Function',
+                         'Output Shape','Mean Activation', 'Std Activation',
+                         'Min Activation', 'Max Activation',
+                         ' Pos activations', 'Neg activations',
+                         'Q1', 'Q2', 'Q3',
+                         'Kernel Shape', 'Kernel Count',
+                         'Predicted Class', 'Predicted Probability',
+                         'Original Logit', 'Perturbed Logit', 'Delta Logit', 
+                         'pert_pred_class', 'pert_pred_prob', 'Prediction Changed'
+                        ])
+        """
+        
         writer.writerow(['Image Path', 'Class Label', 'Class Name', 'Layer Name', 'Layer Type', 'Transfer Function', 'Output Shape', 
                          'Mean Activation', 'Std Activation', 'Min Activation', 'Max Activation',' Pos activations', 
-                         'Neg activations', 'Q1' , 'Q2', 'Q3','Kernel Shape', 'Kernel Count', 'Predicted Class', 'Predicted Probability'])
-        
+                         'Neg activations', 'Q1' , 'Q2', 'Q3','Kernel Shape', 'Kernel Count', 'Predicted Class', 'Predicted Probability', 
+                         'Original Logit', 'Perturbed Logit', 'Delta Logit' ])
+        """
         for image_path, class_label, class_name in image_list:
             print(f"Processing: {image_path}")
             activations.clear()
@@ -104,14 +144,22 @@ if(__name__ == "__main__"):
                 predicted_prob, predicted_class = torch.max(probabilities, dim=1)
                 predicted_class = predicted_class.item()
                 predicted_prob = predicted_prob.item()
-            # Forward pass
-            with torch.no_grad():
-                output = model(input_tensor)
-            
+                
             for name, layer in model.named_modules():
                 if name in activations:
                     act = activations[name]
                     layer_type = type(layer).__name__
+                    # ---- Logit sensitivity computation ----
+                    orig_logits, pert_logits = forward_with_layer_perturbation(
+                    model, layer, input_tensor, epsilon=1e-3)
+                    pert_probs = torch.softmax(pert_logits, dim=1)
+                    pert_pred_prob, pert_pred_class = torch.max(pert_probs, dim=1)
+                    pert_pred_class = pert_pred_class.item()
+                    pert_pred_prob = pert_pred_prob.item()
+
+                    orig_logit = orig_logits[0, predicted_class].item()
+                    pert_logit = pert_logits[0, predicted_class].item()
+                    delta_logit = pert_logit - orig_logit
                     
                     # Get transfer function
                     if isinstance(layer, nn.ReLU):
@@ -155,7 +203,13 @@ if(__name__ == "__main__"):
                         kernel_shape,
                         kernel_count,
                         f'{predicted_class}',
-                        f'{predicted_prob:.6f}'
+                        f'{predicted_prob:.6f}',
+                        f'{orig_logit:.6f}',
+                        f'{pert_logit:.6f}',
+                        f'{delta_logit:.6f}',
+                        f'{pert_pred_class}',
+                        f'{pert_pred_prob:.6f}',
+                        f'{pert_pred_class != predicted_class}'
                     ])
 
     # Remove hooks
@@ -172,6 +226,18 @@ if(__name__ == "__main__"):
     class_dataframes = {}
     for class_name in unique_classes:
         class_dataframes[class_name] = df[df['Class Name'] == class_name].copy()
+    # ===============================
+    # Layer-wise class-conditioned logit sensitivity
+    # ===============================
+    layer_class_delta = (
+        df
+        .groupby(['Layer Name', 'Class Name'])['Delta Logit']
+        .mean()
+        .reset_index()
+    )
+
+    print("\nMean Delta Logit per Layer per Class:")
+    print(layer_class_delta.to_string(index=False))
 
     # Access individual dataframes
     df_deer = class_dataframes.get('deer', pd.DataFrame())
@@ -197,6 +263,32 @@ if(__name__ == "__main__"):
             deer_stats = df_deer.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
             deer_stats.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
             deer_stats.to_excel(writer, sheet_name='deer_stats', index=False)
+            
+            deer_pos_activations = df_deer.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_deer.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = deer_stats.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = deer_stats.merge(deer_neg_activations, on='Layer Name', how='left')
+
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_deer.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_stats', index=False)
+            deer_layer_causal = (df_deer.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_causal_layers',index=False)
+            print("\nDeer Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
         
         # Write horse data and statistics
         if not df_horse.empty:
@@ -204,6 +296,34 @@ if(__name__ == "__main__"):
             horse_stats = df_horse.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
             horse_stats.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
             horse_stats.to_excel(writer, sheet_name='horse_stats', index=False)
+
+            horse_pos_activations = df_horse.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            horse_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            horse_neg_activations = df_horse.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            horse_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            horse_stats = horse_stats.merge(horse_pos_activations, on='Layer Name', how='left')
+            horse_stats = horse_stats.merge(horse_neg_activations, on='Layer Name', how='left')
+
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            horse_layer_info = df_horse.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            horse_stats = horse_stats.merge(horse_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            horse_stats.to_excel(writer, sheet_name='horse_stats', index=False)
+
+            horse_layer_causal = (df_horse.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            horse_layer_causal.to_excel(writer,sheet_name='horse_causal_layers',index=False)
+            print("\nHorse Layer-wise causal summary:")
+            print(horse_layer_causal.to_string(index=False))
+
         
         # Write zebra data and statistics
         if not df_zebra.empty:
@@ -211,7 +331,33 @@ if(__name__ == "__main__"):
             zebra_stats = df_zebra.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
             zebra_stats.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
             zebra_stats.to_excel(writer, sheet_name='zebra_stats', index=False)
-    
+
+            zebra_pos_activations = df_zebra.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            zebra_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            zebra_neg_activations = df_zebra.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            zebra_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            zebra_stats = zebra_stats.merge(zebra_pos_activations, on='Layer Name', how='left')
+            zebra_stats = zebra_stats.merge(zebra_neg_activations, on='Layer Name', how='left')
+
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            zebra_layer_info = df_zebra.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            zebra_stats = zebra_stats.merge(zebra_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            zebra_stats.to_excel(writer, sheet_name='zebra_stats', index=False)
+            zebra_layer_causal = (df_zebra.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            zebra_layer_causal.to_excel(writer,sheet_name='zebra_causal_layers',index=False)
+            print("\nZebra Layer-wise causal summary:")
+            print(zebra_layer_causal.to_string(index=False))
+
     print(f"Excel workbook saved to {excel_file}")
 
     print(f"Deer samples: {len(df_deer)}")

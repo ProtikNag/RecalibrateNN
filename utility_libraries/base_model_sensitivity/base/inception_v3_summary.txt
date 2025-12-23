@@ -1,0 +1,899 @@
+Inception_V3 Summary
+
+Mean Delta Logit per Layer per Class:
+                   Layer Name Class Name   Delta Logit
+           Conv2d_1a_3x3.conv       deer -2.745170e-04
+           Conv2d_1a_3x3.conv      horse -3.281332e-03
+           Conv2d_1a_3x3.conv      zebra -4.541274e-05
+           Conv2d_2a_3x3.conv       deer -1.490526e-04
+           Conv2d_2a_3x3.conv      horse -4.013008e-05
+           Conv2d_2a_3x3.conv      zebra  8.890386e-06
+           Conv2d_2b_3x3.conv       deer -1.366591e-04
+           Conv2d_2b_3x3.conv      horse  1.784858e-05
+           Conv2d_2b_3x3.conv      zebra  8.887691e-05
+           Conv2d_3b_1x1.conv       deer -7.742756e-05
+           Conv2d_3b_1x1.conv      horse  1.499431e-04
+           Conv2d_3b_1x1.conv      zebra -1.786773e-05
+           Conv2d_4a_3x3.conv       deer -4.414631e-05
+           Conv2d_4a_3x3.conv      horse  1.236606e-04
+           Conv2d_4a_3x3.conv      zebra -2.119596e-05
+      Mixed_5b.branch1x1.conv       deer -1.204631e-04
+      Mixed_5b.branch1x1.conv      horse  1.310305e-04
+      Mixed_5b.branch1x1.conv      zebra  2.309369e-05
+ Mixed_5b.branch3x3dbl_1.conv       deer -1.503068e-04
+ Mixed_5b.branch3x3dbl_1.conv      horse  4.973272e-05
+ Mixed_5b.branch3x3dbl_1.conv      zebra  9.112064e-07
+ Mixed_5b.branch3x3dbl_2.conv       deer -1.111605e-04
+ Mixed_5b.branch3x3dbl_2.conv      horse  3.910569e-05
+ Mixed_5b.branch3x3dbl_2.conv      zebra -5.000490e-05
+ Mixed_5b.branch3x3dbl_3.conv       deer -5.417045e-05
+ Mixed_5b.branch3x3dbl_3.conv      horse -3.113618e-05
+ Mixed_5b.branch3x3dbl_3.conv      zebra  1.162645e-05
+    Mixed_5b.branch5x5_1.conv       deer -1.750994e-05
+    Mixed_5b.branch5x5_1.conv      horse  1.808435e-05
+    Mixed_5b.branch5x5_1.conv      zebra -6.573178e-06
+    Mixed_5b.branch5x5_2.conv       deer -5.662784e-05
+    Mixed_5b.branch5x5_2.conv      horse  4.042886e-05
+    Mixed_5b.branch5x5_2.conv      zebra  2.737538e-05
+    Mixed_5b.branch_pool.conv       deer -1.271847e-04
+    Mixed_5b.branch_pool.conv      horse  1.233943e-05
+    Mixed_5b.branch_pool.conv      zebra -1.633803e-06
+      Mixed_5c.branch1x1.conv       deer  2.060227e-05
+      Mixed_5c.branch1x1.conv      horse  5.023882e-05
+      Mixed_5c.branch1x1.conv      zebra  1.474342e-05
+ Mixed_5c.branch3x3dbl_1.conv       deer -6.987074e-05
+ Mixed_5c.branch3x3dbl_1.conv      horse  2.464736e-05
+ Mixed_5c.branch3x3dbl_1.conv      zebra  9.365585e-05
+ Mixed_5c.branch3x3dbl_2.conv       deer -1.046222e-04
+ Mixed_5c.branch3x3dbl_2.conv      horse -1.219411e-05
+ Mixed_5c.branch3x3dbl_2.conv      zebra  5.067116e-05
+ Mixed_5c.branch3x3dbl_3.conv       deer  6.711222e-05
+ Mixed_5c.branch3x3dbl_3.conv      horse  5.385874e-05
+ Mixed_5c.branch3x3dbl_3.conv      zebra  1.417208e-05
+    Mixed_5c.branch5x5_1.conv       deer -3.176989e-05
+    Mixed_5c.branch5x5_1.conv      horse  2.517988e-05
+    Mixed_5c.branch5x5_1.conv      zebra -1.450643e-05
+    Mixed_5c.branch5x5_2.conv       deer -4.140483e-05
+    Mixed_5c.branch5x5_2.conv      horse -3.718699e-05
+    Mixed_5c.branch5x5_2.conv      zebra  2.076607e-05
+    Mixed_5c.branch_pool.conv       deer -7.680256e-05
+    Mixed_5c.branch_pool.conv      horse  1.808943e-07
+    Mixed_5c.branch_pool.conv      zebra -1.035211e-05
+      Mixed_5d.branch1x1.conv       deer -1.102031e-04
+      Mixed_5d.branch1x1.conv      horse  1.433943e-05
+      Mixed_5d.branch1x1.conv      zebra -3.433925e-05
+ Mixed_5d.branch3x3dbl_1.conv       deer -4.565341e-06
+ Mixed_5d.branch3x3dbl_1.conv      horse -1.824187e-06
+ Mixed_5d.branch3x3dbl_1.conv      zebra -5.011390e-05
+ Mixed_5d.branch3x3dbl_2.conv       deer  5.223011e-06
+ Mixed_5d.branch3x3dbl_2.conv      horse -3.740854e-05
+ Mixed_5d.branch3x3dbl_2.conv      zebra  3.121555e-05
+ Mixed_5d.branch3x3dbl_3.conv       deer -5.179261e-05
+ Mixed_5d.branch3x3dbl_3.conv      horse -8.315041e-06
+ Mixed_5d.branch3x3dbl_3.conv      zebra -2.751562e-05
+    Mixed_5d.branch5x5_1.conv       deer -4.770455e-05
+    Mixed_5d.branch5x5_1.conv      horse -8.715447e-06
+    Mixed_5d.branch5x5_1.conv      zebra -4.596265e-05
+    Mixed_5d.branch5x5_2.conv       deer -3.043040e-05
+    Mixed_5d.branch5x5_2.conv      horse  4.000508e-05
+    Mixed_5d.branch5x5_2.conv      zebra  1.774587e-05
+    Mixed_5d.branch_pool.conv       deer -1.825000e-05
+    Mixed_5d.branch_pool.conv      horse  8.795935e-05
+    Mixed_5d.branch_pool.conv      zebra -3.220759e-05
+      Mixed_6a.branch3x3.conv       deer -1.991335e-05
+      Mixed_6a.branch3x3.conv      horse  1.035640e-04
+      Mixed_6a.branch3x3.conv      zebra -2.383221e-05
+ Mixed_6a.branch3x3dbl_1.conv       deer -6.232386e-05
+ Mixed_6a.branch3x3dbl_1.conv      horse -4.621951e-05
+ Mixed_6a.branch3x3dbl_1.conv      zebra  7.658298e-05
+ Mixed_6a.branch3x3dbl_2.conv       deer -3.407955e-05
+ Mixed_6a.branch3x3dbl_2.conv      horse  3.696138e-06
+ Mixed_6a.branch3x3dbl_2.conv      zebra -2.154685e-05
+ Mixed_6a.branch3x3dbl_3.conv       deer -5.853267e-05
+ Mixed_6a.branch3x3dbl_3.conv      horse  2.068598e-05
+ Mixed_6a.branch3x3dbl_3.conv      zebra -2.390263e-05
+      Mixed_6b.branch1x1.conv       deer -6.363210e-05
+      Mixed_6b.branch1x1.conv      horse -3.573272e-05
+      Mixed_6b.branch1x1.conv      zebra  1.139743e-05
+    Mixed_6b.branch7x7_1.conv       deer  8.653409e-06
+    Mixed_6b.branch7x7_1.conv      horse -1.938211e-05
+    Mixed_6b.branch7x7_1.conv      zebra -1.286650e-05
+    Mixed_6b.branch7x7_2.conv       deer -1.508949e-05
+    Mixed_6b.branch7x7_2.conv      horse  4.565142e-05
+    Mixed_6b.branch7x7_2.conv      zebra -3.511390e-05
+    Mixed_6b.branch7x7_3.conv       deer -2.669886e-05
+    Mixed_6b.branch7x7_3.conv      horse -1.613923e-05
+    Mixed_6b.branch7x7_3.conv      zebra  5.373913e-05
+ Mixed_6b.branch7x7dbl_1.conv       deer -6.991335e-05
+ Mixed_6b.branch7x7dbl_1.conv      horse  2.855691e-07
+ Mixed_6b.branch7x7dbl_1.conv      zebra  1.637844e-05
+ Mixed_6b.branch7x7dbl_2.conv       deer -3.389631e-05
+ Mixed_6b.branch7x7dbl_2.conv      horse -1.317175e-05
+ Mixed_6b.branch7x7dbl_2.conv      zebra  5.368034e-06
+ Mixed_6b.branch7x7dbl_3.conv       deer -5.431534e-05
+ Mixed_6b.branch7x7dbl_3.conv      horse -2.644817e-05
+ Mixed_6b.branch7x7dbl_3.conv      zebra -1.110655e-05
+ Mixed_6b.branch7x7dbl_4.conv       deer -1.017514e-04
+ Mixed_6b.branch7x7dbl_4.conv      horse  5.334756e-05
+ Mixed_6b.branch7x7dbl_4.conv      zebra  7.196571e-06
+ Mixed_6b.branch7x7dbl_5.conv       deer -2.956250e-05
+ Mixed_6b.branch7x7dbl_5.conv      horse -2.747866e-05
+ Mixed_6b.branch7x7dbl_5.conv      zebra -2.130986e-05
+    Mixed_6b.branch_pool.conv       deer  8.348864e-05
+    Mixed_6b.branch_pool.conv      horse  1.793902e-05
+    Mixed_6b.branch_pool.conv      zebra -1.611329e-05
+      Mixed_6c.branch1x1.conv       deer  8.254261e-06
+      Mixed_6c.branch1x1.conv      horse  1.240549e-05
+      Mixed_6c.branch1x1.conv      zebra -1.748683e-05
+    Mixed_6c.branch7x7_1.conv       deer -1.423295e-05
+    Mixed_6c.branch7x7_1.conv      horse -3.466362e-05
+    Mixed_6c.branch7x7_1.conv      zebra -8.194734e-06
+    Mixed_6c.branch7x7_2.conv       deer -2.622301e-05
+    Mixed_6c.branch7x7_2.conv      horse  7.273374e-06
+    Mixed_6c.branch7x7_2.conv      zebra -9.434783e-06
+    Mixed_6c.branch7x7_3.conv       deer  7.171733e-05
+    Mixed_6c.branch7x7_3.conv      horse  1.992073e-05
+    Mixed_6c.branch7x7_3.conv      zebra  1.324066e-05
+ Mixed_6c.branch7x7dbl_1.conv       deer -4.924006e-05
+ Mixed_6c.branch7x7dbl_1.conv      horse -5.545732e-06
+ Mixed_6c.branch7x7dbl_1.conv      zebra  4.191366e-05
+ Mixed_6c.branch7x7dbl_2.conv       deer -2.442898e-05
+ Mixed_6c.branch7x7dbl_2.conv      horse -3.763821e-05
+ Mixed_6c.branch7x7dbl_2.conv      zebra -4.954685e-06
+ Mixed_6c.branch7x7dbl_3.conv       deer -9.587784e-05
+ Mixed_6c.branch7x7dbl_3.conv      horse -5.637297e-05
+ Mixed_6c.branch7x7dbl_3.conv      zebra -1.853644e-06
+ Mixed_6c.branch7x7dbl_4.conv       deer  1.567187e-05
+ Mixed_6c.branch7x7dbl_4.conv      horse -1.971037e-05
+ Mixed_6c.branch7x7dbl_4.conv      zebra  4.654011e-08
+ Mixed_6c.branch7x7dbl_5.conv       deer -3.173580e-05
+ Mixed_6c.branch7x7dbl_5.conv      horse -1.208130e-05
+ Mixed_6c.branch7x7dbl_5.conv      zebra  2.685793e-05
+    Mixed_6c.branch_pool.conv       deer -4.993324e-05
+    Mixed_6c.branch_pool.conv      horse  5.460366e-05
+    Mixed_6c.branch_pool.conv      zebra  9.012247e-06
+      Mixed_6d.branch1x1.conv       deer -9.678977e-06
+      Mixed_6d.branch1x1.conv      horse  7.197154e-06
+      Mixed_6d.branch1x1.conv      zebra -5.037293e-05
+    Mixed_6d.branch7x7_1.conv       deer  5.843750e-06
+    Mixed_6d.branch7x7_1.conv      horse  4.796748e-07
+    Mixed_6d.branch7x7_1.conv      zebra -1.306675e-05
+    Mixed_6d.branch7x7_2.conv       deer  3.535511e-06
+    Mixed_6d.branch7x7_2.conv      horse -2.831809e-05
+    Mixed_6d.branch7x7_2.conv      zebra -5.674648e-05
+    Mixed_6d.branch7x7_3.conv       deer  5.325426e-05
+    Mixed_6d.branch7x7_3.conv      horse -2.782825e-05
+    Mixed_6d.branch7x7_3.conv      zebra -4.386099e-05
+ Mixed_6d.branch7x7dbl_1.conv       deer -2.167045e-05
+ Mixed_6d.branch7x7dbl_1.conv      horse -9.825203e-06
+ Mixed_6d.branch7x7dbl_1.conv      zebra -4.649602e-05
+ Mixed_6d.branch7x7dbl_2.conv       deer  1.132528e-05
+ Mixed_6d.branch7x7dbl_2.conv      horse -4.004675e-05
+ Mixed_6d.branch7x7dbl_2.conv      zebra -1.014942e-05
+ Mixed_6d.branch7x7dbl_3.conv       deer -6.032102e-05
+ Mixed_6d.branch7x7dbl_3.conv      horse -2.474797e-05
+ Mixed_6d.branch7x7dbl_3.conv      zebra -2.425230e-05
+ Mixed_6d.branch7x7dbl_4.conv       deer -2.183097e-05
+ Mixed_6d.branch7x7dbl_4.conv      horse -3.598984e-05
+ Mixed_6d.branch7x7dbl_4.conv      zebra -5.674525e-05
+ Mixed_6d.branch7x7dbl_5.conv       deer  1.845028e-05
+ Mixed_6d.branch7x7dbl_5.conv      horse -3.239837e-06
+ Mixed_6d.branch7x7dbl_5.conv      zebra -4.578445e-05
+    Mixed_6d.branch_pool.conv       deer  3.302273e-05
+    Mixed_6d.branch_pool.conv      horse -6.684553e-05
+    Mixed_6d.branch_pool.conv      zebra -5.080098e-05
+      Mixed_6e.branch1x1.conv       deer -1.935369e-05
+      Mixed_6e.branch1x1.conv      horse -2.611890e-05
+      Mixed_6e.branch1x1.conv      zebra  4.050827e-06
+    Mixed_6e.branch7x7_1.conv       deer -4.250710e-05
+    Mixed_6e.branch7x7_1.conv      horse -4.039126e-05
+    Mixed_6e.branch7x7_1.conv      zebra  1.723760e-05
+    Mixed_6e.branch7x7_2.conv       deer  4.730114e-07
+    Mixed_6e.branch7x7_2.conv      horse -4.493699e-05
+    Mixed_6e.branch7x7_2.conv      zebra -5.840600e-05
+    Mixed_6e.branch7x7_3.conv       deer -2.460511e-05
+    Mixed_6e.branch7x7_3.conv      horse  2.598882e-05
+    Mixed_6e.branch7x7_3.conv      zebra -4.656461e-05
+ Mixed_6e.branch7x7dbl_1.conv       deer  1.357102e-05
+ Mixed_6e.branch7x7dbl_1.conv      horse  2.756504e-05
+ Mixed_6e.branch7x7dbl_1.conv      zebra  3.197734e-05
+ Mixed_6e.branch7x7dbl_2.conv       deer  7.784091e-07
+ Mixed_6e.branch7x7dbl_2.conv      horse  4.441057e-07
+ Mixed_6e.branch7x7dbl_2.conv      zebra -3.954685e-06
+ Mixed_6e.branch7x7dbl_3.conv       deer -1.849290e-05
+ Mixed_6e.branch7x7dbl_3.conv      horse  9.035569e-06
+ Mixed_6e.branch7x7dbl_3.conv      zebra -1.499204e-05
+ Mixed_6e.branch7x7dbl_4.conv       deer  1.758949e-05
+ Mixed_6e.branch7x7dbl_4.conv      horse -2.137093e-05
+ Mixed_6e.branch7x7dbl_4.conv      zebra -8.848806e-05
+ Mixed_6e.branch7x7dbl_5.conv       deer -3.292898e-05
+ Mixed_6e.branch7x7dbl_5.conv      horse -2.134146e-08
+ Mixed_6e.branch7x7dbl_5.conv      zebra -4.655481e-05
+    Mixed_6e.branch_pool.conv       deer -1.076278e-05
+    Mixed_6e.branch_pool.conv      horse  4.212093e-05
+    Mixed_6e.branch_pool.conv      zebra  1.928230e-05
+    Mixed_7a.branch3x3_1.conv       deer  5.798153e-05
+    Mixed_7a.branch3x3_1.conv      horse -2.265854e-05
+    Mixed_7a.branch3x3_1.conv      zebra -2.650214e-05
+    Mixed_7a.branch3x3_2.conv       deer -3.574148e-05
+    Mixed_7a.branch3x3_2.conv      horse  2.671443e-05
+    Mixed_7a.branch3x3_2.conv      zebra -2.470484e-05
+  Mixed_7a.branch7x7x3_1.conv       deer -1.588807e-04
+  Mixed_7a.branch7x7x3_1.conv      horse -1.398354e-04
+  Mixed_7a.branch7x7x3_1.conv      zebra -1.111868e-04
+  Mixed_7a.branch7x7x3_2.conv       deer -7.799432e-05
+  Mixed_7a.branch7x7x3_2.conv      horse  3.949187e-06
+  Mixed_7a.branch7x7x3_2.conv      zebra -7.164483e-05
+  Mixed_7a.branch7x7x3_3.conv       deer  4.206108e-05
+  Mixed_7a.branch7x7x3_3.conv      horse  1.098069e-05
+  Mixed_7a.branch7x7x3_3.conv      zebra -3.513656e-05
+  Mixed_7a.branch7x7x3_4.conv       deer -3.934233e-05
+  Mixed_7a.branch7x7x3_4.conv      horse  6.112805e-06
+  Mixed_7a.branch7x7x3_4.conv      zebra -2.560808e-05
+      Mixed_7b.branch1x1.conv       deer  5.291477e-05
+      Mixed_7b.branch1x1.conv      horse  1.293801e-05
+      Mixed_7b.branch1x1.conv      zebra -9.658910e-06
+    Mixed_7b.branch3x3_1.conv       deer -1.218466e-05
+    Mixed_7b.branch3x3_1.conv      horse  6.525203e-05
+    Mixed_7b.branch3x3_1.conv      zebra -2.685732e-05
+   Mixed_7b.branch3x3_2a.conv       deer -1.041335e-05
+   Mixed_7b.branch3x3_2a.conv      horse -3.390650e-05
+   Mixed_7b.branch3x3_2a.conv      zebra -4.266381e-06
+   Mixed_7b.branch3x3_2b.conv       deer -8.058239e-06
+   Mixed_7b.branch3x3_2b.conv      horse -3.233435e-05
+   Mixed_7b.branch3x3_2b.conv      zebra  9.632578e-06
+ Mixed_7b.branch3x3dbl_1.conv       deer  3.231534e-05
+ Mixed_7b.branch3x3dbl_1.conv      horse  2.859146e-05
+ Mixed_7b.branch3x3dbl_1.conv      zebra -4.605021e-06
+ Mixed_7b.branch3x3dbl_2.conv       deer  3.254830e-05
+ Mixed_7b.branch3x3dbl_2.conv      horse  1.361484e-05
+ Mixed_7b.branch3x3dbl_2.conv      zebra  1.103919e-05
+Mixed_7b.branch3x3dbl_3a.conv       deer -1.080682e-05
+Mixed_7b.branch3x3dbl_3a.conv      horse -9.040650e-06
+Mixed_7b.branch3x3dbl_3a.conv      zebra -1.152419e-05
+Mixed_7b.branch3x3dbl_3b.conv       deer -2.445455e-05
+Mixed_7b.branch3x3dbl_3b.conv      horse  8.498984e-06
+Mixed_7b.branch3x3dbl_3b.conv      zebra -1.357869e-05
+    Mixed_7b.branch_pool.conv       deer  3.687500e-06
+    Mixed_7b.branch_pool.conv      horse  6.422764e-06
+    Mixed_7b.branch_pool.conv      zebra  9.334599e-05
+      Mixed_7c.branch1x1.conv       deer -2.499716e-05
+      Mixed_7c.branch1x1.conv      horse  2.181911e-06
+      Mixed_7c.branch1x1.conv      zebra -3.818126e-06
+    Mixed_7c.branch3x3_1.conv       deer  3.332528e-05
+    Mixed_7c.branch3x3_1.conv      horse  1.018394e-05
+    Mixed_7c.branch3x3_1.conv      zebra -9.736681e-07
+   Mixed_7c.branch3x3_2a.conv       deer  7.704545e-06
+   Mixed_7c.branch3x3_2a.conv      horse  1.819512e-05
+   Mixed_7c.branch3x3_2a.conv      zebra -5.513778e-06
+   Mixed_7c.branch3x3_2b.conv       deer -1.327415e-05
+   Mixed_7c.branch3x3_2b.conv      horse  3.014126e-05
+   Mixed_7c.branch3x3_2b.conv      zebra -1.596999e-05
+ Mixed_7c.branch3x3dbl_1.conv       deer -1.745312e-05
+ Mixed_7c.branch3x3dbl_1.conv      horse  4.754167e-05
+ Mixed_7c.branch3x3dbl_1.conv      zebra  3.213001e-04
+ Mixed_7c.branch3x3dbl_2.conv       deer -6.952983e-05
+ Mixed_7c.branch3x3dbl_2.conv      horse  5.833333e-07
+ Mixed_7c.branch3x3dbl_2.conv      zebra -8.284140e-05
+Mixed_7c.branch3x3dbl_3a.conv       deer -1.880682e-06
+Mixed_7c.branch3x3dbl_3a.conv      horse -1.010874e-05
+Mixed_7c.branch3x3dbl_3a.conv      zebra  2.336803e-05
+Mixed_7c.branch3x3dbl_3b.conv       deer  1.006818e-05
+Mixed_7c.branch3x3dbl_3b.conv      horse -8.759146e-06
+Mixed_7c.branch3x3dbl_3b.conv      zebra  2.136558e-06
+    Mixed_7c.branch_pool.conv       deer -1.021307e-06
+    Mixed_7c.branch_pool.conv      horse  1.608130e-05
+    Mixed_7c.branch_pool.conv      zebra -4.552786e-05
+                           fc       deer  2.529261e-05
+                           fc      horse  3.355285e-05
+                           fc      zebra -1.704776e-05
+                     maxpool1       deer -1.220455e-05
+                     maxpool1      horse -8.080386e-05
+                     maxpool1      zebra -1.164948e-04
+                     maxpool2       deer -5.201136e-05
+                     maxpool2      horse  4.491870e-06
+                     maxpool2      zebra  1.027201e-04
+
+deer - Layer Statistics:
+                   Layer Name  Mean of Mean Activation  Std of Mean Activation
+           Conv2d_1a_3x3.conv                -0.013501                0.013251
+           Conv2d_2a_3x3.conv                -0.477058                0.086287
+           Conv2d_2b_3x3.conv                -1.307328                0.126519
+           Conv2d_3b_1x1.conv                -0.810849                0.124073
+           Conv2d_4a_3x3.conv                -0.422749                0.074955
+      Mixed_5b.branch1x1.conv                 0.589864                0.080257
+ Mixed_5b.branch3x3dbl_1.conv                -0.292438                0.040146
+ Mixed_5b.branch3x3dbl_2.conv                -0.458609                0.046347
+ Mixed_5b.branch3x3dbl_3.conv                -0.333396                0.034048
+    Mixed_5b.branch5x5_1.conv                -0.011252                0.028272
+    Mixed_5b.branch5x5_2.conv                -0.729127                0.092814
+    Mixed_5b.branch_pool.conv                -0.093333                0.066826
+      Mixed_5c.branch1x1.conv                 0.725348                0.044957
+ Mixed_5c.branch3x3dbl_1.conv                -0.301492                0.035747
+ Mixed_5c.branch3x3dbl_2.conv                -0.579945                0.038290
+ Mixed_5c.branch3x3dbl_3.conv                -0.147121                0.018840
+    Mixed_5c.branch5x5_1.conv                -0.211473                0.034806
+    Mixed_5c.branch5x5_2.conv                -0.779202                0.046489
+    Mixed_5c.branch_pool.conv                -0.475292                0.033100
+      Mixed_5d.branch1x1.conv                 0.064486                0.178112
+ Mixed_5d.branch3x3dbl_1.conv                 0.267918                0.032832
+ Mixed_5d.branch3x3dbl_2.conv                -0.388077                0.073031
+ Mixed_5d.branch3x3dbl_3.conv                -0.514562                0.059320
+    Mixed_5d.branch5x5_1.conv                -0.184125                0.043664
+    Mixed_5d.branch5x5_2.conv                -0.400333                0.060162
+    Mixed_5d.branch_pool.conv                -0.129165                0.122903
+      Mixed_6a.branch3x3.conv                -0.125308                0.015704
+ Mixed_6a.branch3x3dbl_1.conv                 0.090514                0.011657
+ Mixed_6a.branch3x3dbl_2.conv                -0.517229                0.025929
+ Mixed_6a.branch3x3dbl_3.conv                -0.077504                0.011778
+      Mixed_6b.branch1x1.conv                 0.087355                0.032992
+    Mixed_6b.branch7x7_1.conv                -0.189222                0.035493
+    Mixed_6b.branch7x7_2.conv                -0.297242                0.025487
+    Mixed_6b.branch7x7_3.conv                -0.381487                0.043432
+ Mixed_6b.branch7x7dbl_1.conv                -0.066117                0.023105
+ Mixed_6b.branch7x7dbl_2.conv                -0.048210                0.012756
+ Mixed_6b.branch7x7dbl_3.conv                -0.307216                0.035485
+ Mixed_6b.branch7x7dbl_4.conv                -0.283977                0.039212
+ Mixed_6b.branch7x7dbl_5.conv                -0.455566                0.074313
+    Mixed_6b.branch_pool.conv                -0.217286                0.033849
+      Mixed_6c.branch1x1.conv                -0.153817                0.022075
+    Mixed_6c.branch7x7_1.conv                -0.298860                0.030716
+    Mixed_6c.branch7x7_2.conv                -0.233056                0.030972
+    Mixed_6c.branch7x7_3.conv                -0.379681                0.041737
+ Mixed_6c.branch7x7dbl_1.conv                -0.068882                0.019381
+ Mixed_6c.branch7x7dbl_2.conv                -0.234808                0.024837
+ Mixed_6c.branch7x7dbl_3.conv                -0.277224                0.034176
+ Mixed_6c.branch7x7dbl_4.conv                -0.241585                0.033402
+ Mixed_6c.branch7x7dbl_5.conv                -0.632740                0.047433
+    Mixed_6c.branch_pool.conv                -0.218646                0.025870
+      Mixed_6d.branch1x1.conv                -0.266690                0.042788
+    Mixed_6d.branch7x7_1.conv                -0.278882                0.034031
+    Mixed_6d.branch7x7_2.conv                -0.274764                0.023916
+    Mixed_6d.branch7x7_3.conv                -0.279322                0.029337
+ Mixed_6d.branch7x7dbl_1.conv                -0.374001                0.038124
+ Mixed_6d.branch7x7dbl_2.conv                -0.362966                0.045632
+ Mixed_6d.branch7x7dbl_3.conv                -0.457959                0.044713
+ Mixed_6d.branch7x7dbl_4.conv                -0.395375                0.057881
+ Mixed_6d.branch7x7dbl_5.conv                -0.781720                0.067203
+    Mixed_6d.branch_pool.conv                -0.337056                0.029530
+      Mixed_6e.branch1x1.conv                -0.606986                0.074971
+    Mixed_6e.branch7x7_1.conv                -0.446988                0.047948
+    Mixed_6e.branch7x7_2.conv                -0.146860                0.025627
+    Mixed_6e.branch7x7_3.conv                -0.874012                0.090591
+ Mixed_6e.branch7x7dbl_1.conv                -0.320120                0.032056
+ Mixed_6e.branch7x7dbl_2.conv                -0.352058                0.037323
+ Mixed_6e.branch7x7dbl_3.conv                -0.324133                0.032257
+ Mixed_6e.branch7x7dbl_4.conv                -0.259240                0.033938
+ Mixed_6e.branch7x7dbl_5.conv                -0.884634                0.070285
+    Mixed_6e.branch_pool.conv                -0.388802                0.049128
+    Mixed_7a.branch3x3_1.conv                -0.138946                0.018136
+    Mixed_7a.branch3x3_2.conv                -0.226097                0.028753
+  Mixed_7a.branch7x7x3_1.conv                -0.074560                0.013313
+  Mixed_7a.branch7x7x3_2.conv                -0.252910                0.025927
+  Mixed_7a.branch7x7x3_3.conv                -0.341236                0.038124
+  Mixed_7a.branch7x7x3_4.conv                -0.302655                0.045401
+      Mixed_7b.branch1x1.conv                -0.203750                0.059852
+    Mixed_7b.branch3x3_1.conv                -0.233237                0.056427
+   Mixed_7b.branch3x3_2a.conv                -0.361845                0.030527
+   Mixed_7b.branch3x3_2b.conv                -0.330897                0.028961
+ Mixed_7b.branch3x3dbl_1.conv                -0.094367                0.056593
+ Mixed_7b.branch3x3dbl_2.conv                -0.442295                0.053022
+Mixed_7b.branch3x3dbl_3a.conv                -0.562430                0.064150
+Mixed_7b.branch3x3dbl_3b.conv                -0.593568                0.063419
+    Mixed_7b.branch_pool.conv                -0.285220                0.060959
+      Mixed_7c.branch1x1.conv                 0.004984                0.007186
+    Mixed_7c.branch3x3_1.conv                -0.365581                0.044909
+   Mixed_7c.branch3x3_2a.conv                 0.038546                0.008284
+   Mixed_7c.branch3x3_2b.conv                 0.033728                0.009770
+ Mixed_7c.branch3x3dbl_1.conv                -0.322597                0.044815
+ Mixed_7c.branch3x3dbl_2.conv                -0.378069                0.089748
+Mixed_7c.branch3x3dbl_3a.conv                 0.108014                0.040101
+Mixed_7c.branch3x3dbl_3b.conv                 0.121774                0.040564
+    Mixed_7c.branch_pool.conv                -0.002445                0.009814
+                           fc                -0.438952                0.167429
+                     maxpool1                 1.302076                0.199104
+                     maxpool2                 1.470408                0.093040
+
+horse - Layer Statistics:
+                   Layer Name  Mean of Mean Activation  Std of Mean Activation
+           Conv2d_1a_3x3.conv                -0.007216                0.010126
+           Conv2d_2a_3x3.conv                -0.416196                0.063973
+           Conv2d_2b_3x3.conv                -1.274815                0.076801
+           Conv2d_3b_1x1.conv                -0.743144                0.090975
+           Conv2d_4a_3x3.conv                -0.388743                0.053767
+      Mixed_5b.branch1x1.conv                 0.552941                0.066182
+ Mixed_5b.branch3x3dbl_1.conv                -0.283702                0.030320
+ Mixed_5b.branch3x3dbl_2.conv                -0.444042                0.043918
+ Mixed_5b.branch3x3dbl_3.conv                -0.330414                0.029911
+    Mixed_5b.branch5x5_1.conv                -0.021588                0.020646
+    Mixed_5b.branch5x5_2.conv                -0.736279                0.067160
+    Mixed_5b.branch_pool.conv                -0.042893                0.054389
+      Mixed_5c.branch1x1.conv                 0.708839                0.032582
+ Mixed_5c.branch3x3dbl_1.conv                -0.298975                0.030467
+ Mixed_5c.branch3x3dbl_2.conv                -0.602791                0.039547
+ Mixed_5c.branch3x3dbl_3.conv                -0.156444                0.020239
+    Mixed_5c.branch5x5_1.conv                -0.226763                0.029574
+    Mixed_5c.branch5x5_2.conv                -0.795531                0.034116
+    Mixed_5c.branch_pool.conv                -0.464065                0.025725
+      Mixed_5d.branch1x1.conv                 0.018253                0.098998
+ Mixed_5d.branch3x3dbl_1.conv                 0.271796                0.030648
+ Mixed_5d.branch3x3dbl_2.conv                -0.437369                0.058982
+ Mixed_5d.branch3x3dbl_3.conv                -0.510053                0.056548
+    Mixed_5d.branch5x5_1.conv                -0.202914                0.034347
+    Mixed_5d.branch5x5_2.conv                -0.412116                0.048462
+    Mixed_5d.branch_pool.conv                -0.147053                0.070188
+      Mixed_6a.branch3x3.conv                -0.133617                0.013653
+ Mixed_6a.branch3x3dbl_1.conv                 0.083894                0.011900
+ Mixed_6a.branch3x3dbl_2.conv                -0.525002                0.019822
+ Mixed_6a.branch3x3dbl_3.conv                -0.088129                0.009225
+      Mixed_6b.branch1x1.conv                 0.104626                0.025787
+    Mixed_6b.branch7x7_1.conv                -0.211799                0.031105
+    Mixed_6b.branch7x7_2.conv                -0.308729                0.019995
+    Mixed_6b.branch7x7_3.conv                -0.409387                0.029906
+ Mixed_6b.branch7x7dbl_1.conv                -0.056836                0.018155
+ Mixed_6b.branch7x7dbl_2.conv                -0.060127                0.009683
+ Mixed_6b.branch7x7dbl_3.conv                -0.307542                0.043564
+ Mixed_6b.branch7x7dbl_4.conv                -0.285456                0.029557
+ Mixed_6b.branch7x7dbl_5.conv                -0.479466                0.072363
+    Mixed_6b.branch_pool.conv                -0.227822                0.030502
+      Mixed_6c.branch1x1.conv                -0.142529                0.018606
+    Mixed_6c.branch7x7_1.conv                -0.301127                0.023842
+    Mixed_6c.branch7x7_2.conv                -0.257731                0.024104
+    Mixed_6c.branch7x7_3.conv                -0.423955                0.033497
+ Mixed_6c.branch7x7dbl_1.conv                -0.079982                0.014232
+ Mixed_6c.branch7x7dbl_2.conv                -0.224196                0.020804
+ Mixed_6c.branch7x7dbl_3.conv                -0.278609                0.035629
+ Mixed_6c.branch7x7dbl_4.conv                -0.232271                0.030295
+ Mixed_6c.branch7x7dbl_5.conv                -0.626452                0.044860
+    Mixed_6c.branch_pool.conv                -0.221604                0.020794
+      Mixed_6d.branch1x1.conv                -0.256659                0.030518
+    Mixed_6d.branch7x7_1.conv                -0.287490                0.023924
+    Mixed_6d.branch7x7_2.conv                -0.302512                0.023518
+    Mixed_6d.branch7x7_3.conv                -0.310118                0.025995
+ Mixed_6d.branch7x7dbl_1.conv                -0.392754                0.026784
+ Mixed_6d.branch7x7dbl_2.conv                -0.380016                0.039503
+ Mixed_6d.branch7x7dbl_3.conv                -0.451273                0.037829
+ Mixed_6d.branch7x7dbl_4.conv                -0.370701                0.043840
+ Mixed_6d.branch7x7dbl_5.conv                -0.741231                0.056554
+    Mixed_6d.branch_pool.conv                -0.327500                0.022018
+      Mixed_6e.branch1x1.conv                -0.639371                0.062427
+    Mixed_6e.branch7x7_1.conv                -0.459677                0.039710
+    Mixed_6e.branch7x7_2.conv                -0.135503                0.020779
+    Mixed_6e.branch7x7_3.conv                -0.863348                0.075008
+ Mixed_6e.branch7x7dbl_1.conv                -0.334177                0.028140
+ Mixed_6e.branch7x7dbl_2.conv                -0.365799                0.030629
+ Mixed_6e.branch7x7dbl_3.conv                -0.323529                0.022243
+ Mixed_6e.branch7x7dbl_4.conv                -0.300305                0.035858
+ Mixed_6e.branch7x7dbl_5.conv                -0.916883                0.066944
+    Mixed_6e.branch_pool.conv                -0.379906                0.037196
+    Mixed_7a.branch3x3_1.conv                -0.143411                0.016858
+    Mixed_7a.branch3x3_2.conv                -0.253294                0.025871
+  Mixed_7a.branch7x7x3_1.conv                -0.076774                0.011361
+  Mixed_7a.branch7x7x3_2.conv                -0.258595                0.022402
+  Mixed_7a.branch7x7x3_3.conv                -0.333885                0.034527
+  Mixed_7a.branch7x7x3_4.conv                -0.297766                0.044866
+      Mixed_7b.branch1x1.conv                -0.153912                0.040440
+    Mixed_7b.branch3x3_1.conv                -0.195838                0.038656
+   Mixed_7b.branch3x3_2a.conv                -0.364696                0.024998
+   Mixed_7b.branch3x3_2b.conv                -0.347738                0.024926
+ Mixed_7b.branch3x3dbl_1.conv                -0.039615                0.036228
+ Mixed_7b.branch3x3dbl_2.conv                -0.475217                0.045905
+Mixed_7b.branch3x3dbl_3a.conv                -0.564589                0.051777
+Mixed_7b.branch3x3dbl_3b.conv                -0.609493                0.058356
+    Mixed_7b.branch_pool.conv                -0.227496                0.037577
+      Mixed_7c.branch1x1.conv                 0.005540                0.007698
+    Mixed_7c.branch3x3_1.conv                -0.355157                0.043452
+   Mixed_7c.branch3x3_2a.conv                 0.052896                0.008766
+   Mixed_7c.branch3x3_2b.conv                 0.052280                0.009240
+ Mixed_7c.branch3x3dbl_1.conv                -0.316132                0.042809
+ Mixed_7c.branch3x3dbl_2.conv                -0.440395                0.097733
+Mixed_7c.branch3x3dbl_3a.conv                 0.089717                0.043061
+Mixed_7c.branch3x3dbl_3b.conv                 0.075605                0.044648
+    Mixed_7c.branch_pool.conv                 0.007179                0.009287
+                           fc                -0.246311                0.166364
+                     maxpool1                 1.175030                0.147329
+                     maxpool2                 1.451499                0.074886
+
+zebra - Layer Statistics:
+                   Layer Name  Mean of Mean Activation  Std of Mean Activation
+           Conv2d_1a_3x3.conv                -0.008926                0.012189
+           Conv2d_2a_3x3.conv                -0.450556                0.078574
+           Conv2d_2b_3x3.conv                -1.489754                0.185151
+           Conv2d_3b_1x1.conv                -0.909281                0.116943
+           Conv2d_4a_3x3.conv                -0.521872                0.090659
+      Mixed_5b.branch1x1.conv                 0.667064                0.093132
+ Mixed_5b.branch3x3dbl_1.conv                -0.283382                0.042242
+ Mixed_5b.branch3x3dbl_2.conv                -0.544620                0.070942
+ Mixed_5b.branch3x3dbl_3.conv                -0.395174                0.038939
+    Mixed_5b.branch5x5_1.conv                -0.010393                0.026118
+    Mixed_5b.branch5x5_2.conv                -0.768931                0.106298
+    Mixed_5b.branch_pool.conv                -0.173288                0.087872
+      Mixed_5c.branch1x1.conv                 0.729818                0.041719
+ Mixed_5c.branch3x3dbl_1.conv                -0.329013                0.053954
+ Mixed_5c.branch3x3dbl_2.conv                -0.675615                0.067298
+ Mixed_5c.branch3x3dbl_3.conv                -0.177291                0.025790
+    Mixed_5c.branch5x5_1.conv                -0.249041                0.041574
+    Mixed_5c.branch5x5_2.conv                -0.805229                0.059375
+    Mixed_5c.branch_pool.conv                -0.527487                0.048228
+      Mixed_5d.branch1x1.conv                -0.059290                0.132239
+ Mixed_5d.branch3x3dbl_1.conv                 0.206956                0.042662
+ Mixed_5d.branch3x3dbl_2.conv                -0.368796                0.056570
+ Mixed_5d.branch3x3dbl_3.conv                -0.503117                0.058002
+    Mixed_5d.branch5x5_1.conv                -0.242050                0.043255
+    Mixed_5d.branch5x5_2.conv                -0.424343                0.072483
+    Mixed_5d.branch_pool.conv                -0.217436                0.083877
+      Mixed_6a.branch3x3.conv                -0.137725                0.020656
+ Mixed_6a.branch3x3dbl_1.conv                 0.075673                0.017325
+ Mixed_6a.branch3x3dbl_2.conv                -0.509733                0.026472
+ Mixed_6a.branch3x3dbl_3.conv                -0.071862                0.009985
+      Mixed_6b.branch1x1.conv                 0.052864                0.036792
+    Mixed_6b.branch7x7_1.conv                -0.232526                0.047722
+    Mixed_6b.branch7x7_2.conv                -0.308927                0.034238
+    Mixed_6b.branch7x7_3.conv                -0.377639                0.041177
+ Mixed_6b.branch7x7dbl_1.conv                -0.085127                0.030734
+ Mixed_6b.branch7x7dbl_2.conv                -0.053887                0.013645
+ Mixed_6b.branch7x7dbl_3.conv                -0.346956                0.049123
+ Mixed_6b.branch7x7dbl_4.conv                -0.287488                0.036075
+ Mixed_6b.branch7x7dbl_5.conv                -0.442872                0.071376
+    Mixed_6b.branch_pool.conv                -0.263743                0.049095
+      Mixed_6c.branch1x1.conv                -0.181560                0.027941
+    Mixed_6c.branch7x7_1.conv                -0.297729                0.027914
+    Mixed_6c.branch7x7_2.conv                -0.239880                0.027305
+    Mixed_6c.branch7x7_3.conv                -0.383480                0.038178
+ Mixed_6c.branch7x7dbl_1.conv                -0.089373                0.023648
+ Mixed_6c.branch7x7dbl_2.conv                -0.211768                0.021161
+ Mixed_6c.branch7x7dbl_3.conv                -0.259923                0.034378
+ Mixed_6c.branch7x7dbl_4.conv                -0.197713                0.025825
+ Mixed_6c.branch7x7dbl_5.conv                -0.619923                0.042860
+    Mixed_6c.branch_pool.conv                -0.251764                0.032297
+      Mixed_6d.branch1x1.conv                -0.302029                0.044076
+    Mixed_6d.branch7x7_1.conv                -0.265451                0.029426
+    Mixed_6d.branch7x7_2.conv                -0.286137                0.024099
+    Mixed_6d.branch7x7_3.conv                -0.257417                0.028010
+ Mixed_6d.branch7x7dbl_1.conv                -0.368764                0.038040
+ Mixed_6d.branch7x7dbl_2.conv                -0.335314                0.039917
+ Mixed_6d.branch7x7dbl_3.conv                -0.443859                0.040100
+ Mixed_6d.branch7x7dbl_4.conv                -0.370762                0.052596
+ Mixed_6d.branch7x7dbl_5.conv                -0.675479                0.060755
+    Mixed_6d.branch_pool.conv                -0.347366                0.032359
+      Mixed_6e.branch1x1.conv                -0.587346                0.072374
+    Mixed_6e.branch7x7_1.conv                -0.400801                0.041092
+    Mixed_6e.branch7x7_2.conv                -0.129475                0.018808
+    Mixed_6e.branch7x7_3.conv                -0.828755                0.061118
+ Mixed_6e.branch7x7dbl_1.conv                -0.305587                0.028631
+ Mixed_6e.branch7x7dbl_2.conv                -0.304771                0.027401
+ Mixed_6e.branch7x7dbl_3.conv                -0.280153                0.027072
+ Mixed_6e.branch7x7dbl_4.conv                -0.213100                0.029510
+ Mixed_6e.branch7x7dbl_5.conv                -0.822429                0.076251
+    Mixed_6e.branch_pool.conv                -0.431575                0.079388
+    Mixed_7a.branch3x3_1.conv                -0.105602                0.028571
+    Mixed_7a.branch3x3_2.conv                -0.211150                0.025011
+  Mixed_7a.branch7x7x3_1.conv                -0.055225                0.019883
+  Mixed_7a.branch7x7x3_2.conv                -0.221245                0.026161
+  Mixed_7a.branch7x7x3_3.conv                -0.342712                0.049715
+  Mixed_7a.branch7x7x3_4.conv                -0.396312                0.102774
+      Mixed_7b.branch1x1.conv                -0.276934                0.079588
+    Mixed_7b.branch3x3_1.conv                -0.262045                0.076185
+   Mixed_7b.branch3x3_2a.conv                -0.313679                0.033021
+   Mixed_7b.branch3x3_2b.conv                -0.301419                0.034247
+ Mixed_7b.branch3x3dbl_1.conv                -0.134613                0.072613
+ Mixed_7b.branch3x3dbl_2.conv                -0.294719                0.042632
+Mixed_7b.branch3x3dbl_3a.conv                -0.407300                0.047661
+Mixed_7b.branch3x3dbl_3b.conv                -0.457041                0.048588
+    Mixed_7b.branch_pool.conv                -0.275206                0.066286
+      Mixed_7c.branch1x1.conv                 0.013464                0.005866
+    Mixed_7c.branch3x3_1.conv                -0.216825                0.066739
+   Mixed_7c.branch3x3_2a.conv                 0.030435                0.007481
+   Mixed_7c.branch3x3_2b.conv                 0.032488                0.008336
+ Mixed_7c.branch3x3dbl_1.conv                -0.162368                0.063378
+ Mixed_7c.branch3x3dbl_2.conv                -0.146251                0.056405
+Mixed_7c.branch3x3dbl_3a.conv                 0.133974                0.036951
+Mixed_7c.branch3x3dbl_3b.conv                 0.114690                0.038029
+    Mixed_7c.branch_pool.conv                -0.001169                0.007217
+                           fc                -0.374152                0.103841
+                     maxpool1                 1.442838                0.181560
+                     maxpool2                 1.502098                0.099369
+
+Deer Layer-wise causal summary:
+                   Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+           Conv2d_1a_3x3.conv     -2.745170e-04         0.018408        0.0         7.440238         7.439963
+           Conv2d_2a_3x3.conv     -1.490526e-04         0.002710        0.0         7.440238         7.440089
+           Conv2d_2b_3x3.conv     -1.366591e-04         0.002784        0.0         7.440238         7.440101
+           Conv2d_3b_1x1.conv     -7.742756e-05         0.002492        0.0         7.440238         7.440161
+           Conv2d_4a_3x3.conv     -4.414631e-05         0.002298        0.0         7.440238         7.440194
+      Mixed_5b.branch1x1.conv     -1.204631e-04         0.001920        0.0         7.440238         7.440117
+ Mixed_5b.branch3x3dbl_1.conv     -1.503068e-04         0.001697        0.0         7.440238         7.440088
+ Mixed_5b.branch3x3dbl_2.conv     -1.111605e-04         0.001767        0.0         7.440238         7.440127
+ Mixed_5b.branch3x3dbl_3.conv     -5.417045e-05         0.001607        0.0         7.440238         7.440184
+    Mixed_5b.branch5x5_1.conv     -1.750994e-05         0.001676        0.0         7.440238         7.440220
+    Mixed_5b.branch5x5_2.conv     -5.662784e-05         0.001655        0.0         7.440238         7.440181
+    Mixed_5b.branch_pool.conv     -1.271847e-04         0.001592        0.0         7.440238         7.440111
+      Mixed_5c.branch1x1.conv      2.060227e-05         0.001743        0.0         7.440238         7.440259
+ Mixed_5c.branch3x3dbl_1.conv     -6.987074e-05         0.001586        0.0         7.440238         7.440168
+ Mixed_5c.branch3x3dbl_2.conv     -1.046222e-04         0.001498        0.0         7.440238         7.440133
+ Mixed_5c.branch3x3dbl_3.conv      6.711222e-05         0.001580        0.0         7.440238         7.440305
+    Mixed_5c.branch5x5_1.conv     -3.176989e-05         0.001487        0.0         7.440238         7.440206
+    Mixed_5c.branch5x5_2.conv     -4.140483e-05         0.001465        0.0         7.440238         7.440197
+    Mixed_5c.branch_pool.conv     -7.680256e-05         0.001507        0.0         7.440238         7.440161
+      Mixed_5d.branch1x1.conv     -1.102031e-04         0.001561        0.0         7.440238         7.440128
+ Mixed_5d.branch3x3dbl_1.conv     -4.565341e-06         0.001498        0.0         7.440238         7.440233
+ Mixed_5d.branch3x3dbl_2.conv      5.223011e-06         0.001322        0.0         7.440238         7.440243
+ Mixed_5d.branch3x3dbl_3.conv     -5.179261e-05         0.001459        0.0         7.440238         7.440186
+    Mixed_5d.branch5x5_1.conv     -4.770455e-05         0.001389        0.0         7.440238         7.440190
+    Mixed_5d.branch5x5_2.conv     -3.043040e-05         0.001270        0.0         7.440238         7.440208
+    Mixed_5d.branch_pool.conv     -1.825000e-05         0.001658        0.0         7.440238         7.440220
+      Mixed_6a.branch3x3.conv     -1.991335e-05         0.001540        0.0         7.440238         7.440218
+ Mixed_6a.branch3x3dbl_1.conv     -6.232386e-05         0.001427        0.0         7.440238         7.440176
+ Mixed_6a.branch3x3dbl_2.conv     -3.407955e-05         0.001328        0.0         7.440238         7.440204
+ Mixed_6a.branch3x3dbl_3.conv     -5.853267e-05         0.001543        0.0         7.440238         7.440179
+      Mixed_6b.branch1x1.conv     -6.363210e-05         0.001477        0.0         7.440238         7.440174
+    Mixed_6b.branch7x7_1.conv      8.653409e-06         0.001307        0.0         7.440238         7.440247
+    Mixed_6b.branch7x7_2.conv     -1.508949e-05         0.001371        0.0         7.440238         7.440223
+    Mixed_6b.branch7x7_3.conv     -2.669886e-05         0.001340        0.0         7.440238         7.440211
+ Mixed_6b.branch7x7dbl_1.conv     -6.991335e-05         0.001154        0.0         7.440238         7.440168
+ Mixed_6b.branch7x7dbl_2.conv     -3.389631e-05         0.001136        0.0         7.440238         7.440204
+ Mixed_6b.branch7x7dbl_3.conv     -5.431534e-05         0.001122        0.0         7.440238         7.440184
+ Mixed_6b.branch7x7dbl_4.conv     -1.017514e-04         0.001167        0.0         7.440238         7.440136
+ Mixed_6b.branch7x7dbl_5.conv     -2.956250e-05         0.001248        0.0         7.440238         7.440208
+    Mixed_6b.branch_pool.conv      8.348864e-05         0.001481        0.0         7.440238         7.440321
+      Mixed_6c.branch1x1.conv      8.254261e-06         0.001442        0.0         7.440238         7.440246
+    Mixed_6c.branch7x7_1.conv     -1.423295e-05         0.001296        0.0         7.440238         7.440224
+    Mixed_6c.branch7x7_2.conv     -2.622301e-05         0.001289        0.0         7.440238         7.440212
+    Mixed_6c.branch7x7_3.conv      7.171733e-05         0.001264        0.0         7.440238         7.440310
+ Mixed_6c.branch7x7dbl_1.conv     -4.924006e-05         0.001290        0.0         7.440238         7.440189
+ Mixed_6c.branch7x7dbl_2.conv     -2.442898e-05         0.001165        0.0         7.440238         7.440214
+ Mixed_6c.branch7x7dbl_3.conv     -9.587784e-05         0.001148        0.0         7.440238         7.440142
+ Mixed_6c.branch7x7dbl_4.conv      1.567187e-05         0.001159        0.0         7.440238         7.440254
+ Mixed_6c.branch7x7dbl_5.conv     -3.173580e-05         0.001152        0.0         7.440238         7.440206
+    Mixed_6c.branch_pool.conv     -4.993324e-05         0.001600        0.0         7.440238         7.440188
+      Mixed_6d.branch1x1.conv     -9.678977e-06         0.001293        0.0         7.440238         7.440228
+    Mixed_6d.branch7x7_1.conv      5.843750e-06         0.001258        0.0         7.440238         7.440244
+    Mixed_6d.branch7x7_2.conv      3.535511e-06         0.001144        0.0         7.440238         7.440241
+    Mixed_6d.branch7x7_3.conv      5.325426e-05         0.001130        0.0         7.440238         7.440291
+ Mixed_6d.branch7x7dbl_1.conv     -2.167045e-05         0.001284        0.0         7.440238         7.440216
+ Mixed_6d.branch7x7dbl_2.conv      1.132528e-05         0.001260        0.0         7.440238         7.440249
+ Mixed_6d.branch7x7dbl_3.conv     -6.032102e-05         0.001183        0.0         7.440238         7.440178
+ Mixed_6d.branch7x7dbl_4.conv     -2.183097e-05         0.001283        0.0         7.440238         7.440216
+ Mixed_6d.branch7x7dbl_5.conv      1.845028e-05         0.001190        0.0         7.440238         7.440256
+    Mixed_6d.branch_pool.conv      3.302273e-05         0.001493        0.0         7.440238         7.440271
+      Mixed_6e.branch1x1.conv     -1.935369e-05         0.001362        0.0         7.440238         7.440219
+    Mixed_6e.branch7x7_1.conv     -4.250710e-05         0.001201        0.0         7.440238         7.440195
+    Mixed_6e.branch7x7_2.conv      4.730114e-07         0.001418        0.0         7.440238         7.440238
+    Mixed_6e.branch7x7_3.conv     -2.460511e-05         0.001038        0.0         7.440238         7.440213
+ Mixed_6e.branch7x7dbl_1.conv      1.357102e-05         0.001078        0.0         7.440238         7.440252
+ Mixed_6e.branch7x7dbl_2.conv      7.784091e-07         0.001000        0.0         7.440238         7.440239
+ Mixed_6e.branch7x7dbl_3.conv     -1.849290e-05         0.000966        0.0         7.440238         7.440219
+ Mixed_6e.branch7x7dbl_4.conv      1.758949e-05         0.000981        0.0         7.440238         7.440256
+ Mixed_6e.branch7x7dbl_5.conv     -3.292898e-05         0.000911        0.0         7.440238         7.440205
+    Mixed_6e.branch_pool.conv     -1.076278e-05         0.001590        0.0         7.440238         7.440227
+    Mixed_7a.branch3x3_1.conv      5.798153e-05         0.001457        0.0         7.440238         7.440296
+    Mixed_7a.branch3x3_2.conv     -3.574148e-05         0.001293        0.0         7.440238         7.440202
+  Mixed_7a.branch7x7x3_1.conv     -1.588807e-04         0.002226        0.0         7.440238         7.440079
+  Mixed_7a.branch7x7x3_2.conv     -7.799432e-05         0.001129        0.0         7.440238         7.440160
+  Mixed_7a.branch7x7x3_3.conv      4.206108e-05         0.001101        0.0         7.440238         7.440280
+  Mixed_7a.branch7x7x3_4.conv     -3.934233e-05         0.001164        0.0         7.440238         7.440199
+      Mixed_7b.branch1x1.conv      5.291477e-05         0.000842        0.0         7.440238         7.440291
+    Mixed_7b.branch3x3_1.conv     -1.218466e-05         0.000950        0.0         7.440238         7.440226
+   Mixed_7b.branch3x3_2a.conv     -1.041335e-05         0.000741        0.0         7.440238         7.440228
+   Mixed_7b.branch3x3_2b.conv     -8.058239e-06         0.000924        0.0         7.440238         7.440230
+ Mixed_7b.branch3x3dbl_1.conv      3.231534e-05         0.001314        0.0         7.440238         7.440270
+ Mixed_7b.branch3x3dbl_2.conv      3.254830e-05         0.001071        0.0         7.440238         7.440270
+Mixed_7b.branch3x3dbl_3a.conv     -1.080682e-05         0.000945        0.0         7.440238         7.440227
+Mixed_7b.branch3x3dbl_3b.conv     -2.445455e-05         0.000919        0.0         7.440238         7.440214
+    Mixed_7b.branch_pool.conv      3.687500e-06         0.000883        0.0         7.440238         7.440242
+      Mixed_7c.branch1x1.conv     -2.499716e-05         0.000322        0.0         7.440238         7.440213
+    Mixed_7c.branch3x3_1.conv      3.332528e-05         0.000747        0.0         7.440238         7.440271
+   Mixed_7c.branch3x3_2a.conv      7.704545e-06         0.000359        0.0         7.440238         7.440246
+   Mixed_7c.branch3x3_2b.conv     -1.327415e-05         0.000419        0.0         7.440238         7.440225
+ Mixed_7c.branch3x3dbl_1.conv     -1.745312e-05         0.001523        0.0         7.440238         7.440221
+ Mixed_7c.branch3x3dbl_2.conv     -6.952983e-05         0.001022        0.0         7.440238         7.440168
+Mixed_7c.branch3x3dbl_3a.conv     -1.880682e-06         0.000307        0.0         7.440238         7.440236
+Mixed_7c.branch3x3dbl_3b.conv      1.006818e-05         0.000343        0.0         7.440238         7.440248
+    Mixed_7c.branch_pool.conv     -1.021307e-06         0.000345        0.0         7.440238         7.440237
+                           fc      2.529261e-05         0.000996        0.0         7.440238         7.440263
+                     maxpool1     -1.220455e-05         0.002713        0.0         7.440238         7.440226
+                     maxpool2     -5.201136e-05         0.002505        0.0         7.440238         7.440186
+
+Horse Layer-wise causal summary:
+                   Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+           Conv2d_1a_3x3.conv     -3.281332e-03         0.024262        0.0         6.283744         6.280463
+           Conv2d_2a_3x3.conv     -4.013008e-05         0.003024        0.0         6.283744         6.283704
+           Conv2d_2b_3x3.conv      1.784858e-05         0.002674        0.0         6.283744         6.283762
+           Conv2d_3b_1x1.conv      1.499431e-04         0.002395        0.0         6.283744         6.283894
+           Conv2d_4a_3x3.conv      1.236606e-04         0.002220        0.0         6.283744         6.283868
+      Mixed_5b.branch1x1.conv      1.310305e-04         0.001843        0.0         6.283744         6.283875
+ Mixed_5b.branch3x3dbl_1.conv      4.973272e-05         0.001710        0.0         6.283744         6.283794
+ Mixed_5b.branch3x3dbl_2.conv      3.910569e-05         0.001633        0.0         6.283744         6.283783
+ Mixed_5b.branch3x3dbl_3.conv     -3.113618e-05         0.001594        0.0         6.283744         6.283713
+    Mixed_5b.branch5x5_1.conv      1.808435e-05         0.001568        0.0         6.283744         6.283762
+    Mixed_5b.branch5x5_2.conv      4.042886e-05         0.001566        0.0         6.283744         6.283785
+    Mixed_5b.branch_pool.conv      1.233943e-05         0.001490        0.0         6.283744         6.283757
+      Mixed_5c.branch1x1.conv      5.023882e-05         0.001733        0.0         6.283744         6.283794
+ Mixed_5c.branch3x3dbl_1.conv      2.464736e-05         0.001466        0.0         6.283744         6.283769
+ Mixed_5c.branch3x3dbl_2.conv     -1.219411e-05         0.001493        0.0         6.283744         6.283732
+ Mixed_5c.branch3x3dbl_3.conv      5.385874e-05         0.001453        0.0         6.283744         6.283798
+    Mixed_5c.branch5x5_1.conv      2.517988e-05         0.001446        0.0         6.283744         6.283769
+    Mixed_5c.branch5x5_2.conv     -3.718699e-05         0.001373        0.0         6.283744         6.283707
+    Mixed_5c.branch_pool.conv      1.808943e-07         0.001515        0.0         6.283744         6.283744
+      Mixed_5d.branch1x1.conv      1.433943e-05         0.001485        0.0         6.283744         6.283759
+ Mixed_5d.branch3x3dbl_1.conv     -1.824187e-06         0.001375        0.0         6.283744         6.283742
+ Mixed_5d.branch3x3dbl_2.conv     -3.740854e-05         0.001300        0.0         6.283744         6.283707
+ Mixed_5d.branch3x3dbl_3.conv     -8.315041e-06         0.001357        0.0         6.283744         6.283736
+    Mixed_5d.branch5x5_1.conv     -8.715447e-06         0.001290        0.0         6.283744         6.283736
+    Mixed_5d.branch5x5_2.conv      4.000508e-05         0.001234        0.0         6.283744         6.283784
+    Mixed_5d.branch_pool.conv      8.795935e-05         0.001603        0.0         6.283744         6.283832
+      Mixed_6a.branch3x3.conv      1.035640e-04         0.001432        0.0         6.283744         6.283848
+ Mixed_6a.branch3x3dbl_1.conv     -4.621951e-05         0.001360        0.0         6.283744         6.283698
+ Mixed_6a.branch3x3dbl_2.conv      3.696138e-06         0.001212        0.0         6.283744         6.283748
+ Mixed_6a.branch3x3dbl_3.conv      2.068598e-05         0.001405        0.0         6.283744         6.283765
+      Mixed_6b.branch1x1.conv     -3.573272e-05         0.001361        0.0         6.283744         6.283709
+    Mixed_6b.branch7x7_1.conv     -1.938211e-05         0.001229        0.0         6.283744         6.283725
+    Mixed_6b.branch7x7_2.conv      4.565142e-05         0.001251        0.0         6.283744         6.283790
+    Mixed_6b.branch7x7_3.conv     -1.613923e-05         0.001241        0.0         6.283744         6.283728
+ Mixed_6b.branch7x7dbl_1.conv      2.855691e-07         0.001099        0.0         6.283744         6.283745
+ Mixed_6b.branch7x7dbl_2.conv     -1.317175e-05         0.001097        0.0         6.283744         6.283731
+ Mixed_6b.branch7x7dbl_3.conv     -2.644817e-05         0.001007        0.0         6.283744         6.283718
+ Mixed_6b.branch7x7dbl_4.conv      5.334756e-05         0.001104        0.0         6.283744         6.283798
+ Mixed_6b.branch7x7dbl_5.conv     -2.747866e-05         0.001122        0.0         6.283744         6.283717
+    Mixed_6b.branch_pool.conv      1.793902e-05         0.001380        0.0         6.283744         6.283762
+      Mixed_6c.branch1x1.conv      1.240549e-05         0.001470        0.0         6.283744         6.283757
+    Mixed_6c.branch7x7_1.conv     -3.466362e-05         0.001298        0.0         6.283744         6.283710
+    Mixed_6c.branch7x7_2.conv      7.273374e-06         0.001200        0.0         6.283744         6.283752
+    Mixed_6c.branch7x7_3.conv      1.992073e-05         0.001109        0.0         6.283744         6.283764
+ Mixed_6c.branch7x7dbl_1.conv     -5.545732e-06         0.001142        0.0         6.283744         6.283739
+ Mixed_6c.branch7x7dbl_2.conv     -3.763821e-05         0.001061        0.0         6.283744         6.283707
+ Mixed_6c.branch7x7dbl_3.conv     -5.637297e-05         0.000984        0.0         6.283744         6.283688
+ Mixed_6c.branch7x7dbl_4.conv     -1.971037e-05         0.001013        0.0         6.283744         6.283725
+ Mixed_6c.branch7x7dbl_5.conv     -1.208130e-05         0.001035        0.0         6.283744         6.283732
+    Mixed_6c.branch_pool.conv      5.460366e-05         0.001470        0.0         6.283744         6.283799
+      Mixed_6d.branch1x1.conv      7.197154e-06         0.001255        0.0         6.283744         6.283751
+    Mixed_6d.branch7x7_1.conv      4.796748e-07         0.001078        0.0         6.283744         6.283745
+    Mixed_6d.branch7x7_2.conv     -2.831809e-05         0.001025        0.0         6.283744         6.283716
+    Mixed_6d.branch7x7_3.conv     -2.782825e-05         0.001019        0.0         6.283744         6.283716
+ Mixed_6d.branch7x7dbl_1.conv     -9.825203e-06         0.001309        0.0         6.283744         6.283734
+ Mixed_6d.branch7x7dbl_2.conv     -4.004675e-05         0.001237        0.0         6.283744         6.283704
+ Mixed_6d.branch7x7dbl_3.conv     -2.474797e-05         0.001151        0.0         6.283744         6.283720
+ Mixed_6d.branch7x7dbl_4.conv     -3.598984e-05         0.001263        0.0         6.283744         6.283708
+ Mixed_6d.branch7x7dbl_5.conv     -3.239837e-06         0.001108        0.0         6.283744         6.283741
+    Mixed_6d.branch_pool.conv     -6.684553e-05         0.001368        0.0         6.283744         6.283677
+      Mixed_6e.branch1x1.conv     -2.611890e-05         0.001140        0.0         6.283744         6.283718
+    Mixed_6e.branch7x7_1.conv     -4.039126e-05         0.001138        0.0         6.283744         6.283704
+    Mixed_6e.branch7x7_2.conv     -4.493699e-05         0.001181        0.0         6.283744         6.283699
+    Mixed_6e.branch7x7_3.conv      2.598882e-05         0.000923        0.0         6.283744         6.283770
+ Mixed_6e.branch7x7dbl_1.conv      2.756504e-05         0.001161        0.0         6.283744         6.283772
+ Mixed_6e.branch7x7dbl_2.conv      4.441057e-07         0.001053        0.0         6.283744         6.283745
+ Mixed_6e.branch7x7dbl_3.conv      9.035569e-06         0.000973        0.0         6.283744         6.283753
+ Mixed_6e.branch7x7dbl_4.conv     -2.137093e-05         0.000962        0.0         6.283744         6.283723
+ Mixed_6e.branch7x7dbl_5.conv     -2.134146e-08         0.000818        0.0         6.283744         6.283744
+    Mixed_6e.branch_pool.conv      4.212093e-05         0.001432        0.0         6.283744         6.283786
+    Mixed_7a.branch3x3_1.conv     -2.265854e-05         0.001251        0.0         6.283744         6.283722
+    Mixed_7a.branch3x3_2.conv      2.671443e-05         0.001097        0.0         6.283744         6.283771
+  Mixed_7a.branch7x7x3_1.conv     -1.398354e-04         0.002151        0.0         6.283744         6.283604
+  Mixed_7a.branch7x7x3_2.conv      3.949187e-06         0.001123        0.0         6.283744         6.283748
+  Mixed_7a.branch7x7x3_3.conv      1.098069e-05         0.000944        0.0         6.283744         6.283755
+  Mixed_7a.branch7x7x3_4.conv      6.112805e-06         0.001076        0.0         6.283744         6.283750
+      Mixed_7b.branch1x1.conv      1.293801e-05         0.000709        0.0         6.283744         6.283757
+    Mixed_7b.branch3x3_1.conv      6.525203e-05         0.000803        0.0         6.283744         6.283810
+   Mixed_7b.branch3x3_2a.conv     -3.390650e-05         0.000602        0.0         6.283744         6.283710
+   Mixed_7b.branch3x3_2b.conv     -3.233435e-05         0.000704        0.0         6.283744         6.283712
+ Mixed_7b.branch3x3dbl_1.conv      2.859146e-05         0.001303        0.0         6.283744         6.283773
+ Mixed_7b.branch3x3dbl_2.conv      1.361484e-05         0.000893        0.0         6.283744         6.283758
+Mixed_7b.branch3x3dbl_3a.conv     -9.040650e-06         0.000696        0.0         6.283744         6.283735
+Mixed_7b.branch3x3dbl_3b.conv      8.498984e-06         0.000796        0.0         6.283744         6.283753
+    Mixed_7b.branch_pool.conv      6.422764e-06         0.000750        0.0         6.283744         6.283751
+      Mixed_7c.branch1x1.conv      2.181911e-06         0.000319        0.0         6.283744         6.283746
+    Mixed_7c.branch3x3_1.conv      1.018394e-05         0.000865        0.0         6.283744         6.283754
+   Mixed_7c.branch3x3_2a.conv      1.819512e-05         0.000432        0.0         6.283744         6.283762
+   Mixed_7c.branch3x3_2b.conv      3.014126e-05         0.000429        0.0         6.283744         6.283774
+ Mixed_7c.branch3x3dbl_1.conv      4.754167e-05         0.000915        0.0         6.283744         6.283792
+ Mixed_7c.branch3x3dbl_2.conv      5.833333e-07         0.000540        0.0         6.283744         6.283745
+Mixed_7c.branch3x3dbl_3a.conv     -1.010874e-05         0.000277        0.0         6.283744         6.283734
+Mixed_7c.branch3x3dbl_3b.conv     -8.759146e-06         0.000297        0.0         6.283744         6.283735
+    Mixed_7c.branch_pool.conv      1.608130e-05         0.000372        0.0         6.283744         6.283760
+                           fc      3.355285e-05         0.000993        0.0         6.283744         6.283778
+                     maxpool1     -8.080386e-05         0.003110        0.0         6.283744         6.283663
+                     maxpool2      4.491870e-06         0.002461        0.0         6.283744         6.283749
+
+Zebra Layer-wise causal summary:
+                   Layer Name  mean_delta_logit  std_delta_logit  flip_rate  mean_orig_logit  mean_pert_logit
+           Conv2d_1a_3x3.conv     -4.541274e-05         0.013142        0.0         7.296953         7.296908
+           Conv2d_2a_3x3.conv      8.890386e-06         0.002641        0.0         7.296953         7.296962
+           Conv2d_2b_3x3.conv      8.887691e-05         0.002642        0.0         7.296953         7.297042
+           Conv2d_3b_1x1.conv     -1.786773e-05         0.002348        0.0         7.296953         7.296935
+           Conv2d_4a_3x3.conv     -2.119596e-05         0.002379        0.0         7.296953         7.296932
+      Mixed_5b.branch1x1.conv      2.309369e-05         0.002065        0.0         7.296953         7.296976
+ Mixed_5b.branch3x3dbl_1.conv      9.112064e-07         0.001966        0.0         7.296953         7.296954
+ Mixed_5b.branch3x3dbl_2.conv     -5.000490e-05         0.001867        0.0         7.296953         7.296903
+ Mixed_5b.branch3x3dbl_3.conv      1.162645e-05         0.001915        0.0         7.296953         7.296965
+    Mixed_5b.branch5x5_1.conv     -6.573178e-06         0.001860        0.0         7.296953         7.296947
+    Mixed_5b.branch5x5_2.conv      2.737538e-05         0.001746        0.0         7.296953         7.296981
+    Mixed_5b.branch_pool.conv     -1.633803e-06         0.001721        0.0         7.296953         7.296952
+      Mixed_5c.branch1x1.conv      1.474342e-05         0.001874        0.0         7.296953         7.296968
+ Mixed_5c.branch3x3dbl_1.conv      9.365585e-05         0.001747        0.0         7.296953         7.297047
+ Mixed_5c.branch3x3dbl_2.conv      5.067116e-05         0.001709        0.0         7.296953         7.297004
+ Mixed_5c.branch3x3dbl_3.conv      1.417208e-05         0.001743        0.0         7.296953         7.296967
+    Mixed_5c.branch5x5_1.conv     -1.450643e-05         0.001610        0.0         7.296953         7.296939
+    Mixed_5c.branch5x5_2.conv      2.076607e-05         0.001661        0.0         7.296953         7.296974
+    Mixed_5c.branch_pool.conv     -1.035211e-05         0.001705        0.0         7.296953         7.296943
+      Mixed_5d.branch1x1.conv     -3.433925e-05         0.001734        0.0         7.296953         7.296919
+ Mixed_5d.branch3x3dbl_1.conv     -5.011390e-05         0.001600        0.0         7.296953         7.296903
+ Mixed_5d.branch3x3dbl_2.conv      3.121555e-05         0.001564        0.0         7.296953         7.296984
+ Mixed_5d.branch3x3dbl_3.conv     -2.751562e-05         0.001657        0.0         7.296953         7.296926
+    Mixed_5d.branch5x5_1.conv     -4.596265e-05         0.001598        0.0         7.296953         7.296907
+    Mixed_5d.branch5x5_2.conv      1.774587e-05         0.001562        0.0         7.296953         7.296971
+    Mixed_5d.branch_pool.conv     -3.220759e-05         0.001789        0.0         7.296953         7.296921
+      Mixed_6a.branch3x3.conv     -2.383221e-05         0.001694        0.0         7.296953         7.296929
+ Mixed_6a.branch3x3dbl_1.conv      7.658298e-05         0.001676        0.0         7.296953         7.297030
+ Mixed_6a.branch3x3dbl_2.conv     -2.154685e-05         0.001598        0.0         7.296953         7.296932
+ Mixed_6a.branch3x3dbl_3.conv     -2.390263e-05         0.001690        0.0         7.296953         7.296929
+      Mixed_6b.branch1x1.conv      1.139743e-05         0.001673        0.0         7.296953         7.296965
+    Mixed_6b.branch7x7_1.conv     -1.286650e-05         0.001503        0.0         7.296953         7.296940
+    Mixed_6b.branch7x7_2.conv     -3.511390e-05         0.001605        0.0         7.296953         7.296918
+    Mixed_6b.branch7x7_3.conv      5.373913e-05         0.001592        0.0         7.296953         7.297007
+ Mixed_6b.branch7x7dbl_1.conv      1.637844e-05         0.001426        0.0         7.296953         7.296970
+ Mixed_6b.branch7x7dbl_2.conv      5.368034e-06         0.001423        0.0         7.296953         7.296959
+ Mixed_6b.branch7x7dbl_3.conv     -1.110655e-05         0.001408        0.0         7.296953         7.296942
+ Mixed_6b.branch7x7dbl_4.conv      7.196571e-06         0.001428        0.0         7.296953         7.296960
+ Mixed_6b.branch7x7dbl_5.conv     -2.130986e-05         0.001495        0.0         7.296953         7.296932
+    Mixed_6b.branch_pool.conv     -1.611329e-05         0.001748        0.0         7.296953         7.296937
+      Mixed_6c.branch1x1.conv     -1.748683e-05         0.001836        0.0         7.296953         7.296936
+    Mixed_6c.branch7x7_1.conv     -8.194734e-06         0.001562        0.0         7.296953         7.296945
+    Mixed_6c.branch7x7_2.conv     -9.434783e-06         0.001562        0.0         7.296953         7.296944
+    Mixed_6c.branch7x7_3.conv      1.324066e-05         0.001524        0.0         7.296953         7.296966
+ Mixed_6c.branch7x7dbl_1.conv      4.191366e-05         0.001406        0.0         7.296953         7.296995
+ Mixed_6c.branch7x7dbl_2.conv     -4.954685e-06         0.001407        0.0         7.296953         7.296948
+ Mixed_6c.branch7x7dbl_3.conv     -1.853644e-06         0.001334        0.0         7.296953         7.296951
+ Mixed_6c.branch7x7dbl_4.conv      4.654011e-08         0.001401        0.0         7.296953         7.296953
+ Mixed_6c.branch7x7dbl_5.conv      2.685793e-05         0.001350        0.0         7.296953         7.296980
+    Mixed_6c.branch_pool.conv      9.012247e-06         0.001896        0.0         7.296953         7.296962
+      Mixed_6d.branch1x1.conv     -5.037293e-05         0.001643        0.0         7.296953         7.296903
+    Mixed_6d.branch7x7_1.conv     -1.306675e-05         0.001471        0.0         7.296953         7.296940
+    Mixed_6d.branch7x7_2.conv     -5.674648e-05         0.001437        0.0         7.296953         7.296897
+    Mixed_6d.branch7x7_3.conv     -4.386099e-05         0.001482        0.0         7.296953         7.296909
+ Mixed_6d.branch7x7dbl_1.conv     -4.649602e-05         0.001558        0.0         7.296953         7.296907
+ Mixed_6d.branch7x7dbl_2.conv     -1.014942e-05         0.001550        0.0         7.296953         7.296943
+ Mixed_6d.branch7x7dbl_3.conv     -2.425230e-05         0.001468        0.0         7.296953         7.296929
+ Mixed_6d.branch7x7dbl_4.conv     -5.674525e-05         0.001625        0.0         7.296953         7.296897
+ Mixed_6d.branch7x7dbl_5.conv     -4.578445e-05         0.001504        0.0         7.296953         7.296907
+    Mixed_6d.branch_pool.conv     -5.080098e-05         0.002018        0.0         7.296953         7.296902
+      Mixed_6e.branch1x1.conv      4.050827e-06         0.001824        0.0         7.296953         7.296957
+    Mixed_6e.branch7x7_1.conv      1.723760e-05         0.001647        0.0         7.296953         7.296970
+    Mixed_6e.branch7x7_2.conv     -5.840600e-05         0.001827        0.0         7.296953         7.296895
+    Mixed_6e.branch7x7_3.conv     -4.656461e-05         0.001475        0.0         7.296953         7.296907
+ Mixed_6e.branch7x7dbl_1.conv      3.197734e-05         0.001181        0.0         7.296953         7.296985
+ Mixed_6e.branch7x7dbl_2.conv     -3.954685e-06         0.001185        0.0         7.296953         7.296949
+ Mixed_6e.branch7x7dbl_3.conv     -1.499204e-05         0.001271        0.0         7.296953         7.296938
+ Mixed_6e.branch7x7dbl_4.conv     -8.848806e-05         0.001258        0.0         7.296953         7.296865
+ Mixed_6e.branch7x7dbl_5.conv     -4.655481e-05         0.001234        0.0         7.296953         7.296907
+    Mixed_6e.branch_pool.conv      1.928230e-05         0.002434        0.0         7.296953         7.296973
+    Mixed_7a.branch3x3_1.conv     -2.650214e-05         0.002451        0.0         7.296953         7.296927
+    Mixed_7a.branch3x3_2.conv     -2.470484e-05         0.001857        0.0         7.296953         7.296929
+  Mixed_7a.branch7x7x3_1.conv     -1.111868e-04         0.003187        0.0         7.296953         7.296842
+  Mixed_7a.branch7x7x3_2.conv     -7.164483e-05         0.001578        0.0         7.296953         7.296882
+  Mixed_7a.branch7x7x3_3.conv     -3.513656e-05         0.001384        0.0         7.296953         7.296918
+  Mixed_7a.branch7x7x3_4.conv     -2.560808e-05         0.001504        0.0         7.296953         7.296928
+      Mixed_7b.branch1x1.conv     -9.658910e-06         0.001235        0.0         7.296953         7.296944
+    Mixed_7b.branch3x3_1.conv     -2.685732e-05         0.001739        0.0         7.296953         7.296926
+   Mixed_7b.branch3x3_2a.conv     -4.266381e-06         0.001525        0.0         7.296953         7.296949
+   Mixed_7b.branch3x3_2b.conv      9.632578e-06         0.001575        0.0         7.296953         7.296963
+ Mixed_7b.branch3x3dbl_1.conv     -4.605021e-06         0.001518        0.0         7.296953         7.296949
+ Mixed_7b.branch3x3dbl_2.conv      1.103919e-05         0.001655        0.0         7.296953         7.296964
+Mixed_7b.branch3x3dbl_3a.conv     -1.152419e-05         0.001496        0.0         7.296953         7.296942
+Mixed_7b.branch3x3dbl_3b.conv     -1.357869e-05         0.001670        0.0         7.296953         7.296940
+    Mixed_7b.branch_pool.conv      9.334599e-05         0.001452        0.0         7.296953         7.297047
+      Mixed_7c.branch1x1.conv     -3.818126e-06         0.000312        0.0         7.296953         7.296949
+    Mixed_7c.branch3x3_1.conv     -9.736681e-07         0.000659        0.0         7.296953         7.296952
+   Mixed_7c.branch3x3_2a.conv     -5.513778e-06         0.000354        0.0         7.296953         7.296948
+   Mixed_7c.branch3x3_2b.conv     -1.596999e-05         0.000388        0.0         7.296953         7.296937
+ Mixed_7c.branch3x3dbl_1.conv      3.213001e-04         0.003456        0.0         7.296953         7.297275
+ Mixed_7c.branch3x3dbl_2.conv     -8.284140e-05         0.002210        0.0         7.296953         7.296870
+Mixed_7c.branch3x3dbl_3a.conv      2.336803e-05         0.000303        0.0         7.296953         7.296977
+Mixed_7c.branch3x3dbl_3b.conv      2.136558e-06         0.000323        0.0         7.296953         7.296955
+    Mixed_7c.branch_pool.conv     -4.552786e-05         0.000367        0.0         7.296953         7.296908
+                           fc     -1.704776e-05         0.001000        0.0         7.296953         7.296936
+                     maxpool1     -1.164948e-04         0.002790        0.0         7.296953         7.296837
+                     maxpool2      1.027201e-04         0.002494        0.0         7.296953         7.297056
+Excel workbook saved to layer_activations_inception_v3.xlsx
+Deer samples: 68288
+Horse samples: 95448
+Zebra samples: 158401
