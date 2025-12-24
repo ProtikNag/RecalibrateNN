@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/mnt/sdd/caltech_training/three_classes/" # Path to the classification dataset base directory.
+  data_base_path: "/mnt/sdc/data/caltech/CUB_200_2011/cub_dataset/threeclasses/" # Path to the classification dataset base directory.
   target_class_list:
     - '001.Black_footed_Albatross'
     - '002.Laysan_Albatross'
@@ -18,11 +18,11 @@ classification:
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
 concept:
-  base_path: '/mnt/sdd/parts'
+  base_path: '/mnt/sdc/data/caltech/CUB_200_2011/CUB_200_2011/concepts/parts'
   target_folders:
-    - '001.Black_footed_Albatross/beak'
-    - '002.Laysan_Albatross/beak'
-    - '003.Sooty_Albatross/beak'
+    - '001.Black_footed_Albatross/all'
+    - '002.Laysan_Albatross/all'
+    - '003.Sooty_Albatross/all'
     
   random_folder: '/home/concept/random'
 

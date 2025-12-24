@@ -7,6 +7,45 @@ set -euo pipefail
 #    parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
 #    parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
 
+
+####################################################################################################################
+
+####################################################################################################################
+
+print_parameters() {
+    echo "======================================================"
+    echo -e "\033[36mCONFIGURABLE PARAMETERS:\033[0m"
+    echo "======================================================"
+    echo -e "\033[33mBase Model Directory:\033[0m $BASE_MODEL_DIR"
+    echo -e "\033[32mConfig File:\033[0m $CONFIG_FILE"
+    echo -e "\033[33mModels to Process:\033[0m ${MODELS_ARRAY[*]}"
+    echo
+
+    echo "======================================================"
+    echo -e "\033[36mRecalibration related data:\033[0m"
+    echo "======================================================"
+    echo -e "\033[33mRecalibrated Models Results Location:\033[0m $RECALIBRATED_RESULTS_LOCATION"
+    echo
+
+    echo "======================================================"
+    echo -e "\033[36mSensitivity related data:\033[0m"
+    echo "======================================================"
+    echo -e "\033[33mSensitivity Results Location:\033[0m $SENSITIVITY_RESULTS_LOCATION"
+    echo -e "\033[33mRecalibrated Models Base:\033[0m $RECALIBRATED_MODELS_BASE"
+
+    echo
+
+
+    echo "======================================================"
+    echo -e "\033[36mXAI  related data:\033[0m"
+    echo "======================================================"
+    echo -e "\033[33mXAI Results Location:\033[0m $XAI_RESULTS_LOCATION"
+    echo
+    echo "======================================================"
+
+}
+
+
 ####################################################################################################################
 # Function to return all .pth files from a given directory
 # 
