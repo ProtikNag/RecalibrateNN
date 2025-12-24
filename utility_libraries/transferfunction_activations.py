@@ -13,12 +13,18 @@ activations = {}
 parser = argparse.ArgumentParser(description='Extract layer activations from a model')
 parser.add_argument('--model_name', type=str, required=True, help='Name of the model (e.g., vgg16, resnet50)')
 parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default: {model_name}.pth)')
+parser.add_argument('--dataset', type=str, default=None, help='Path to the dataset  file (default: )')
 args = parser.parse_args()
 
 model_name = args.model_name
 model_path = args.model_path if args.model_path else f'{model_name}.pth'
 model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
 base_image_dir = '/home/datasets/train'  # Replace with your base image directory
+if(dataset):
+   base_image_dir = args.dataset
+else:
+   base_image_dir = '/home/datasets/train'
+
 destination_csv = f'layer_activations_{model_name}.csv'  # Output CSV file
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
