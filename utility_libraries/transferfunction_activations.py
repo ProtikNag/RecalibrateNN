@@ -12,18 +12,24 @@ import torch.nn as nn
 activations = {}
 parser = argparse.ArgumentParser(description='Extract layer activations from a model')
 parser.add_argument('--model_name', type=str, required=True, help='Name of the model (e.g., vgg16, resnet50)')
-parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default: {model_name}.pth)')
-parser.add_argument('--dataset', type=str, default=None, help='Path to the dataset  file (default: )')
+parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default:/mnt/sdd/basics/base_models/{model_name}.pth)')
+parser.add_argument('--dataset', type=str, default=None, help='Path to the dataset  file (default:/home/datasets/train )')
 args = parser.parse_args()
-
 model_name = args.model_name
-model_path = args.model_path if args.model_path else f'{model_name}.pth'
-model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
-base_image_dir = '/home/datasets/train'  # Replace with your base image directory
-if(dataset):
-   base_image_dir = args.dataset
+
+
+if(os.name == 'posix'):
+    model_name = args.model_name
+    model_path = model_name + '.pth'
+    model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
+    base_image_dir = '/home/datasets/train'  # Replace with your base image directory
 else:
-   base_image_dir = '/home/datasets/train'
+    model_base_path = f'C:\\Users\\srikant1\\Downloads\\gpu\\legacy\\training\\{model_name}\\{model_path}'  # Replace with your model path
+    base_image_dir = r'C:\\Users\\srikant1\\Downloads\\datasets\\valid'  # Replace with your base image directory
+
+model_path = os.path.join(args.model_path , model_name, f'{model_name}.pth') if args.model_path else f'{model_name}.pth'
+base_image_dir = args.dataset if args.dataset else base_image_dir
+
 
 destination_csv = f'layer_activations_{model_name}.csv'  # Output CSV file
 
@@ -35,25 +41,17 @@ def forward_with_layer_perturbation(model, layer, input_tensor, epsilon=1e-3):
     Runs a forward pass where noise is injected ONLY at the given layer.
     Returns original logits and perturbed logits.
     """
-
     noise_holder = {}
-
     def perturb_hook(module, input, output):
         noise = epsilon * torch.randn_like(output)
         noise_holder['noise'] = noise
         return output + noise
-
     hook = layer.register_forward_hook(perturb_hook)
-
     with torch.no_grad():
         perturbed_logits = model(input_tensor)
-
     hook.remove()
-
     with torch.no_grad():
         original_logits = model(input_tensor)
-        
-
     return original_logits, perturbed_logits
 
 
@@ -87,8 +85,9 @@ def load_model(model_path=None):
 
 
 if(__name__ == "__main__"):
-    model, hooks = load_model(model_base_path)
     
+    print(model_path)
+    model, hooks = load_model(model_path)
     # Register hooks for all layers
     #hooks = []
     #for name, layer in model.named_modules():
@@ -127,13 +126,7 @@ if(__name__ == "__main__"):
                          'Original Logit', 'Perturbed Logit', 'Delta Logit', 
                          'pert_pred_class', 'pert_pred_prob', 'Prediction Changed'
                         ])
-        """
-        
-        writer.writerow(['Image Path', 'Class Label', 'Class Name', 'Layer Name', 'Layer Type', 'Transfer Function', 'Output Shape', 
-                         'Mean Activation', 'Std Activation', 'Min Activation', 'Max Activation',' Pos activations', 
-                         'Neg activations', 'Q1' , 'Q2', 'Q3','Kernel Shape', 'Kernel Count', 'Predicted Class', 'Predicted Probability', 
-                         'Original Logit', 'Perturbed Logit', 'Delta Logit' ])
-        """
+
         for image_path, class_label, class_name in image_list:
             print(f"Processing: {image_path}")
             activations.clear()
@@ -244,6 +237,7 @@ if(__name__ == "__main__"):
 
     print("\nMean Delta Logit per Layer per Class:")
     print(layer_class_delta.to_string(index=False))
+    
 
     # Access individual dataframes
     df_deer = class_dataframes.get('deer', pd.DataFrame())

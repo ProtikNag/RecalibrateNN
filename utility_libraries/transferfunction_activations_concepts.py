@@ -12,17 +12,45 @@ import torch.nn as nn
 activations = {}
 parser = argparse.ArgumentParser(description='Extract layer activations from a model')
 parser.add_argument('--model_name', type=str, required=True, help='Name of the model (e.g., vgg16, resnet50)')
-parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default: {model_name}.pth)')
+parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default:/mnt/sdd/basics/base_models/{model}/{model_name}.pth)')
+parser.add_argument('--dataset', type=str, default=None, help='Path to the dataset  file (default:/mnt/sdc/concepts/concepts_links/concept_150/deer/ )')
 args = parser.parse_args()
 
 model_name = args.model_name
-model_path = args.model_path if args.model_path else f'{model_name}.pth'
-model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
-base_image_dir = '/mnt/sdc/concepts/concepts_links/concept_150/deer'  # Replace with your base image directory
+
+if(os.name == 'posix'):
+    model_name = args.model_name
+    model_path = model_name + '.pth'
+    model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
+    base_image_dir = '/home/datasets/train'  # Replace with your base image directory
+else:
+    model_base_path = f'C:\\Users\\srikant1\\Downloads\\gpu\\legacy\\training\\{model_name}\\{model_path}'  # Replace with your model path
+    base_image_dir = r'C:\\Users\\srikant1\\Downloads\\frozen\\deer\\deer_concept'  # Replace with your base image directory
+
+model_path = os.path.join(args.model_path , model_name, f'{model_name}.pth') if args.model_path else f'{model_name}.pth'
+base_image_dir = args.dataset if args.dataset else base_image_dir
+
 destination_csv = f'layer_activations_{model_name}_deer_concept.csv'  # Output CSV file
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
+def forward_with_layer_perturbation(model, layer, input_tensor, epsilon=1e-3):
+    """
+    Runs a forward pass where noise is injected ONLY at the given layer.
+    Returns original logits and perturbed logits.
+    """
+    noise_holder = {}
+    def perturb_hook(module, input, output):
+        noise = epsilon * torch.randn_like(output)
+        noise_holder['noise'] = noise
+        return output + noise
+    hook = layer.register_forward_hook(perturb_hook)
+    with torch.no_grad():
+        perturbed_logits = model(input_tensor)
+    hook.remove()
+    with torch.no_grad():
+        original_logits = model(input_tensor)
+    return original_logits, perturbed_logits
 
 
 # Prepare image
@@ -69,7 +97,8 @@ if(__name__ == "__main__"):
         'coat': 1,
         'face': 2,
         'legs': 3,
-        'background': 4      
+        'background': 4,
+		'random': 5      
     }
 
     base_dir = base_image_dir  # Replace with your base directory path
@@ -86,9 +115,17 @@ if(__name__ == "__main__"):
     # Save results to CSV
     with open(destination_csv, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Image Path', 'Class Label', 'Class Name', 'Layer Name', 'Layer Type', 'Transfer Function', 'Output Shape', 
-                         'Mean Activation', 'Std Activation', 'Min Activation', 'Max Activation',' Pos activations', 
-                         'Neg activations', 'Q1' , 'Q2', 'Q3','Kernel Shape', 'Kernel Count', 'Predicted Class', 'Predicted Probability'])
+        writer.writerow(['Image Path', 'Class Label', 'Class Name',
+                        'Layer Name', 'Layer Type', 'Transfer Function',
+                         'Output Shape','Mean Activation', 'Std Activation',
+                         'Min Activation', 'Max Activation',
+                         ' Pos activations', 'Neg activations',
+                         'Q1', 'Q2', 'Q3',
+                         'Kernel Shape', 'Kernel Count',
+                         'Predicted Class', 'Predicted Probability',
+                         'Original Logit', 'Perturbed Logit', 'Delta Logit', 
+                         'pert_pred_class', 'pert_pred_prob', 'Prediction Changed'
+                        ])
         
         for image_path, class_label, class_name in image_list:
             print(f"Processing: {image_path}")
@@ -107,13 +144,21 @@ if(__name__ == "__main__"):
                 predicted_class = predicted_class.item()
                 predicted_prob = predicted_prob.item()
             # Forward pass
-            with torch.no_grad():
-                output = model(input_tensor)
             
             for name, layer in model.named_modules():
                 if name in activations:
                     act = activations[name]
                     layer_type = type(layer).__name__
+                    # ---- Logit sensitivity computation ----
+                    orig_logits, pert_logits = forward_with_layer_perturbation(
+                    model, layer, input_tensor, epsilon=1e-3)
+                    pert_probs = torch.softmax(pert_logits, dim=1)
+                    pert_pred_prob, pert_pred_class = torch.max(pert_probs, dim=1)
+                    pert_pred_class = pert_pred_class.item()
+                    pert_pred_prob = pert_pred_prob.item()
+                    orig_logit = orig_logits[0, predicted_class].item()
+                    pert_logit = pert_logits[0, predicted_class].item()
+                    delta_logit = pert_logit - orig_logit
                     
                     # Get transfer function
                     if isinstance(layer, nn.ReLU):
@@ -157,7 +202,13 @@ if(__name__ == "__main__"):
                         kernel_shape,
                         kernel_count,
                         f'{predicted_class}',
-                        f'{predicted_prob:.6f}'
+                        f'{predicted_prob:.6f}',
+                        f'{orig_logit:.6f}',
+                        f'{pert_logit:.6f}',
+                        f'{delta_logit:.6f}',
+                        f'{pert_pred_class}',
+                        f'{pert_pred_prob:.6f}',
+                        f'{pert_pred_class != predicted_class}'
                     ])
 
     # Remove hooks
@@ -174,13 +225,25 @@ if(__name__ == "__main__"):
     class_dataframes = {}
     for class_name in unique_classes:
         class_dataframes[class_name] = df[df['Class Name'] == class_name].copy()
+    # ===============================
+    # Layer-wise class-conditioned logit sensitivity
+    # ===============================
+    layer_class_delta = (
+        df
+        .groupby(['Layer Name', 'Class Name'])['Delta Logit']
+        .mean()
+        .reset_index()
+    )
 
+    print("\nMean Delta Logit per Layer per Class:")
+    print(layer_class_delta.to_string(index=False))
     # Access individual dataframes
     df_all = class_dataframes.get('all', pd.DataFrame())
     df_coat = class_dataframes.get('coat', pd.DataFrame())
     df_face = class_dataframes.get('face', pd.DataFrame())
     df_legs = class_dataframes.get('legs', pd.DataFrame())
     df_background = class_dataframes.get('background', pd.DataFrame())
+    df_random  = class_dataframes.get('random', pd.DataFrame())
 
     # Compute mean and std of Mean Activation for each unique Layer Name per class
     for class_name, class_df in class_dataframes.items():
@@ -201,35 +264,181 @@ if(__name__ == "__main__"):
             df_all.to_excel(writer, sheet_name='all', index=False)
             all_data = df_all.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
             all_data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
-            all_data.to_excel(writer, sheet_name='all_data', index=False)
-        
+            deer_pos_activations = df_all.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_all.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = df_all.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = df_all.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_all.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_all_stats', index=False)
+            deer_layer_causal = (df_all.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_all_causal_layers',index=False)
+            print("\nDeer Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
+
         # Write coat data and statistics
         if not df_coat.empty:
             df_coat.to_excel(writer, sheet_name='coat', index=False)
-            coat_data = df_coat.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
-            coat_data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
-            coat_data.to_excel(writer, sheet_name='coat_data', index=False)
+            data = df_coat.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
+            data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
+            deer_pos_activations = df_coat.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_coat.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = df_coat.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = df_coat.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_coat.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = df_coat.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_coat_stats', index=False)
+            deer_layer_causal = (df_coat.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_coat_causal_layers',index=False)
+            print("\nDeer coat Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
         
         # Write face data and statistics
         if not df_face.empty:
             df_face.to_excel(writer, sheet_name='face', index=False)
-            face_data = df_face.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
-            face_data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
-            face_data.to_excel(writer, sheet_name='face_data', index=False)
+            data = df_face.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
+            data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
+            deer_pos_activations = df_face.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_face.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = df_face.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = deer_stats.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_face.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_face_stats', index=False)
+            deer_layer_causal = (df_face.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_face_causal_layers',index=False)
+            print("\nDeer face Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
 
         # Write legs data and statistics
         if not df_legs.empty:
             df_legs.to_excel(writer, sheet_name='legs', index=False)
-            legs_data = df_legs.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
-            legs_data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
-            legs_data.to_excel(writer, sheet_name='legs_data', index=False)
+            data = df_legs.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
+            data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
+            deer_pos_activations = df_legs.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_coat.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = df_legs.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = deer_stats.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_legs.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_legs_stats', index=False)
+            deer_layer_causal = (df_legs.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_legs_causal_layers',index=False)
+            print("\nDeer legs Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
 
         # Write background data and statistics
         if not df_background.empty:
             df_background.to_excel(writer, sheet_name='background', index=False)
-            background_data = df_background.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
-            background_data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
-            background_data.to_excel(writer, sheet_name='background_data', index=False)
+            data = df_background.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
+            data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
+            deer_pos_activations = df_background.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_coat.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = df_background.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = deer_stats.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_background.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_background_stats', index=False)
+            deer_layer_causal = (df_background.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_background_causal_layers',index=False)
+            print("\nDeer background Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
+
+        # Write random data and statistics
+        if not df_random.empty:
+            df_random.to_excel(writer, sheet_name='random', index=False)
+            data = df_random.groupby('Layer Name')['Mean Activation'].agg(['mean', 'std']).reset_index()
+            data.columns = ['Layer Name', 'Mean of Mean Activation', 'Std of Mean Activation']
+            deer_pos_activations = df_random.groupby('Layer Name')[' Pos activations'].mean().reset_index()
+            deer_pos_activations.columns = ['Layer Name', 'Mean Pos Activations']
+            deer_neg_activations = df_coat.groupby('Layer Name')['Neg activations'].mean().reset_index()
+            deer_neg_activations.columns = ['Layer Name', 'Mean Neg Activations']
+            
+            # Merge with deer_stats
+            deer_stats = deer_stats.merge(deer_pos_activations, on='Layer Name', how='left')
+            deer_stats = deer_stats.merge(deer_neg_activations, on='Layer Name', how='left')
+            # Add Layer Type, Transfer Function, and Output Shape to deer_stats
+            deer_layer_info = df_face.groupby('Layer Name')[['Layer Type', 'Transfer Function', 'Output Shape']].first().reset_index()
+            deer_stats = deer_stats.merge(deer_layer_info, on='Layer Name', how='left')
+            
+            # Rewrite with updated stats
+            deer_stats.to_excel(writer, sheet_name='deer_random_stats', index=False)
+            deer_layer_causal = (df_deer.groupby('Layer Name').agg(
+                                 mean_delta_logit=('Delta Logit', 'mean'),
+                                 std_delta_logit=('Delta Logit', 'std'),
+                                 flip_rate=('Prediction Changed', 'mean'),
+                                 mean_orig_logit=('Original Logit', 'mean'),
+                                 mean_pert_logit=('Perturbed Logit', 'mean')
+                                ).reset_index() )
+            deer_layer_causal.to_excel(writer,sheet_name='deer_random_causal_layers',index=False)
+            print("\nDeer random Layer-wise causal summary:")
+            print(deer_layer_causal.to_string(index=False))
+
     
     print(f"Excel workbook saved to {excel_file}")
 
@@ -238,4 +447,6 @@ if(__name__ == "__main__"):
     print(f"Face samples: {len(df_face)}")
     print(f"Legs samples: {len(df_legs)}")
     print(f"Background samples: {len(df_background)}")
+    print(f"Random samples: {len(df_random)}")
+
     exit()
