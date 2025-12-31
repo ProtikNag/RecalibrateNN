@@ -400,8 +400,12 @@ if __name__ == "__main__":
         logging.info("Script started.")
         IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
         # load model
-        MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
-        MODEL.to(DEVICE)
+        print(MODEL_PATH, DEVICE)
+        if(DEVICE == 'cpu'):
+            MODEL = torch.load(MODEL_PATH, map_location=DEVICE, weights_only = False)
+        else:
+            MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
+        MODEL.to(DEVICE)        
         # Get all bottleneck layers
         LAYER_NAMES = get_model_layers(MODEL)
         logging.info(f"Layer names present in this model are {LAYER_NAMES}")
