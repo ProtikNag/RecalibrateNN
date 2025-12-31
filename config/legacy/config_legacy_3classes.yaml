@@ -19,11 +19,11 @@ classification:
 # This section defines the paths for various concepts.
 
 concept:
-  base_path: "/home/srikanth/study1/scratchpad_model/geti_conceptextraction/concepts/"
+  base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
   target_folders:
-    - "deer/face_607"
-    - "horse/H_Coat_225"
-    - "zebra/zebra_face_681"
+    - "deer/coat"
+    - "horse/coat"
+    - "zebra/coat"
   random_folder: "/home/concept/random"
 
 

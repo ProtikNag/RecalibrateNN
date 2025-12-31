@@ -10,7 +10,7 @@ PYTHON_SCRIPT="../../main.py"
 
 
 print_parameters
-RUN_SPECIFIC_MODEL=true
+RUN_SPECIFIC_MODEL=false
 
 wait_for_user
 

@@ -7,11 +7,11 @@ CONFIG_FILE='../../config/legacy/config_legacy_3classes.yaml'
 MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50")
 
 #Recalibration Results location
-RECALIBRATED_RESULTS_LOCATION="/tmp/legacy_full"
+RECALIBRATED_RESULTS_LOCATION="/mnt/sdd/basics/recalib"
 
 #Sensitivity and XAI Results location 
-RECALIBRATED_MODELS_BASE="/mnt/sdd/basics"
-SENSITIVITY_RESULTS_LOCATION="/tmp/sensitivity"
+RECALIBRATED_MODELS_BASE="/mnt/sdd/basics/recalib"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/basics/sensitivity"
 XAI_RESULTS_LOCATION="/tmp/legacy_full"
 
 ####################################################################################################################
