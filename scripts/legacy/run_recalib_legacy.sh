@@ -9,6 +9,7 @@ source ../utility_scripts.sh
 PYTHON_SCRIPT="../../main.py"
 
 
+export RECALIBRATED_RESULTS_LOCATION='/mnt/sdh/basics/recalib'
 print_parameters
 RUN_SPECIFIC_MODEL=false
 
@@ -18,7 +19,6 @@ wait_for_user
 if [ "$RUN_SPECIFIC_MODEL" = true ]; then
   MODELS_ARRAY=("vgg16")
 fi
-
 
 
 

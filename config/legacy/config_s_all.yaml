@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/home/datasets/" # Path to the classification dataset base directory.
+  data_base_path: "/home/balanced_dataset/" # Path to the classification dataset base directory.
   target_class_list:
     - 'deer'
     - 'horse'

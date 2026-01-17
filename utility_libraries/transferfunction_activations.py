@@ -19,12 +19,13 @@ parser.add_argument('--saveactivations',action='store_true', help='Save activati
 args = parser.parse_args()
 model_name = args.model_name
 
+#Usage 
 
 if(os.name == 'posix'):
     model_name = args.model_name
     model_path = model_name + '.pth'
-    model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'
-    base_image_dir = '/home/datasets/train'
+    model_base_path = f'/mnt/sdd/basics/balanced_training/{model_name}/{model_path}'
+    base_image_dir = '/home/balanced_dataset/'
 else:
     model_base_path = f'C:\\Users\\srikant1\\Downloads\\gpu\\legacy\\training\\{model_name}\\{model_path}'  # Replace with your model path
     base_image_dir = r'C:\\Users\\srikant1\\Downloads\\datasets\\valid'  # Replace with your base image directory
@@ -54,6 +55,9 @@ def forward_with_layer_perturbation(model, layer, input_tensor, epsilon=1e-3):
     def perturb_hook(module, input, output):
         noise = epsilon * torch.randn_like(output)
         noise_holder['noise'] = noise
+        mean_val = output.mean()
+        #return mean_val.expand_as(output)
+        return  torch.full_like(output, mean_val)
         return output + noise
     hook = layer.register_forward_hook(perturb_hook)
     with torch.no_grad():
@@ -161,6 +165,8 @@ if(__name__ == "__main__"):
                          'pert_pred_class', 'pert_pred_prob', 'Prediction Changed',
                          'Activation File'  # New column
                         ])
+        # Define the layers you want to perturb
+        layers_to_perturb = [ 'features.16', 'classifier.6']  # Modify this list as needed
 
         for image_path, class_label, class_name in image_list:
             print(f"Processing: {image_path}")
@@ -186,23 +192,32 @@ if(__name__ == "__main__"):
                     
                     # Save activations to file
                     if(save_activations):
-                      save_activations_to_file(image_path, name, act, activations_dir)
+                      if(name in layers_to_perturb):
+                        print(f"Saving ######################### in {activations_dir}")
+                        save_activations_to_file(image_path, name, act, activations_dir)
                     
                     image_name = os.path.splitext(os.path.basename(image_path))[0]
                     safe_layer_name = name.replace('.', '_').replace('/', '_')
                     activation_filename = f"{image_name}_{safe_layer_name}.txt"
-                    
-                    # ---- Logit sensitivity computation ----
-                    orig_logits, pert_logits = forward_with_layer_perturbation(
-                    model, layer, input_tensor, epsilon=1e-3)
-                    pert_probs = torch.softmax(pert_logits, dim=1)
-                    pert_pred_prob, pert_pred_class = torch.max(pert_probs, dim=1)
-                    pert_pred_class = pert_pred_class.item()
-                    pert_pred_prob = pert_pred_prob.item()
+                    if( name in layers_to_perturb):
+                      # ---- Logit sensitivity computation ----
+                      orig_logits, pert_logits = forward_with_layer_perturbation(
+                      model, layer, input_tensor, epsilon=1e-3)
+                      pert_probs = torch.softmax(pert_logits, dim=1)
+                      pert_pred_prob, pert_pred_class = torch.max(pert_probs, dim=1)
+                      pert_pred_class = pert_pred_class.item()
+                      pert_pred_prob = pert_pred_prob.item()
 
-                    orig_logit = orig_logits[0, predicted_class].item()
-                    pert_logit = pert_logits[0, predicted_class].item()
-                    delta_logit = pert_logit - orig_logit
+                      orig_logit = orig_logits[0, predicted_class].item()
+                      pert_logit = pert_logits[0, predicted_class].item()
+                      delta_logit = pert_logit - orig_logit
+                    else:
+                      orig_logit = 0.0
+                      pert_logit = 0.0
+                      delta_logit = pert_logit - orig_logit
+                      pert_pred_class = predicted_class
+                      pert_pred_prob = predicted_prob
+
                     
                     # Get transfer function
                     if isinstance(layer, nn.ReLU):

@@ -8,18 +8,19 @@ source ../utility_scripts.sh
 
 PYTHON_SCRIPT="../../util_sensitivity_compute.py"
 
+ARTIFACT=coat
 #force update sensitivity result location
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdb2/sensitivity_analysis_paper/run2/sensitivity_config_s_deer_all"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/sensitivity_config_s_${ARTIFACT}"
 #CONFIG_FILES=(   "../../config/legacy/config_s_deer_all.yaml"  
 #   "../../config/legacy/config_s_deer_coat_new.yaml"  
-#   "../../config/legacy/config_s_deer_face.yaml"
+# OK  "../../config/legacy/config_s_deer_face.yaml"
 # OK "../../config/legacy/config_s_deer_leg.yaml"
 #"../../config/legacy/config_s_deer_coat.yaml" 
 #)
 # Call the function to display parameters and get confirmation
 #2
-CONFIG_FILE="../../config/legacy/config_s_deer_all.yaml"
-
+CONFIG_FILE="../../config/legacy/config_s_${ARTIFACT}.yaml"
+#MODELS_ARRAY=("inception_v3")
 print_parameters
 BEFORE_AFTER=false
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
@@ -47,9 +48,9 @@ for model in "${MODELS_ARRAY[@]}"; do
     --recal_model_basepath ${RECALIBRATED_MODELS_BASE} \
     --store_results ${SENSITIVITY_RESULTS_LOCATION} \
     --config ${CONFIG_FILE}"
-
     echo -e "\033[32m Command to execute:\033[0m $COMMAND"
     export model && $COMMAND 
+    
 done
 
 

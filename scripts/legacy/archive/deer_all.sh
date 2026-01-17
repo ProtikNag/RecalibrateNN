@@ -9,17 +9,17 @@ source ../utility_scripts.sh
 PYTHON_SCRIPT="../../util_sensitivity_compute.py"
 
 #force update sensitivity result location
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdb2/sensitivity_analysis_paper/run2/sensitivity_config_s_deer_face"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdb2/sensitivity_analysis_paper/run2/sensitivity_config_s_deer_all"
 #CONFIG_FILES=(   "../../config/legacy/config_s_deer_all.yaml"  
 #   "../../config/legacy/config_s_deer_coat_new.yaml"  
-# OK  "../../config/legacy/config_s_deer_face.yaml"
+#   "../../config/legacy/config_s_deer_face.yaml"
 # OK "../../config/legacy/config_s_deer_leg.yaml"
 #"../../config/legacy/config_s_deer_coat.yaml" 
 #)
 # Call the function to display parameters and get confirmation
 #2
-CONFIG_FILE="../../config/legacy/config_s_deer_face.yaml"
-MODELS_ARRAY=("inception_v3")
+CONFIG_FILE="../../config/legacy/config_s_deer_all.yaml"
+
 print_parameters
 BEFORE_AFTER=false
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
@@ -30,7 +30,7 @@ else
   BEFORE_AFTER_OPTION=""
 fi
 
-wait_for_user
+#wait_for_user
 
 ###########################################################################################
 
@@ -50,6 +50,7 @@ for model in "${MODELS_ARRAY[@]}"; do
 
     echo -e "\033[32m Command to execute:\033[0m $COMMAND"
     export model && $COMMAND 
+    mv /home/srikanth/study1/RecalibrateNN/scripts/legacy/cav /home/srikanth/study1/RecalibrateNN/scripts/legacy/cav_${model}_deer_all
 done
 
 

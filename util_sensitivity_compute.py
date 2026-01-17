@@ -191,8 +191,10 @@ if __name__ == "__main__":
     if(before_after == True):
         if(config.OVERRIDE_RECALIB == True):
             layers  =   get_layernames_override(MODEL_NAME, config)
+            print(layers)
         else:
             layers = get_model_layers(model_trained)
+            print(layers)
     else:
         MODEL = load_model(MODEL_NAME, BASE_MODEL_PATH)
         layers = get_model_layers(MODEL)
