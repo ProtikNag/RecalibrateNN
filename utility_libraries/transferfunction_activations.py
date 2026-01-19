@@ -23,8 +23,9 @@ model_name = args.model_name
 
 if(os.name == 'posix'):
     model_name = args.model_name
-    model_path = model_name + '.pth'
-    model_base_path = f'/mnt/sdd/basics/balanced_training/{model_name}/{model_path}'
+    #f'/mnt/sdd/basics/balanced_training/{model_name}/{model_path}'
+    model_base_path = model_name + '.pth'
+    base_image_dir = args.dataset
     base_image_dir = '/home/balanced_dataset/'
 else:
     model_base_path = f'C:\\Users\\srikant1\\Downloads\\gpu\\legacy\\training\\{model_name}\\{model_path}'  # Replace with your model path
@@ -45,6 +46,19 @@ os.makedirs(activations_dir, exist_ok=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
+
+
+def get_layerstoPerturb(model_name):
+    layers_to_perturb = []
+    if(model_name == "vgg16"):
+        layers_to_perturb = []
+    if(model_name == "inception_v3"):
+        layers_to_perturb = ['Mixed_5b.branch3x3dbl_3.conv','Mixed_5b.branch_pool.conv','Mixed_6d.branch7x7dbl_1.conv','Mixed_6e.branch7x7dbl_1.conv','Mixed_6e.branch7x7dbl_2.conv']
+    return layers_to_perturb
+    
+        
+
+
 
 def forward_with_layer_perturbation(model, layer, input_tensor, epsilon=1e-3):
     """
@@ -166,7 +180,7 @@ if(__name__ == "__main__"):
                          'Activation File'  # New column
                         ])
         # Define the layers you want to perturb
-        layers_to_perturb = [ 'features.16', 'classifier.6']  # Modify this list as needed
+        layers_to_perturb = get_layerstoPerturb(model_name)
 
         for image_path, class_label, class_name in image_list:
             print(f"Processing: {image_path}")
