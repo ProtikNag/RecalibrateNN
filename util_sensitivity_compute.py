@@ -116,10 +116,13 @@ if __name__ == "__main__":
     parser.add_argument("--before_after", action='store_true', help="Default parameter for before after comparison if its true then before after comparison will be done")
     parser.add_argument("--config", type=str, default=None, help="specify the yaml file ")
     parser.add_argument("--store_results", type=str, default=None, help="specify the location where teh results should be stored ")
+    parser.add_argument("--load_validation_dataset", action='store_true', help="If passed the validation dataset will be loaded instead (default: False)")
+
     
     args = parser.parse_args()
     config_file = args.config
     save_dir = args.store_results
+    load_validationdataset = args.load_validation_dataset
     print(config_file)
     if config_file is not None:
         if not os.path.isfile(config_file):
@@ -202,7 +205,15 @@ if __name__ == "__main__":
     ############## Load data #################################
     dataset_loader, val_loader,TRAIN_TRANSFORM , VALID_TRANSFORM, class_names = load_train_valid_dataset(MODEL_NAME,CLASSIFICATION_DATA_BASE_PATH,BATCH_SIZE, random_state = RANDOM_STATE)
     TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
-    class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH,"train",class_name), \
+    if(load_validationdataset):
+          #Load validation dataset instead
+          #Update the data loader with val_loader since we are overriding using valication dataset
+          #This is just used for the filelist 
+          dataset_loader =  val_loader
+          class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH,"valid",class_name), \
+                                                              transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+    else:
+          class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH,"train",class_name), \
                                                               transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
     print(dataset_loader)
     filelist = dataset_loader.dataset.getfilelist()

@@ -197,7 +197,7 @@ class TCAVAnalyzer:
                     hypothesis_results['p_value_negative']
                 )
                 
-                # Remove 'sensitivityscore_before_' prefix if present
+                # Remove 'sensitivityscore_before' prefix if present
                 clean_layer_name = layer_name.replace('sensitivityscore_before_', '').replace('sensitivityscore_before_', '')
                 
                 layer_results.append({
@@ -220,7 +220,7 @@ class TCAVAnalyzer:
         
         return class_results
     
-    def save_results_to_excel(self, class_results: Dict, output_path: str):
+    def save_results_to_excel(self, class_results: Dict, output_path: str, artifact_name: str = ""):
         """Save results to Excel file with multiple sheets."""
         
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
@@ -235,7 +235,7 @@ class TCAVAnalyzer:
             
             # Format all sheets: left align and autofit columns
             for sheet_name in writer.sheets:
-                worksheet = writer.sheets[sheet_name]
+                worksheet = writer.sheets[sheet_name+'_'+ artifact_name if artifact_name else sheet_name]
                 
                 # Autofit column widths and left align
                 for column in worksheet.columns:
@@ -287,7 +287,7 @@ class TCAVAnalyzer:
                 print(f"Error processing {csv_file}: {str(e)}")
 
 
-    def consolidate_results(self):
+    def consolidate_results(self,artifact_name: str = ""):
         """Consolidate all TCAV results from xlsx files into a single workbook."""
         # Step 1: Find all xlsx files
         xlsx_files = []
@@ -318,6 +318,7 @@ class TCAVAnalyzer:
                     df = pd.read_excel(xlsx_file, sheet_name=sheet_name)
                     # Rename sheet: model_name_class0 format
                     new_sheet_name = f"{model_dir}_{sheet_name}".replace(" ", "_")
+                    new_sheet_name = new_sheet_name + '_' + artifact_name if artifact_name else sheet_name
                     # Excel sheet names have a 31 character limit
                     if len(new_sheet_name) > 31:
                         new_sheet_name = new_sheet_name[:31]
@@ -354,11 +355,12 @@ class TCAVAnalyzer:
 
 def main():
     """Main function to run the TCAV analyzer."""
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <root_directory>")
+    if len(sys.argv) < 3:
+        print("Usage: python script.py <root_directory> <artifact_name>")
         sys.exit(1)
     
     root_directory = sys.argv[1]
+    artifact_name = sys.argv[2] 
     
     if not os.path.exists(root_directory):
         print(f"Error: Directory '{root_directory}' does not exist!")
@@ -367,7 +369,7 @@ def main():
     # Initialize and run analyzer
     analyzer = TCAVAnalyzer(root_directory)
     analyzer.run_analysis()
-    analyzer.consolidate_results()
+    analyzer.consolidate_results(artifact_name=artifact_name)
     
     print("Analysis complete!")
 
