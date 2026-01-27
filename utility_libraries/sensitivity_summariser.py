@@ -77,93 +77,64 @@ class TCAVAnalyzer:
         
         return {'p_value_positive': p_value_positive, 'p_value_negative': p_value_negative, 'p_value_two_sided': p_value_two_sided}
     
+    def perform_z_test(self, tcav_score: float, total_count: int) -> Dict[str, float]:
+        """
+        Perform Z-test for proportions.
+        H0: p = 0.5 (random sensitivity)
+        Returns p-values for two-sided and one-sided tests.
+        
+        Args:
+            tcav_score: Proportion of positive activations (p̂)
+            total_count: Total number of samples (n)
+        
+        Returns:
+            Dictionary with p-values for two-sided, negative, and positive tests
+        """
+        if total_count == 0:
+            return {
+                'p_value_two_sided': 1.0,
+                'p_value_negative': 1.0,
+                'p_value_positive': 1.0
+            }
+        
+        # Null hypothesis proportion
+        p_0 = 0.5
+        
+        # Standard error under null hypothesis
+        sigma = (p_0 * (1 - p_0) / total_count) ** 0.5
+        
+        # Z-statistic
+        z = (tcav_score - p_0) / sigma
+        
+        # Two-sided test: H0: p = 0.5
+        p_value_two_sided = float(2 * (1 - stats.norm.cdf(abs(z))))
+        
+        # One-sided test (negative sensitivity): H0: p >= 0.5
+        p_value_negative = float(stats.norm.cdf(z))
+        
+        # One-sided test (positive sensitivity): H0: p <= 0.5
+        p_value_positive = float(1 - stats.norm.cdf(z))
+        
+        return {
+            'p_value_two_sided': p_value_two_sided,
+            'p_value_negative': p_value_negative,
+            'p_value_positive': p_value_positive
+        }
     
-    def classify_hypothesis(self, p_value_positive: float, p_value_negative: float, alpha: float = 0.05) -> str:
+    def classify_hypothesis(self, p_value_positive: float, p_value_negative: float,p_value_twoside: float, 
+                            ztest_p_value_twoside: float, zetst_p_value_positive: float, 
+                            zetst__value_negative: float,  alpha: float = 0.05) -> str:
         """Classify layer based on hypothesis test results."""
-        if p_value_positive < alpha:
+        if p_value_positive < alpha and zetst_p_value_positive < alpha:
             return "Positive Sensitivity"
-        elif p_value_negative < alpha:
+        elif p_value_negative < alpha and zetst__value_negative < alpha:
             return "Negative Sensitivity"
-        else:
+        elif p_value_twoside < alpha and ztest_p_value_twoside < alpha:
             return "No Significant Sensitivity"
-    #This method is not used currently but kept for future reference
-    def compute_correlations(self, class_results: Dict) -> pd.DataFrame:
-        """Perform pairwise statistical comparisons between artifacts using two-proportion z-test and Fisher's exact test."""
-        comparison_results = []
-        
-        # Process each class
-        for class_name, results in class_results.items():
-            df = results['layer_results']
-            
-            # Check if 'Artifact' column exists
-            if 'Artifact' not in df.columns:
-                print(f"Warning: 'Artifact' column not found in {class_name}")
-                continue
-            
-            # Get unique artifacts
-            artifacts = df['Artifact'].unique()
-            
-            # Pairwise comparison between artifacts
-            for i, artifact1 in enumerate(artifacts):
-                for artifact2 in artifacts[i+1:]:
-                    # Get data for both artifacts
-                    df1 = df[df['Artifact'] == artifact1]
-                    df2 = df[df['Artifact'] == artifact2]
-                    
-                    # Find common layers
-                    common_layers = set(df1['Layer']).intersection(set(df2['Layer']))
-                    
-                    for layer in common_layers:
-                        layer_data1 = df1[df1['Layer'] == layer].iloc[0]
-                        layer_data2 = df2[df2['Layer'] == layer].iloc[0]
-                        
-                        pos1 = layer_data1['Positive Activations']
-                        neg1 = layer_data1['Negative Activations']
-                        total1 = pos1 + neg1
-                        
-                        pos2 = layer_data2['Positive Activations']
-                        neg2 = layer_data2['Negative Activations']
-                        total2 = pos2 + neg2
-                        
-                        if total1 > 0 and total2 > 0:
-                            # Proportions
-                            prop1 = pos1 / total1
-                            prop2 = pos2 / total2
-                            
-                            # Two-proportion z-test
-                            pooled_prop = (pos1 + pos2) / (total1 + total2)
-                            se = (pooled_prop * (1 - pooled_prop) * (1/total1 + 1/total2)) ** 0.5
-                            
-                            if se > 0:
-                                z_stat = (prop1 - prop2) / se
-                                z_p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
-                            else:
-                                z_stat = 0
-                                z_p_value = 1.0
-                            
-                            # Fisher's exact test
-                            contingency_table = [[pos1, neg1], [pos2, neg2]]
-                            fisher_result = stats.fisher_exact(contingency_table, alternative='two-sided')
-                            fisher_p_value = fisher_result[1]
-                            odds_ratio = fisher_result[0]
-                            
-                            comparison_results.append({
-                                'Class': class_name,
-                                'Layer': layer,
-                                'Artifact 1': artifact1,
-                                'Artifact 2': artifact2,
-                                'Proportion 1 (P1)': prop1,
-                                'Proportion 2 (P2)': prop2,
-                                'Difference (P1 - P2)': prop1 - prop2,
-                                'Z-statistic': z_stat,
-                                'Z-test P-value': z_p_value,
-                                'Fisher Odds Ratio': odds_ratio,
-                                'Fisher P-value': fisher_p_value,
-                                'Significant (α=0.05)': 'Yes' if min(z_p_value, fisher_p_value) < 0.05 else 'No'
-                            })
-        
-        return pd.DataFrame(comparison_results)
-    
+        else:
+            return "Approximation sensitive"
+
+
     def process_single_csv(self, csv_path: str) -> Dict:
         """Process a single CSV file and return results."""
         print(f"Processing: {csv_path}")
@@ -190,11 +161,17 @@ class TCAVAnalyzer:
                 
                 # Perform hypothesis test
                 hypothesis_results = self.perform_hypothesis_test(tcav_score, total_count)
+                z_test_results = self.perform_z_test(tcav_score, total_count)
                 
                 # Classify
                 classification = self.classify_hypothesis(
-                    hypothesis_results['p_value_positive'],
-                    hypothesis_results['p_value_negative']
+                    float(hypothesis_results['p_value_positive']),
+                    float(hypothesis_results['p_value_negative']),
+                    float(hypothesis_results['p_value_two_sided']),
+                    float(z_test_results['p_value_two_sided']),
+                    float(z_test_results['p_value_positive']),
+                    float(z_test_results['p_value_negative']),
+                    alpha=0.05
                 )
                 
                 # Remove 'sensitivityscore_before' prefix if present
@@ -202,12 +179,15 @@ class TCAVAnalyzer:
                 
                 layer_results.append({
                     'Layer': clean_layer_name,
-                    'Positive Activations': pos_count,
-                    'Negative Activations': neg_count,
-                    'Proportion of Positive Activations': tcav_score,
-                    'P-value (Positive)': hypothesis_results['p_value_positive'],
-                    'P-value (Negative)': hypothesis_results['p_value_negative'],
-                    'P-value (Two-sided)': hypothesis_results['p_value_two_sided'],
+                    'Positive Sensitivity': int(pos_count),
+                    'Negative Sensitivity': int(neg_count),
+                    'Proportion of Positive Sensitivity': tcav_score,
+                    'Binomial P-value (Positive)': hypothesis_results['p_value_positive'],
+                    'Binomial P-value (Negative)': hypothesis_results['p_value_negative'],
+                    'Binomial P-value (Two-sided)': hypothesis_results['p_value_two_sided'],
+                    'Z-test P-value (Positive)': z_test_results['p_value_positive'],
+                    'Z-test P-value (Negative)': z_test_results['p_value_negative'],
+                    'Z-test P-value (Two-sided)': z_test_results['p_value_two_sided'],
                     'Hypothesis Test Result': classification
                 })
                 
@@ -376,3 +356,84 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    
+if(False):
+    #This method is not used currently but kept for future reference
+    def compute_correlations(self, class_results: Dict) -> pd.DataFrame:
+        """Perform pairwise statistical comparisons between artifacts using two-proportion z-test and Fisher's exact test."""
+        comparison_results = []
+        
+        # Process each class
+        for class_name, results in class_results.items():
+            df = results['layer_results']
+            
+            # Check if 'Artifact' column exists
+            if 'Artifact' not in df.columns:
+                print(f"Warning: 'Artifact' column not found in {class_name}")
+                continue
+            
+            # Get unique artifacts
+            artifacts = df['Artifact'].unique()
+            
+            # Pairwise comparison between artifacts
+            for i, artifact1 in enumerate(artifacts):
+                for artifact2 in artifacts[i+1:]:
+                    # Get data for both artifacts
+                    df1 = df[df['Artifact'] == artifact1]
+                    df2 = df[df['Artifact'] == artifact2]
+                    
+                    # Find common layers
+                    common_layers = set(df1['Layer']).intersection(set(df2['Layer']))
+                    
+                    for layer in common_layers:
+                        layer_data1 = df1[df1['Layer'] == layer].iloc[0]
+                        layer_data2 = df2[df2['Layer'] == layer].iloc[0]
+                        
+                        pos1 = layer_data1['Positive Activations']
+                        neg1 = layer_data1['Negative Activations']
+                        total1 = pos1 + neg1
+                        
+                        pos2 = layer_data2['Positive Activations']
+                        neg2 = layer_data2['Negative Activations']
+                        total2 = pos2 + neg2
+                        
+                        if total1 > 0 and total2 > 0:
+                            # Proportions
+                            prop1 = pos1 / total1
+                            prop2 = pos2 / total2
+                            
+                            # Two-proportion z-test
+                            pooled_prop = (pos1 + pos2) / (total1 + total2)
+                            se = (pooled_prop * (1 - pooled_prop) * (1/total1 + 1/total2)) ** 0.5
+                            
+                            if se > 0:
+                                z_stat = (prop1 - prop2) / se
+                                z_p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
+                            else:
+                                z_stat = 0
+                                z_p_value = 1.0
+                            
+                            # Fisher's exact test
+                            contingency_table = [[pos1, neg1], [pos2, neg2]]
+                            fisher_result = stats.fisher_exact(contingency_table, alternative='two-sided')
+                            fisher_p_value = fisher_result[1]
+                            odds_ratio = fisher_result[0]
+                            
+                            comparison_results.append({
+                                'Class': class_name,
+                                'Layer': layer,
+                                'Artifact 1': artifact1,
+                                'Artifact 2': artifact2,
+                                'Proportion 1 (P1)': prop1,
+                                'Proportion 2 (P2)': prop2,
+                                'Difference (P1 - P2)': prop1 - prop2,
+                                'Z-statistic': z_stat,
+                                'Z-test P-value': z_p_value,
+                                'Fisher Odds Ratio': odds_ratio,
+                                'Fisher P-value': fisher_p_value,
+                                'Significant (α=0.05)': 'Yes' if min(z_p_value, fisher_p_value) < 0.05 else 'No'
+                            })
+        
+        return pd.DataFrame(comparison_results)
+

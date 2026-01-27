@@ -10,7 +10,6 @@ cav/
 ./scripts/results/
 temp_scripts/
 xai_images/
-model_layers/
 consolidated_results/
 temp/
 results_3classes/
