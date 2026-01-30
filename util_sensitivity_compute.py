@@ -226,76 +226,82 @@ if __name__ == "__main__":
     concept_loader_list, random_loader = load_train_dataset_concept_random(MODEL_NAME, CONCEPT_FOLDER_LIST, RANDOM_FOLDER, BATCH_SIZE)
     stored_cav_vector = {}
     for layer_name in layers:
-        ############## BEFORE Do it once #################################
-        model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
-        hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-        model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-        print("Computing the cav vectors can take a while stand by")
-        logger.info("Computing the cav vectors can take a while stand by")
-        #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
-        cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
-        stored_cav_vector[layer_name] = cav_vectors 
-        logger.info("Computing the sensitivity score can take a while stand by")
-        independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
-                                                 for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-        logger.info(f"Sensitivity score for each image is {independent_sensitivityscore}")
-        independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
-        tcav_before = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
-        independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
-        logger.info(f"tcav_before is {tcav_before}")
-        sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
-        df[sensitivityscore_Before ] = independent_sensitivityscore
-        hook_handle.remove()
-        activation.clear()  # Clear activations to free memory
-        torch.cuda.empty_cache()
-        df.to_csv(dataframe_filename, index = False)
         try:
-            del model_trained
-        except Exception as e:
-            print(f"Model trained variable not yet defined  ")
-        if(before_after == True):
-            for lambda_val in lambda_val_list:
-                try:
-                    ###########AFTER######################
-                    if(recal_model_basepath != None):
-                        modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val,recal_model_basepath)
-                        model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
-                        model_trained = load_model_statedict(model_trained, modified_model_path)
-                        hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                        model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                        model_trained.to(device)
-                        print("Computing the cav vectors can take a while stand by")
-                        logger.info("Computing the cav vectors can take a while stand by")
-                        try:
-                            print(concept_loader_list , random_loader) 
-                            #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation,LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
-                            cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
-                            stored_cav_vector[layer_name] = cav_vectors 
-                            logger.info("Computing the sensitivity score can take a while stand by")
-                            independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
-                                                                 for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
-                            logger.info(f"Sensitivity score for each image is {independent_sensitivityscore}")
-                            independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
-
-                            tcav_after = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
-                            independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
-                            logger.info(f"tcav_after is {tcav_after}")
-                            sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{lambda_val}"
-                            df[sensitivityscore_After ] = independent_sensitivityscore
-                            hook_handle.remove()
-                            activation.clear()  # Clear activations to free memory
-                            torch.cuda.empty_cache()
-                            df.to_csv(dataframe_filename, index = False)
-                        except Exception as e:
-                            print(f"Exception obtained while computing util_compute_cav {e}")
-                            continue
-                except Exception as e:
-                    df.to_csv(dataframe_filename, index = False)
-                    print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
-                    logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
-                    continue
+            ############## BEFORE Do it once #################################
+            model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
+            hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+            print("Computing the cav vectors can take a while stand by")
+            logger.info("Computing the cav vectors can take a while stand by")
+            #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+            cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
+            stored_cav_vector[layer_name] = cav_vectors 
+            logger.info("Computing the sensitivity score can take a while stand by")
+            independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
+                                                    for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+            logger.info(f"Sensitivity score for each image is {independent_sensitivityscore}")
+            independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
+            tcav_before = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
+            independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+            logger.info(f"tcav_before is {tcav_before}")
+            sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
+            df[sensitivityscore_Before ] = independent_sensitivityscore
+            hook_handle.remove()
+            activation.clear()  # Clear activations to free memory
+            torch.cuda.empty_cache()
+            df.to_csv(dataframe_filename, index = False)
             try:
                 del model_trained
             except Exception as e:
                 print(f"Model trained variable not yet defined  ")
-                continue
+            if(before_after == True):
+                for lambda_val in lambda_val_list:
+                    try:
+                        ###########AFTER######################
+                        if(recal_model_basepath != None):
+                            modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val,recal_model_basepath)
+                            model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
+                            model_trained = load_model_statedict(model_trained, modified_model_path)
+                            hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                            model_trained.to(device)
+                            print("Computing the cav vectors can take a while stand by")
+                            logger.info("Computing the cav vectors can take a while stand by")
+                            try:
+                                print(concept_loader_list , random_loader) 
+                                #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation,LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
+                                cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE, random_state=RANDOM_STATE + i) for i, concept_loader in enumerate(concept_loader_list)]
+                                stored_cav_vector[layer_name] = cav_vectors 
+                                logger.info("Computing the sensitivity score can take a while stand by")
+                                independent_sensitivityscore = [util_compute_sensitivity_score(model_trained, layer_name, cav, class_loader, idx, activation) \
+                                                                    for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                                logger.info(f"Sensitivity score for each image is {independent_sensitivityscore}")
+                                independent_sensitivityscore = [cpudata.cpu().numpy() for cpudata in independent_sensitivityscore]
+
+                                tcav_after = util_compute_tcav_score_from_sensitivity(independent_sensitivityscore)
+                                independent_sensitivityscore = np.concatenate(independent_sensitivityscore)
+                                logger.info(f"tcav_after is {tcav_after}")
+                                sensitivityscore_After = f"sensitivityscore_After_{layer_name}_{lambda_val}"
+                                df[sensitivityscore_After ] = independent_sensitivityscore
+                                hook_handle.remove()
+                                activation.clear()  # Clear activations to free memory
+                                torch.cuda.empty_cache()
+                                df.to_csv(dataframe_filename, index = False)
+                            except Exception as e:
+                                print(f"Exception obtained while computing util_compute_cav {e}")
+                                continue
+                    except Exception as e:
+                        df.to_csv(dataframe_filename, index = False)
+                        print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
+                        logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
+                        continue
+                try:
+                    del model_trained
+                except Exception as e:
+                    print(f"Model trained variable not yet defined  ")
+                    continue
+        except Exception as e:
+            print(f"Obtained exception while processing Layer{layer_name} , Exception details {e}")
+            logger.info(f"Obtained exception while processing Layer{layer_name} , Exception details {e}")
+            continue
+        

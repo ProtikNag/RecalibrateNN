@@ -16,6 +16,14 @@ print_parameters
 echo -e "\033[32mPython Script:\033[0m $PYTHON_SCRIPT"
 wait_for_user
 
+process_xai_forall_models ()
+for model in "${MODELS_ARRAY[@]}"; do
+
+  python $PYTHON_SCRIPT  --org_model_path "${BASE_MODEL_DIR}${model}/${model}.pth" --model_name $model --config_file $CONFIG_FILE --save_dir     "${XAI_RESULTS_LOCATION}/${model}"
+
+done
+
 process_xai_forall_models
 
+ 
 ################ End of script ##############################

@@ -69,7 +69,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 from ConfigSingleton import ConfigSingleton
 from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch, xai_gradcam_explainer, xai_lime_explainer)
 
-XAI_Integrated_gradients = True
+XAI_Integrated_gradients = False
 XAI_GradCAM              = True
 XAI_Lime                 = False
 
@@ -103,11 +103,20 @@ def get_activation(layer_name):
     return hook
 
 def get_model(model_path, modified_model_path=None):
-    model = torch.load(model_path)
+    try:
+      model = torch.load(model_path)
+      model = model.to(DEVICE)
+      model.eval()
+      
+    except Exception as e:
+      model = torch.load(model_path, weights_only=False)
+      model = model.to(DEVICE) 
+      model.eval()
     if(modified_model_path is not None):
         model.load_state_dict(torch.load(modified_model_path, weights_only=True))
+        model = model.to(DEVICE)
         #print(model)
-    model.eval()
+        model.eval()
     return model
     
 
@@ -118,6 +127,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
+    parser.add_argument("--before_after", action='store_true',default=False, help="Flag to execute for modified model post recalib")    
 
     parser.add_argument(
         "--override_image_path", 
@@ -151,8 +161,11 @@ if __name__ == '__main__':
     
     BASE_MODEL_PATH = args.org_model_path.strip()
     #Replace the model base path from the path override
-    MODIFIED_MODEL_PATH = args.modified_model_path.strip()
     MODEL_NAME = args.model_name.strip().lower()
+    before_after = args.before_after 
+    if(before_after): 
+        MODIFIED_MODEL_PATH = args.modified_model_path.strip()
+
     config_file = args.config_file
     config = ConfigSingleton(config_file)
     
@@ -200,8 +213,9 @@ if __name__ == '__main__':
         xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
         save_dir_after = os.path.join(save_dir,'gradcam',  'after')
         print(save_dir_before, save_dir_after)
-        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
+        if(before_after):
+            model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+            xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
     ################################################################################################################
     ################################################################################################################
     ############# Integrated Gradients ##########################################################
@@ -216,15 +230,17 @@ if __name__ == '__main__':
           exit()
         save_dir_before = os.path.join(save_dir, 'integrated_gradient','before')
         xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before, title_prefix = "before")
-        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir_after = os.path.join(save_dir,'integrated_gradient','after')
-        xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
+        if(before_after):
+            model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+            save_dir_after = os.path.join(save_dir,'integrated_gradient','after')
+            xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
 
     ############# Lime Implementation ##########################################################
     if(XAI_Lime == True):
         model = get_model(BASE_MODEL_PATH)
         save_dir_before = os.path.join(save_dir,MODEL_NAME, 'lime', 'before')
         xai_lime_explainer(MODEL_NAME, model, IMAGES, num_classes, save_dir_before)
-        model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-        save_dir_after = os.path.join(save_dir, 'lime', 'after')
-        xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir_after)
+        if(before_after):
+            model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
+            save_dir_after = os.path.join(save_dir, 'lime', 'after')
+            xai_lime_explainer(MODEL_NAME, model_modified, IMAGES, num_classes, save_dir_after)
