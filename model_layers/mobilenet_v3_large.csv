@@ -1,192 +1,192 @@
-layer,input_shape,output_shape
-"features.0.0, (Conv2d)","(1, 3, 224, 224)","(1, 16, 112, 112)"
-"features.0.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.0.2, (Hardswish)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1.block.0.0, (Conv2d)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1.block.0.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1.block.0.2, (ReLU)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1.block.1.0, (Conv2d)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1.block.1.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.1, (InvertedResidual)","(1, 16, 112, 112)","(1, 16, 112, 112)"
-"features.2.block.0.0, (Conv2d)","(1, 16, 112, 112)","(1, 64, 112, 112)"
-"features.2.block.0.1, (BatchNorm2d)","(1, 64, 112, 112)","(1, 64, 112, 112)"
-"features.2.block.0.2, (ReLU)","(1, 64, 112, 112)","(1, 64, 112, 112)"
-"features.2.block.1.0, (Conv2d)","(1, 64, 112, 112)","(1, 64, 56, 56)"
-"features.2.block.1.1, (BatchNorm2d)","(1, 64, 56, 56)","(1, 64, 56, 56)"
-"features.2.block.1.2, (ReLU)","(1, 64, 56, 56)","(1, 64, 56, 56)"
-"features.2.block.2.0, (Conv2d)","(1, 64, 56, 56)","(1, 24, 56, 56)"
-"features.2.block.2.1, (BatchNorm2d)","(1, 24, 56, 56)","(1, 24, 56, 56)"
-"features.2, (InvertedResidual)","(1, 16, 112, 112)","(1, 24, 56, 56)"
-"features.3.block.0.0, (Conv2d)","(1, 24, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.0.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.0.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.1.0, (Conv2d)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.1.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.1.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.3.block.2.0, (Conv2d)","(1, 72, 56, 56)","(1, 24, 56, 56)"
-"features.3.block.2.1, (BatchNorm2d)","(1, 24, 56, 56)","(1, 24, 56, 56)"
-"features.3, (InvertedResidual)","(1, 24, 56, 56)","(1, 24, 56, 56)"
-"features.4.block.0.0, (Conv2d)","(1, 24, 56, 56)","(1, 72, 56, 56)"
-"features.4.block.0.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.4.block.0.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)"
-"features.4.block.1.0, (Conv2d)","(1, 72, 56, 56)","(1, 72, 28, 28)"
-"features.4.block.1.1, (BatchNorm2d)","(1, 72, 28, 28)","(1, 72, 28, 28)"
-"features.4.block.1.2, (ReLU)","(1, 72, 28, 28)","(1, 72, 28, 28)"
-"features.4.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 72, 28, 28)","(1, 72, 1, 1)"
-"features.4.block.2.fc1, (Conv2d)","(1, 72, 1, 1)","(1, 24, 1, 1)"
-"features.4.block.2.activation, (ReLU)","(1, 24, 1, 1)","(1, 24, 1, 1)"
-"features.4.block.2.fc2, (Conv2d)","(1, 24, 1, 1)","(1, 72, 1, 1)"
-"features.4.block.2.scale_activation, (Hardsigmoid)","(1, 72, 1, 1)","(1, 72, 1, 1)"
-"features.4.block.2, (SqueezeExcitation)","(1, 72, 28, 28)","(1, 72, 28, 28)"
-"features.4.block.3.0, (Conv2d)","(1, 72, 28, 28)","(1, 40, 28, 28)"
-"features.4.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)"
-"features.4, (InvertedResidual)","(1, 24, 56, 56)","(1, 40, 28, 28)"
-"features.5.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.0.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.0.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.1.0, (Conv2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.1.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.1.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 120, 28, 28)","(1, 120, 1, 1)"
-"features.5.block.2.fc1, (Conv2d)","(1, 120, 1, 1)","(1, 32, 1, 1)"
-"features.5.block.2.activation, (ReLU)","(1, 32, 1, 1)","(1, 32, 1, 1)"
-"features.5.block.2.fc2, (Conv2d)","(1, 32, 1, 1)","(1, 120, 1, 1)"
-"features.5.block.2.scale_activation, (Hardsigmoid)","(1, 120, 1, 1)","(1, 120, 1, 1)"
-"features.5.block.2, (SqueezeExcitation)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.5.block.3.0, (Conv2d)","(1, 120, 28, 28)","(1, 40, 28, 28)"
-"features.5.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)"
-"features.5, (InvertedResidual)","(1, 40, 28, 28)","(1, 40, 28, 28)"
-"features.6.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.0.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.0.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.1.0, (Conv2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.1.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.1.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 120, 28, 28)","(1, 120, 1, 1)"
-"features.6.block.2.fc1, (Conv2d)","(1, 120, 1, 1)","(1, 32, 1, 1)"
-"features.6.block.2.activation, (ReLU)","(1, 32, 1, 1)","(1, 32, 1, 1)"
-"features.6.block.2.fc2, (Conv2d)","(1, 32, 1, 1)","(1, 120, 1, 1)"
-"features.6.block.2.scale_activation, (Hardsigmoid)","(1, 120, 1, 1)","(1, 120, 1, 1)"
-"features.6.block.2, (SqueezeExcitation)","(1, 120, 28, 28)","(1, 120, 28, 28)"
-"features.6.block.3.0, (Conv2d)","(1, 120, 28, 28)","(1, 40, 28, 28)"
-"features.6.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)"
-"features.6, (InvertedResidual)","(1, 40, 28, 28)","(1, 40, 28, 28)"
-"features.7.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 240, 28, 28)"
-"features.7.block.0.1, (BatchNorm2d)","(1, 240, 28, 28)","(1, 240, 28, 28)"
-"features.7.block.0.2, (Hardswish)","(1, 240, 28, 28)","(1, 240, 28, 28)"
-"features.7.block.1.0, (Conv2d)","(1, 240, 28, 28)","(1, 240, 14, 14)"
-"features.7.block.1.1, (BatchNorm2d)","(1, 240, 14, 14)","(1, 240, 14, 14)"
-"features.7.block.1.2, (Hardswish)","(1, 240, 14, 14)","(1, 240, 14, 14)"
-"features.7.block.2.0, (Conv2d)","(1, 240, 14, 14)","(1, 80, 14, 14)"
-"features.7.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.7, (InvertedResidual)","(1, 40, 28, 28)","(1, 80, 14, 14)"
-"features.8.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.0.1, (BatchNorm2d)","(1, 200, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.0.2, (Hardswish)","(1, 200, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.1.0, (Conv2d)","(1, 200, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.1.1, (BatchNorm2d)","(1, 200, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.1.2, (Hardswish)","(1, 200, 14, 14)","(1, 200, 14, 14)"
-"features.8.block.2.0, (Conv2d)","(1, 200, 14, 14)","(1, 80, 14, 14)"
-"features.8.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.8, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.9.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.0.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.0.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.1.0, (Conv2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.1.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.1.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.9.block.2.0, (Conv2d)","(1, 184, 14, 14)","(1, 80, 14, 14)"
-"features.9.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.9, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.10.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.0.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.0.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.1.0, (Conv2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.1.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.1.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)"
-"features.10.block.2.0, (Conv2d)","(1, 184, 14, 14)","(1, 80, 14, 14)"
-"features.10.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.10, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)"
-"features.11.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.0.1, (BatchNorm2d)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.0.2, (Hardswish)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.1.0, (Conv2d)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.1.1, (BatchNorm2d)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.1.2, (Hardswish)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 480, 14, 14)","(1, 480, 1, 1)"
-"features.11.block.2.fc1, (Conv2d)","(1, 480, 1, 1)","(1, 120, 1, 1)"
-"features.11.block.2.activation, (ReLU)","(1, 120, 1, 1)","(1, 120, 1, 1)"
-"features.11.block.2.fc2, (Conv2d)","(1, 120, 1, 1)","(1, 480, 1, 1)"
-"features.11.block.2.scale_activation, (Hardsigmoid)","(1, 480, 1, 1)","(1, 480, 1, 1)"
-"features.11.block.2, (SqueezeExcitation)","(1, 480, 14, 14)","(1, 480, 14, 14)"
-"features.11.block.3.0, (Conv2d)","(1, 480, 14, 14)","(1, 112, 14, 14)"
-"features.11.block.3.1, (BatchNorm2d)","(1, 112, 14, 14)","(1, 112, 14, 14)"
-"features.11, (InvertedResidual)","(1, 80, 14, 14)","(1, 112, 14, 14)"
-"features.12.block.0.0, (Conv2d)","(1, 112, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.0.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.0.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.1.0, (Conv2d)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.1.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.1.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 672, 14, 14)","(1, 672, 1, 1)"
-"features.12.block.2.fc1, (Conv2d)","(1, 672, 1, 1)","(1, 168, 1, 1)"
-"features.12.block.2.activation, (ReLU)","(1, 168, 1, 1)","(1, 168, 1, 1)"
-"features.12.block.2.fc2, (Conv2d)","(1, 168, 1, 1)","(1, 672, 1, 1)"
-"features.12.block.2.scale_activation, (Hardsigmoid)","(1, 672, 1, 1)","(1, 672, 1, 1)"
-"features.12.block.2, (SqueezeExcitation)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.12.block.3.0, (Conv2d)","(1, 672, 14, 14)","(1, 112, 14, 14)"
-"features.12.block.3.1, (BatchNorm2d)","(1, 112, 14, 14)","(1, 112, 14, 14)"
-"features.12, (InvertedResidual)","(1, 112, 14, 14)","(1, 112, 14, 14)"
-"features.13.block.0.0, (Conv2d)","(1, 112, 14, 14)","(1, 672, 14, 14)"
-"features.13.block.0.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.13.block.0.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)"
-"features.13.block.1.0, (Conv2d)","(1, 672, 14, 14)","(1, 672, 7, 7)"
-"features.13.block.1.1, (BatchNorm2d)","(1, 672, 7, 7)","(1, 672, 7, 7)"
-"features.13.block.1.2, (Hardswish)","(1, 672, 7, 7)","(1, 672, 7, 7)"
-"features.13.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 672, 7, 7)","(1, 672, 1, 1)"
-"features.13.block.2.fc1, (Conv2d)","(1, 672, 1, 1)","(1, 168, 1, 1)"
-"features.13.block.2.activation, (ReLU)","(1, 168, 1, 1)","(1, 168, 1, 1)"
-"features.13.block.2.fc2, (Conv2d)","(1, 168, 1, 1)","(1, 672, 1, 1)"
-"features.13.block.2.scale_activation, (Hardsigmoid)","(1, 672, 1, 1)","(1, 672, 1, 1)"
-"features.13.block.2, (SqueezeExcitation)","(1, 672, 7, 7)","(1, 672, 7, 7)"
-"features.13.block.3.0, (Conv2d)","(1, 672, 7, 7)","(1, 160, 7, 7)"
-"features.13.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)"
-"features.13, (InvertedResidual)","(1, 112, 14, 14)","(1, 160, 7, 7)"
-"features.14.block.0.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.0.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.0.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.1.0, (Conv2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.1.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.1.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)"
-"features.14.block.2.fc1, (Conv2d)","(1, 960, 1, 1)","(1, 240, 1, 1)"
-"features.14.block.2.activation, (ReLU)","(1, 240, 1, 1)","(1, 240, 1, 1)"
-"features.14.block.2.fc2, (Conv2d)","(1, 240, 1, 1)","(1, 960, 1, 1)"
-"features.14.block.2.scale_activation, (Hardsigmoid)","(1, 960, 1, 1)","(1, 960, 1, 1)"
-"features.14.block.2, (SqueezeExcitation)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.14.block.3.0, (Conv2d)","(1, 960, 7, 7)","(1, 160, 7, 7)"
-"features.14.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)"
-"features.14, (InvertedResidual)","(1, 160, 7, 7)","(1, 160, 7, 7)"
-"features.15.block.0.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.0.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.0.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.1.0, (Conv2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.1.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.1.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)"
-"features.15.block.2.fc1, (Conv2d)","(1, 960, 1, 1)","(1, 240, 1, 1)"
-"features.15.block.2.activation, (ReLU)","(1, 240, 1, 1)","(1, 240, 1, 1)"
-"features.15.block.2.fc2, (Conv2d)","(1, 240, 1, 1)","(1, 960, 1, 1)"
-"features.15.block.2.scale_activation, (Hardsigmoid)","(1, 960, 1, 1)","(1, 960, 1, 1)"
-"features.15.block.2, (SqueezeExcitation)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.15.block.3.0, (Conv2d)","(1, 960, 7, 7)","(1, 160, 7, 7)"
-"features.15.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)"
-"features.15, (InvertedResidual)","(1, 160, 7, 7)","(1, 160, 7, 7)"
-"features.16.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)"
-"features.16.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"features.16.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)"
-"avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)"
-"classifier.0, (Linear)","(1, 960)","(1, 1280)"
-"classifier.1, (Hardswish)","(1, 1280)","(1, 1280)"
-"classifier.2, (Dropout)","(1, 1280)","(1, 1280)"
-"classifier.3, (Linear)","(1, 1280)","(1, 3)"
+layer,input_shape,output_shape,,,,,,,,,,,,
+"features.0.0, (Conv2d)","(1, 3, 224, 224)","(1, 16, 112, 112)",,,Stem,features.0.0, (Conv2d),,,,,,PyTorch Layer Path,MobileNet-V3-Large Stage
+"features.0.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Stem,features.0.1, (BatchNorm2d),,,,,,features.0.*,"Stem Conv (3×3, stride 2)"
+"features.0.2, (Hardswish)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Stem,features.0.2, (Hardswish),,,,,,features.1.*,"IR-1 (MBConv, k=3, ReLU)"
+"features.1.block.0.0, (Conv2d)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1.block.0.0, (Conv2d),,,,,,features.2.*,"IR-2 (MBConv, k=3, ReLU)"
+"features.1.block.0.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1.block.0.1, (BatchNorm2d),,,,,,features.3.*,"IR-3 (MBConv, k=3, ReLU)"
+"features.1.block.0.2, (ReLU)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1.block.0.2, (ReLU),,,,,,features.4.*,"IR-4 (MBConv, k=5, SE, ReLU)"
+"features.1.block.1.0, (Conv2d)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1.block.1.0, (Conv2d),,,,,,features.5.*,"IR-5 (MBConv, k=5, SE, ReLU)"
+"features.1.block.1.1, (BatchNorm2d)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1.block.1.1, (BatchNorm2d),,,,,,features.6.*,"IR-6 (MBConv, k=5, SE, ReLU)"
+"features.1, (InvertedResidual)","(1, 16, 112, 112)","(1, 16, 112, 112)",,,Inverted Residue1,features.1, (InvertedResidual),,,,,,features.7.*,"IR-7 (MBConv, k=3, Hardswish)"
+"features.2.block.0.0, (Conv2d)","(1, 16, 112, 112)","(1, 64, 112, 112)",,,Inverted Residue2,features.2.block.0.0, (Conv2d),,,,,,features.8.*,"IR-8 (MBConv, k=3, Hardswish)"
+"features.2.block.0.1, (BatchNorm2d)","(1, 64, 112, 112)","(1, 64, 112, 112)",,,Inverted Residue2,features.2.block.0.1, (BatchNorm2d),,,,,,features.9.*,"IR-9 (MBConv, k=3, Hardswish)"
+"features.2.block.0.2, (ReLU)","(1, 64, 112, 112)","(1, 64, 112, 112)",,,Inverted Residue2,features.2.block.0.2, (ReLU),,,,,,features.10.*,"IR-10 (MBConv, k=3, Hardswish)"
+"features.2.block.1.0, (Conv2d)","(1, 64, 112, 112)","(1, 64, 56, 56)",,,Inverted Residue2,features.2.block.1.0, (Conv2d),,,,,,features.11.*,"IR-11 (MBConv, k=3, SE, Hardswish)"
+"features.2.block.1.1, (BatchNorm2d)","(1, 64, 56, 56)","(1, 64, 56, 56)",,,Inverted Residue2,features.2.block.1.1, (BatchNorm2d),,,,,,features.12.*,"IR-12 (MBConv, k=3, SE, Hardswish)"
+"features.2.block.1.2, (ReLU)","(1, 64, 56, 56)","(1, 64, 56, 56)",,,Inverted Residue2,features.2.block.1.2, (ReLU),,,,,,features.13.*,"IR-13 (MBConv, k=5, SE, Hardswish)"
+"features.2.block.2.0, (Conv2d)","(1, 64, 56, 56)","(1, 24, 56, 56)",,,Inverted Residue2,features.2.block.2.0, (Conv2d),,,,,,features.14.*,"IR-14 (MBConv, k=5, SE, Hardswish)"
+"features.2.block.2.1, (BatchNorm2d)","(1, 24, 56, 56)","(1, 24, 56, 56)",,,Inverted Residue2,features.2.block.2.1, (BatchNorm2d),,,,,,features.15.*,"IR-15 (MBConv, k=5, SE, Hardswish)"
+"features.2, (InvertedResidual)","(1, 16, 112, 112)","(1, 24, 56, 56)",,,Inverted Residue2,features.2, (InvertedResidual),,,,,,features.16.*,*Final 1×1 Conv (embedding expansion
+"features.3.block.0.0, (Conv2d)","(1, 24, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.0.0, (Conv2d),,,,,,,
+"features.3.block.0.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.0.1, (BatchNorm2d),,,,,,,
+"features.3.block.0.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.0.2, (ReLU),,,,,,,
+"features.3.block.1.0, (Conv2d)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.1.0, (Conv2d),,,,,,,
+"features.3.block.1.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.1.1, (BatchNorm2d),,,,,,,
+"features.3.block.1.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue3,features.3.block.1.2, (ReLU),,,,,,,
+"features.3.block.2.0, (Conv2d)","(1, 72, 56, 56)","(1, 24, 56, 56)",,,Inverted Residue3,features.3.block.2.0, (Conv2d),,,,,,,
+"features.3.block.2.1, (BatchNorm2d)","(1, 24, 56, 56)","(1, 24, 56, 56)",,,Inverted Residue3,features.3.block.2.1, (BatchNorm2d),,,,,,,
+"features.3, (InvertedResidual)","(1, 24, 56, 56)","(1, 24, 56, 56)",,,Inverted Residue3,features.3, (InvertedResidual),,,,,,,
+"features.4.block.0.0, (Conv2d)","(1, 24, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue4,features.4.block.0.0, (Conv2d),,,,,,,
+"features.4.block.0.1, (BatchNorm2d)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue4,features.4.block.0.1, (BatchNorm2d),,,,,,,
+"features.4.block.0.2, (ReLU)","(1, 72, 56, 56)","(1, 72, 56, 56)",,,Inverted Residue4,features.4.block.0.2, (ReLU),,,,,,,
+"features.4.block.1.0, (Conv2d)","(1, 72, 56, 56)","(1, 72, 28, 28)",,,Inverted Residue4,features.4.block.1.0, (Conv2d),,,,,,,
+"features.4.block.1.1, (BatchNorm2d)","(1, 72, 28, 28)","(1, 72, 28, 28)",,,Inverted Residue4,features.4.block.1.1, (BatchNorm2d),,,,,,,
+"features.4.block.1.2, (ReLU)","(1, 72, 28, 28)","(1, 72, 28, 28)",,,Inverted Residue4,features.4.block.1.2, (ReLU),,,,,,,
+"features.4.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 72, 28, 28)","(1, 72, 1, 1)",,,Inverted Residue4,features.4.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.4.block.2.fc1, (Conv2d)","(1, 72, 1, 1)","(1, 24, 1, 1)",,,Inverted Residue4,features.4.block.2.fc1, (Conv2d),,,,,,,
+"features.4.block.2.activation, (ReLU)","(1, 24, 1, 1)","(1, 24, 1, 1)",,,Inverted Residue4,features.4.block.2.activation, (ReLU),,,,,,,
+"features.4.block.2.fc2, (Conv2d)","(1, 24, 1, 1)","(1, 72, 1, 1)",,,Inverted Residue4,features.4.block.2.fc2, (Conv2d),,,,,,,
+"features.4.block.2.scale_activation, (Hardsigmoid)","(1, 72, 1, 1)","(1, 72, 1, 1)",,,Inverted Residue4,features.4.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.4.block.2, (SqueezeExcitation)","(1, 72, 28, 28)","(1, 72, 28, 28)",,,Inverted Residue4,features.4.block.2, (SqueezeExcitation),,,,,,,
+"features.4.block.3.0, (Conv2d)","(1, 72, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue4,features.4.block.3.0, (Conv2d),,,,,,,
+"features.4.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue4,features.4.block.3.1, (BatchNorm2d),,,,,,,
+"features.4, (InvertedResidual)","(1, 24, 56, 56)","(1, 40, 28, 28)",,,Inverted Residue4,features.4, (InvertedResidual),,,,,,,
+"features.5.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.0.0, (Conv2d),,,,,,,
+"features.5.block.0.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.0.1, (BatchNorm2d),,,,,,,
+"features.5.block.0.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.0.2, (ReLU),,,,,,,
+"features.5.block.1.0, (Conv2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.1.0, (Conv2d),,,,,,,
+"features.5.block.1.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.1.1, (BatchNorm2d),,,,,,,
+"features.5.block.1.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.1.2, (ReLU),,,,,,,
+"features.5.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 120, 28, 28)","(1, 120, 1, 1)",,,Inverted Residue5,features.5.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.5.block.2.fc1, (Conv2d)","(1, 120, 1, 1)","(1, 32, 1, 1)",,,Inverted Residue5,features.5.block.2.fc1, (Conv2d),,,,,,,
+"features.5.block.2.activation, (ReLU)","(1, 32, 1, 1)","(1, 32, 1, 1)",,,Inverted Residue5,features.5.block.2.activation, (ReLU),,,,,,,
+"features.5.block.2.fc2, (Conv2d)","(1, 32, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue5,features.5.block.2.fc2, (Conv2d),,,,,,,
+"features.5.block.2.scale_activation, (Hardsigmoid)","(1, 120, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue5,features.5.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.5.block.2, (SqueezeExcitation)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue5,features.5.block.2, (SqueezeExcitation),,,,,,,
+"features.5.block.3.0, (Conv2d)","(1, 120, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue5,features.5.block.3.0, (Conv2d),,,,,,,
+"features.5.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue5,features.5.block.3.1, (BatchNorm2d),,,,,,,
+"features.5, (InvertedResidual)","(1, 40, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue5,features.5, (InvertedResidual),,,,,,,
+"features.6.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.0.0, (Conv2d),,,,,,,
+"features.6.block.0.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.0.1, (BatchNorm2d),,,,,,,
+"features.6.block.0.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.0.2, (ReLU),,,,,,,
+"features.6.block.1.0, (Conv2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.1.0, (Conv2d),,,,,,,
+"features.6.block.1.1, (BatchNorm2d)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.1.1, (BatchNorm2d),,,,,,,
+"features.6.block.1.2, (ReLU)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.1.2, (ReLU),,,,,,,
+"features.6.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 120, 28, 28)","(1, 120, 1, 1)",,,Inverted Residue6,features.6.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.6.block.2.fc1, (Conv2d)","(1, 120, 1, 1)","(1, 32, 1, 1)",,,Inverted Residue6,features.6.block.2.fc1, (Conv2d),,,,,,,
+"features.6.block.2.activation, (ReLU)","(1, 32, 1, 1)","(1, 32, 1, 1)",,,Inverted Residue6,features.6.block.2.activation, (ReLU),,,,,,,
+"features.6.block.2.fc2, (Conv2d)","(1, 32, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue6,features.6.block.2.fc2, (Conv2d),,,,,,,
+"features.6.block.2.scale_activation, (Hardsigmoid)","(1, 120, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue6,features.6.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.6.block.2, (SqueezeExcitation)","(1, 120, 28, 28)","(1, 120, 28, 28)",,,Inverted Residue6,features.6.block.2, (SqueezeExcitation),,,,,,,
+"features.6.block.3.0, (Conv2d)","(1, 120, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue6,features.6.block.3.0, (Conv2d),,,,,,,
+"features.6.block.3.1, (BatchNorm2d)","(1, 40, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue6,features.6.block.3.1, (BatchNorm2d),,,,,,,
+"features.6, (InvertedResidual)","(1, 40, 28, 28)","(1, 40, 28, 28)",,,Inverted Residue6,features.6, (InvertedResidual),,,,,,,
+"features.7.block.0.0, (Conv2d)","(1, 40, 28, 28)","(1, 240, 28, 28)",,,Inverted Residue7,features.7.block.0.0, (Conv2d),,,,,,,
+"features.7.block.0.1, (BatchNorm2d)","(1, 240, 28, 28)","(1, 240, 28, 28)",,,Inverted Residue7,features.7.block.0.1, (BatchNorm2d),,,,,,,
+"features.7.block.0.2, (Hardswish)","(1, 240, 28, 28)","(1, 240, 28, 28)",,,Inverted Residue7,features.7.block.0.2, (Hardswish),,,,,,,
+"features.7.block.1.0, (Conv2d)","(1, 240, 28, 28)","(1, 240, 14, 14)",,,Inverted Residue7,features.7.block.1.0, (Conv2d),,,,,,,
+"features.7.block.1.1, (BatchNorm2d)","(1, 240, 14, 14)","(1, 240, 14, 14)",,,Inverted Residue7,features.7.block.1.1, (BatchNorm2d),,,,,,,
+"features.7.block.1.2, (Hardswish)","(1, 240, 14, 14)","(1, 240, 14, 14)",,,Inverted Residue7,features.7.block.1.2, (Hardswish),,,,,,,
+"features.7.block.2.0, (Conv2d)","(1, 240, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue7,features.7.block.2.0, (Conv2d),,,,,,,
+"features.7.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue7,features.7.block.2.1, (BatchNorm2d),,,,,,,
+"features.7, (InvertedResidual)","(1, 40, 28, 28)","(1, 80, 14, 14)",,,Inverted Residue7,features.7, (InvertedResidual),,,,,,,
+"features.8.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.0.0, (Conv2d),,,,,,,
+"features.8.block.0.1, (BatchNorm2d)","(1, 200, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.0.1, (BatchNorm2d),,,,,,,
+"features.8.block.0.2, (Hardswish)","(1, 200, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.0.2, (Hardswish),,,,,,,
+"features.8.block.1.0, (Conv2d)","(1, 200, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.1.0, (Conv2d),,,,,,,
+"features.8.block.1.1, (BatchNorm2d)","(1, 200, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.1.1, (BatchNorm2d),,,,,,,
+"features.8.block.1.2, (Hardswish)","(1, 200, 14, 14)","(1, 200, 14, 14)",,,Inverted Residue8,features.8.block.1.2, (Hardswish),,,,,,,
+"features.8.block.2.0, (Conv2d)","(1, 200, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue8,features.8.block.2.0, (Conv2d),,,,,,,
+"features.8.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue8,features.8.block.2.1, (BatchNorm2d),,,,,,,
+"features.8, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue8,features.8, (InvertedResidual),,,,,,,
+"features.9.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.0.0, (Conv2d),,,,,,,
+"features.9.block.0.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.0.1, (BatchNorm2d),,,,,,,
+"features.9.block.0.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.0.2, (Hardswish),,,,,,,
+"features.9.block.1.0, (Conv2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.1.0, (Conv2d),,,,,,,
+"features.9.block.1.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.1.1, (BatchNorm2d),,,,,,,
+"features.9.block.1.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue9,features.9.block.1.2, (Hardswish),,,,,,,
+"features.9.block.2.0, (Conv2d)","(1, 184, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue9,features.9.block.2.0, (Conv2d),,,,,,,
+"features.9.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue9,features.9.block.2.1, (BatchNorm2d),,,,,,,
+"features.9, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue9,features.9, (InvertedResidual),,,,,,,
+"features.10.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.0.0, (Conv2d),,,,,,,
+"features.10.block.0.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.0.1, (BatchNorm2d),,,,,,,
+"features.10.block.0.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.0.2, (Hardswish),,,,,,,
+"features.10.block.1.0, (Conv2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.1.0, (Conv2d),,,,,,,
+"features.10.block.1.1, (BatchNorm2d)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.1.1, (BatchNorm2d),,,,,,,
+"features.10.block.1.2, (Hardswish)","(1, 184, 14, 14)","(1, 184, 14, 14)",,,Inverted Residue10,features.10.block.1.2, (Hardswish),,,,,,,
+"features.10.block.2.0, (Conv2d)","(1, 184, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue10,features.10.block.2.0, (Conv2d),,,,,,,
+"features.10.block.2.1, (BatchNorm2d)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue10,features.10.block.2.1, (BatchNorm2d),,,,,,,
+"features.10, (InvertedResidual)","(1, 80, 14, 14)","(1, 80, 14, 14)",,,Inverted Residue10,features.10, (InvertedResidual),,,,,,,
+"features.11.block.0.0, (Conv2d)","(1, 80, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.0.0, (Conv2d),,,,,,,
+"features.11.block.0.1, (BatchNorm2d)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.0.1, (BatchNorm2d),,,,,,,
+"features.11.block.0.2, (Hardswish)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.0.2, (Hardswish),,,,,,,
+"features.11.block.1.0, (Conv2d)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.1.0, (Conv2d),,,,,,,
+"features.11.block.1.1, (BatchNorm2d)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.1.1, (BatchNorm2d),,,,,,,
+"features.11.block.1.2, (Hardswish)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.1.2, (Hardswish),,,,,,,
+"features.11.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 480, 14, 14)","(1, 480, 1, 1)",,,Inverted Residue11,features.11.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.11.block.2.fc1, (Conv2d)","(1, 480, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue11,features.11.block.2.fc1, (Conv2d),,,,,,,
+"features.11.block.2.activation, (ReLU)","(1, 120, 1, 1)","(1, 120, 1, 1)",,,Inverted Residue11,features.11.block.2.activation, (ReLU),,,,,,,
+"features.11.block.2.fc2, (Conv2d)","(1, 120, 1, 1)","(1, 480, 1, 1)",,,Inverted Residue11,features.11.block.2.fc2, (Conv2d),,,,,,,
+"features.11.block.2.scale_activation, (Hardsigmoid)","(1, 480, 1, 1)","(1, 480, 1, 1)",,,Inverted Residue11,features.11.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.11.block.2, (SqueezeExcitation)","(1, 480, 14, 14)","(1, 480, 14, 14)",,,Inverted Residue11,features.11.block.2, (SqueezeExcitation),,,,,,,
+"features.11.block.3.0, (Conv2d)","(1, 480, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue11,features.11.block.3.0, (Conv2d),,,,,,,
+"features.11.block.3.1, (BatchNorm2d)","(1, 112, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue11,features.11.block.3.1, (BatchNorm2d),,,,,,,
+"features.11, (InvertedResidual)","(1, 80, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue11,features.11, (InvertedResidual),,,,,,,
+"features.12.block.0.0, (Conv2d)","(1, 112, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.0.0, (Conv2d),,,,,,,
+"features.12.block.0.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.0.1, (BatchNorm2d),,,,,,,
+"features.12.block.0.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.0.2, (Hardswish),,,,,,,
+"features.12.block.1.0, (Conv2d)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.1.0, (Conv2d),,,,,,,
+"features.12.block.1.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.1.1, (BatchNorm2d),,,,,,,
+"features.12.block.1.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.1.2, (Hardswish),,,,,,,
+"features.12.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 672, 14, 14)","(1, 672, 1, 1)",,,Inverted Residue12,features.12.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.12.block.2.fc1, (Conv2d)","(1, 672, 1, 1)","(1, 168, 1, 1)",,,Inverted Residue12,features.12.block.2.fc1, (Conv2d),,,,,,,
+"features.12.block.2.activation, (ReLU)","(1, 168, 1, 1)","(1, 168, 1, 1)",,,Inverted Residue12,features.12.block.2.activation, (ReLU),,,,,,,
+"features.12.block.2.fc2, (Conv2d)","(1, 168, 1, 1)","(1, 672, 1, 1)",,,Inverted Residue12,features.12.block.2.fc2, (Conv2d),,,,,,,
+"features.12.block.2.scale_activation, (Hardsigmoid)","(1, 672, 1, 1)","(1, 672, 1, 1)",,,Inverted Residue12,features.12.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.12.block.2, (SqueezeExcitation)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue12,features.12.block.2, (SqueezeExcitation),,,,,,,
+"features.12.block.3.0, (Conv2d)","(1, 672, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue12,features.12.block.3.0, (Conv2d),,,,,,,
+"features.12.block.3.1, (BatchNorm2d)","(1, 112, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue12,features.12.block.3.1, (BatchNorm2d),,,,,,,
+"features.12, (InvertedResidual)","(1, 112, 14, 14)","(1, 112, 14, 14)",,,Inverted Residue12,features.12, (InvertedResidual),,,,,,,
+"features.13.block.0.0, (Conv2d)","(1, 112, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue13,features.13.block.0.0, (Conv2d),,,,,,,
+"features.13.block.0.1, (BatchNorm2d)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue13,features.13.block.0.1, (BatchNorm2d),,,,,,,
+"features.13.block.0.2, (Hardswish)","(1, 672, 14, 14)","(1, 672, 14, 14)",,,Inverted Residue13,features.13.block.0.2, (Hardswish),,,,,,,
+"features.13.block.1.0, (Conv2d)","(1, 672, 14, 14)","(1, 672, 7, 7)",,,Inverted Residue13,features.13.block.1.0, (Conv2d),,,,,,,
+"features.13.block.1.1, (BatchNorm2d)","(1, 672, 7, 7)","(1, 672, 7, 7)",,,Inverted Residue13,features.13.block.1.1, (BatchNorm2d),,,,,,,
+"features.13.block.1.2, (Hardswish)","(1, 672, 7, 7)","(1, 672, 7, 7)",,,Inverted Residue13,features.13.block.1.2, (Hardswish),,,,,,,
+"features.13.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 672, 7, 7)","(1, 672, 1, 1)",,,Inverted Residue13,features.13.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.13.block.2.fc1, (Conv2d)","(1, 672, 1, 1)","(1, 168, 1, 1)",,,Inverted Residue13,features.13.block.2.fc1, (Conv2d),,,,,,,
+"features.13.block.2.activation, (ReLU)","(1, 168, 1, 1)","(1, 168, 1, 1)",,,Inverted Residue13,features.13.block.2.activation, (ReLU),,,,,,,
+"features.13.block.2.fc2, (Conv2d)","(1, 168, 1, 1)","(1, 672, 1, 1)",,,Inverted Residue13,features.13.block.2.fc2, (Conv2d),,,,,,,
+"features.13.block.2.scale_activation, (Hardsigmoid)","(1, 672, 1, 1)","(1, 672, 1, 1)",,,Inverted Residue13,features.13.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.13.block.2, (SqueezeExcitation)","(1, 672, 7, 7)","(1, 672, 7, 7)",,,Inverted Residue13,features.13.block.2, (SqueezeExcitation),,,,,,,
+"features.13.block.3.0, (Conv2d)","(1, 672, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue13,features.13.block.3.0, (Conv2d),,,,,,,
+"features.13.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue13,features.13.block.3.1, (BatchNorm2d),,,,,,,
+"features.13, (InvertedResidual)","(1, 112, 14, 14)","(1, 160, 7, 7)",,,Inverted Residue13,features.13, (InvertedResidual),,,,,,,
+"features.14.block.0.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.0.0, (Conv2d),,,,,,,
+"features.14.block.0.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.0.1, (BatchNorm2d),,,,,,,
+"features.14.block.0.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.0.2, (Hardswish),,,,,,,
+"features.14.block.1.0, (Conv2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.1.0, (Conv2d),,,,,,,
+"features.14.block.1.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.1.1, (BatchNorm2d),,,,,,,
+"features.14.block.1.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.1.2, (Hardswish),,,,,,,
+"features.14.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)",,,Inverted Residue14,features.14.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.14.block.2.fc1, (Conv2d)","(1, 960, 1, 1)","(1, 240, 1, 1)",,,Inverted Residue14,features.14.block.2.fc1, (Conv2d),,,,,,,
+"features.14.block.2.activation, (ReLU)","(1, 240, 1, 1)","(1, 240, 1, 1)",,,Inverted Residue14,features.14.block.2.activation, (ReLU),,,,,,,
+"features.14.block.2.fc2, (Conv2d)","(1, 240, 1, 1)","(1, 960, 1, 1)",,,Inverted Residue14,features.14.block.2.fc2, (Conv2d),,,,,,,
+"features.14.block.2.scale_activation, (Hardsigmoid)","(1, 960, 1, 1)","(1, 960, 1, 1)",,,Inverted Residue14,features.14.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.14.block.2, (SqueezeExcitation)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue14,features.14.block.2, (SqueezeExcitation),,,,,,,
+"features.14.block.3.0, (Conv2d)","(1, 960, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue14,features.14.block.3.0, (Conv2d),,,,,,,
+"features.14.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue14,features.14.block.3.1, (BatchNorm2d),,,,,,,
+"features.14, (InvertedResidual)","(1, 160, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue14,features.14, (InvertedResidual),,,,,,,
+"features.15.block.0.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.0.0, (Conv2d),,,,,,,
+"features.15.block.0.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.0.1, (BatchNorm2d),,,,,,,
+"features.15.block.0.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.0.2, (Hardswish),,,,,,,
+"features.15.block.1.0, (Conv2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.1.0, (Conv2d),,,,,,,
+"features.15.block.1.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.1.1, (BatchNorm2d),,,,,,,
+"features.15.block.1.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.1.2, (Hardswish),,,,,,,
+"features.15.block.2.avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)",,,Inverted Residue15,features.15.block.2.avgpool, (AdaptiveAvgPool2d),,,,,,,
+"features.15.block.2.fc1, (Conv2d)","(1, 960, 1, 1)","(1, 240, 1, 1)",,,Inverted Residue15,features.15.block.2.fc1, (Conv2d),,,,,,,
+"features.15.block.2.activation, (ReLU)","(1, 240, 1, 1)","(1, 240, 1, 1)",,,Inverted Residue15,features.15.block.2.activation, (ReLU),,,,,,,
+"features.15.block.2.fc2, (Conv2d)","(1, 240, 1, 1)","(1, 960, 1, 1)",,,Inverted Residue15,features.15.block.2.fc2, (Conv2d),,,,,,,
+"features.15.block.2.scale_activation, (Hardsigmoid)","(1, 960, 1, 1)","(1, 960, 1, 1)",,,Inverted Residue15,features.15.block.2.scale_activation, (Hardsigmoid),,,,,,,
+"features.15.block.2, (SqueezeExcitation)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue15,features.15.block.2, (SqueezeExcitation),,,,,,,
+"features.15.block.3.0, (Conv2d)","(1, 960, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue15,features.15.block.3.0, (Conv2d),,,,,,,
+"features.15.block.3.1, (BatchNorm2d)","(1, 160, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue15,features.15.block.3.1, (BatchNorm2d),,,,,,,
+"features.15, (InvertedResidual)","(1, 160, 7, 7)","(1, 160, 7, 7)",,,Inverted Residue15,features.15, (InvertedResidual),,,,,,,
+"features.16.0, (Conv2d)","(1, 160, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue16,features.16.0, (Conv2d),,,,,,,
+"features.16.1, (BatchNorm2d)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue16,features.16.1, (BatchNorm2d),,,,,,,
+"features.16.2, (Hardswish)","(1, 960, 7, 7)","(1, 960, 7, 7)",,,Inverted Residue16,features.16.2, (Hardswish),,,,,,,
+"avgpool, (AdaptiveAvgPool2d)","(1, 960, 7, 7)","(1, 960, 1, 1)",,,Averagepool,avgpool, (AdaptiveAvgPool2d),,,,,,,
+"classifier.0, (Linear)","(1, 960)","(1, 1280)",,, (Linear),classifier.0, (Linear),,,,,,,
+"classifier.1, (Hardswish)","(1, 1280)","(1, 1280)",,, (Hardswish),classifier.1, (Hardswish),,,,,,,
+"classifier.2, (Dropout)","(1, 1280)","(1, 1280)",,, (Dropout),classifier.2, (Dropout),,,,,,,
+"classifier.3, (Linear)","(1, 1280)","(1, 3)",,, (Linear),classifier.3, (Linear),,,,,,,

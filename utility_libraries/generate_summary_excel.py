@@ -178,7 +178,9 @@ def add_pvalue_sheet(folder_path=".", sheet_names=None):
             
             # Extract class and artifact type from sheet name
             class_match = re.search(r'(Class_[0-2])', str(sheet_name), re.IGNORECASE)
-            artifact_match = re.search(r'(coat|legs|face|bg|all)', str(sheet_name), re.IGNORECASE)
+            temp = sheet_name.split('_')[-1]
+            
+            artifact_match = re.search(r'(coat|legs|face|bg|all)', str(temp), re.IGNORECASE)
             
             class_name = class_match.group(1) if class_match else "Unknown"
             artifact_name = artifact_match.group(1) if artifact_match else "Unknown"
