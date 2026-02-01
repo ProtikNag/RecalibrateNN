@@ -291,6 +291,17 @@ class TCAVAnalyzer:
             for xlsx_file in xlsx_files:
                 # Get directory name (model name)
                 model_dir = os.path.basename(os.path.dirname(xlsx_file))
+                if(model_dir.startswith("vgg16")):
+                    model_dir = model_dir.replace("vgg16", "vgg16")
+                if(model_dir.startswith("inception_v3")):
+                    model_dir = model_dir.replace("inception_v3", "iv3")
+                if(model_dir.startswith("resnet50")):
+                    model_dir = model_dir.replace("resnet50", "rnet50")
+                if(model_dir.startswith("mobilenet_v3_small")):
+                    model_dir = model_dir.replace("mobilenet_v3_small", "mnet_v3_small")
+                if(model_dir.startswith("mobilenet_v3_large")):
+                    model_dir = model_dir.replace("mobilenet_v3_large", "mnet_v3_large")
+                    
                 # Read the workbook
                 xls = pd.ExcelFile(xlsx_file)
                 # Copy each sheet with renamed name
@@ -349,6 +360,8 @@ def main():
     # Initialize and run analyzer
     analyzer = TCAVAnalyzer(root_directory)
     analyzer.run_analysis()
+    if(artifact_name == "background"):
+        artifact_name = "bg"
     analyzer.consolidate_results(artifact_name=artifact_name)
     
     print("Analysis complete!")

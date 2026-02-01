@@ -6,7 +6,7 @@ import re
 def create_model_summaries(folder_path=".", sheet_names=None):
     """Create summary files for each model by extracting sheets from Excel files."""
     if sheet_names is None:
-        sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
+        sheet_names = ["rnet50", "vgg16", "iv3", "mnet_v3_small", "mnet_v3_large"]
     
     # Create a summary file for each model
     for target_name in sheet_names:
@@ -65,7 +65,8 @@ def create_model_summaries(folder_path=".", sheet_names=None):
 def add_summary_sheet(folder_path=".", sheet_names=None):
     """Add a summary sheet to each model summary file that consolidates Hypothesis Test Results."""
     if sheet_names is None:
-        sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
+        #sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
+        sheet_names = ["rnet50", "vgg16", "iv3", "mnet_v3_small", "mnet_v3_large"]
       
     for model_name in sheet_names:
         summary_file = Path(folder_path) / f"summary_{model_name}.xlsx"
@@ -101,7 +102,8 @@ def add_summary_sheet(folder_path=".", sheet_names=None):
             if 'Hypothesis Test Result' in df_sheet.columns:
                 # Extract class and artifact type from sheet name
                 class_match = re.search(r'(Class_[0-2])', str(sheet_name), re.IGNORECASE)
-                artifact_match = re.search(r'(coat|legs|face|back|all)', str(sheet_name), re.IGNORECASE)
+                temp = sheet_name.split('_')[-1]
+                artifact_match = re.search(r'(coat|legs|face|bg|all)', str(temp), re.IGNORECASE)
                 
                 class_name = class_match.group(1) if class_match else "Unknown"
                 artifact_name = artifact_match.group(1) if artifact_match else "Unknown"
@@ -140,7 +142,8 @@ def add_summary_sheet(folder_path=".", sheet_names=None):
 def add_pvalue_sheet(folder_path=".", sheet_names=None):
     """Add a P-value sheet to each model summary file that consolidates all P-values."""
     if sheet_names is None:
-        sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
+        #sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
+        sheet_names = ["rnet50", "vgg16", "iv3", "mnet_v3_small", "mnet_v3_large"]
       
     for model_name in sheet_names:
         summary_file = Path(folder_path) / f"summary_{model_name}.xlsx"
@@ -175,7 +178,7 @@ def add_pvalue_sheet(folder_path=".", sheet_names=None):
             
             # Extract class and artifact type from sheet name
             class_match = re.search(r'(Class_[0-2])', str(sheet_name), re.IGNORECASE)
-            artifact_match = re.search(r'(coat|legs|face|back|all)', str(sheet_name), re.IGNORECASE)
+            artifact_match = re.search(r'(coat|legs|face|bg|all)', str(sheet_name), re.IGNORECASE)
             
             class_name = class_match.group(1) if class_match else "Unknown"
             artifact_name = artifact_match.group(1) if artifact_match else "Unknown"
@@ -234,8 +237,7 @@ def main():
     folder_path = "."  # Change this to your folder path
     
     # Define the sheet names to extract
-    sheet_names = ["resnet50", "vgg16", "inception_v3", "mobilenet_v3_small", "mobilenet_v3_large"]
-    
+    sheet_names = ["rnet50", "vgg16", "iv3", "mnet_v3_small", "mnet_v3_large"]
     create_model_summaries(folder_path, sheet_names)
     add_summary_sheet(folder_path, sheet_names)
     add_pvalue_sheet(folder_path, sheet_names)
