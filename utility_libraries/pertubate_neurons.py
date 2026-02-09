@@ -36,100 +36,89 @@ def create_combinations(layers_to_modify):
         combinations.extend(itertools.combinations(layers_to_modify, i))
     return combinations
 
-def perturbate_neurons(layers_to_modify , neuromaperturbation, method='gaussian'):
-    results = {}
-    return_consolidated_results = []
+def perturbate_neurons(layers_to_modify, neuronPerturbation, method='gaussian', filename_prefix='perturbation_results', image_list=None):
     layers_to_modify = create_combinations(layers_to_modify)
         
     print(f"Created {len(layers_to_modify)} combinations of layers to perturb.")
     print(f"Layers to modify: {layers_to_modify}")
-    for layer in layers_to_modify:
-        print(f"Perturbing layer: {layer}")
-        layers_to_perturb = list(layer)
-        if(method == 'gaussian'):
-            print(f"Pertubating with method {method} ")
-            print(f"layers to pertubate {layers_to_perturb} ")
-            results = neuronPerturbation.compute_delta_logits_with_perturbation(gausian_noise=True, layer_names=layers_to_perturb)
-        elif(method == 'mean'):
-            print(f"Pertubating with method {method} ")
-            results = neuronPerturbation.compute_delta_logits_with_perturbation(layer_names=layers_to_perturb)
-        #Append the layers to modify to the results dictionary
-        results['layers_to_modify'] = layers_to_modify
-        return_consolidated_results.append(results)
-        #print(f"Delta logits for layer {layer}: {results['delta_logits']}")
-        #print(f"Original predicted probability: {results['original_predicted_prob']}, Perturbed predicted probability: {results['perturbed_predicted_prob']}")
-        #print(f"Original predicted class: {results['original_predicted_class']}, Perturbed predicted class: {results['perturbed_predicted_class']}")
-        print(f"length of the original predictions are {len(results['original_predicted_prob'])} and perturbed predictions are {len(results['perturbed_predicted_prob'])}")
-        del results
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        gc.collect()
-
-        original_probs = []
-        predicted_probs = []
-         # Clear CUDA cache after each layer combination to free memory
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        gc.collect()
-    return return_consolidated_results
-
-
-def save_results_to_excel(consolidated_results, filename, image_list):
-    """
-    Save perturbation results to an Excel file with multiple sheets.
-    Args:
-        consolidated_results: List of dictionaries containing perturbation results
-        filename: Name of the output Excel file
-    """
+    filename_prefix = neuronPerturbation.getmodel_name()
+    # Create Excel writer once for all combinations
+    filename = f'{filename_prefix}_{method}.xlsx'
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
-        for i in range(len(consolidated_results)):
-            # Reset tensors for each combination
-            original_prob_tensor = []
-            pertubrated_prob_tensor = []
-            pertubrated_class_tensor = []
-            original_class_tensor = []
-            delta_logits_tensor = []
-            image_paths  = [x[0] for x in image_list]
-            class_ids    = [x[1] for x in image_list]
-            class_names  = [x[2] for x in image_list]
-            tensor_list = consolidated_results[i]['original_predicted_prob']
-            original_prob_tensor.extend(np.concatenate([t.detach().cpu().numpy() for t in tensor_list]))
-            tensor_list = consolidated_results[i]['perturbed_predicted_prob']
-            pertubrated_prob_tensor.extend(np.concatenate([t.detach().cpu().numpy() for t in tensor_list]))
-            tensor_list = consolidated_results[i]['original_predicted_class']
-            original_class_tensor.extend(np.concatenate([t.detach().cpu().numpy() for t in tensor_list]))
-            tensor_list = consolidated_results[i]['perturbed_predicted_class']
-            pertubrated_class_tensor.extend(np.concatenate([t.detach().cpu().numpy() for t in tensor_list]))
-
-            tensor_list = consolidated_results[i]['delta_logits']
-            delta_logits_tensor.extend(np.concatenate([t.detach().cpu().numpy() for t in tensor_list]))
-            # Create a dataframe for the current combination
-            sheet_data = {
-                'image_list':  image_paths,
-                'class_id': class_ids,
-                'class_name': class_names,
-                'original_prob': original_prob_tensor,
-                'original_predicted_class': original_class_tensor,
-                'perturbed_prob': pertubrated_prob_tensor,
-                'perturbed_predicted_class': pertubrated_class_tensor,
-                'delta_logits': delta_logits_tensor
-                
-            }
-            df = pd.DataFrame(sheet_data)
-            sheet_name = f'combination_{i}'
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-        #writing the summary sheet
-        affected_layers = consolidated_results[0]['layers_to_modify']
-        layers_column = [ " | ".join(tup)   for tup in affected_layers]
+        # Write summary sheet first
+        layers_column = [" | ".join(tup) for tup in layers_to_modify]
         summary_df = pd.DataFrame(layers_column, columns=['Layers Perturbed'])
         summary_df.to_excel(writer, sheet_name='Summary', index=False)
-            #'class0_delta_logits': delta_logit_c0,
-            #'class1_delta_logits': delta_logit_c1,
-            #'class2_delta_logits': delta_logit_c2,
+        
+        for idx, layer in enumerate(layers_to_modify):
+            print(f"Perturbing layer: {layer}")
+            layers_to_perturb = list(layer)
             
- 
+            if method == 'gaussian':
+                print(f"Pertubating with method {method}")
+                print(f"layers to pertubate {layers_to_perturb}")
+                results = neuronPerturbation.compute_delta_logits_with_perturbation(gausian_noise=True, layer_names=layers_to_perturb)
+            elif method == 'mean':
+                print(f"Pertubating with method {method}")
+                results = neuronPerturbation.compute_delta_logits_with_perturbation(layer_names=layers_to_perturb)
             
+            print(f"length of the original predictions are {len(results['original_predicted_prob'])} and perturbed predictions are {len(results['perturbed_predicted_prob'])}")
+            
+            # Save immediately to Excel
+            save_single_result_to_sheet(writer, results, image_list, idx)
+            
+            # Clean up immediately
+            del results
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+    
     print(f"Results saved to {filename}")
+    return filename
+
+
+def save_single_result_to_sheet(writer, results, image_list, combination_idx):
+    """
+    Save a single perturbation result to an Excel sheet immediately.
+    Args:
+        writer: pandas ExcelWriter object
+        results: Dictionary containing single perturbation result
+        image_list: List of tuples containing (image_path, class_id, class_name)
+        combination_idx: Index of the current combination
+    """
+    image_paths = [x[0] for x in image_list]
+    class_ids = [x[1] for x in image_list]
+    class_names = [x[2] for x in image_list]
+    
+    # Extract tensors and convert to numpy
+    original_prob_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['original_predicted_prob']])
+    pertubrated_prob_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['perturbed_predicted_prob']])
+    original_class_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['original_predicted_class']])
+    pertubrated_class_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['perturbed_predicted_class']])
+    delta_logits_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['delta_logits']])
+    # Split delta_logits into separate columns for each class
+    delta_logits_class0 = delta_logits_tensor[:, 0]
+    delta_logits_class1 = delta_logits_tensor[:, 1]
+    delta_logits_class2 = delta_logits_tensor[:, 2]
+    # Create dataframe
+    sheet_data = {
+        'image_list': image_paths,
+        'class_id': class_ids,
+        'class_name': class_names,
+        'original_prob': original_prob_tensor,
+        'original_predicted_class': original_class_tensor,
+        'perturbed_prob': pertubrated_prob_tensor,
+        'perturbed_predicted_class': pertubrated_class_tensor,
+        'delta_logits_class0': delta_logits_class0,
+        'delta_logits_class1': delta_logits_class1,
+        'delta_logits_class2': delta_logits_class2
+    }
+    
+    df = pd.DataFrame(sheet_data)
+    sheet_name = f'combination_{combination_idx}'
+    df.to_excel(writer, sheet_name=sheet_name, index=False)
+    
+    print(f"Saved combination {combination_idx} to sheet {sheet_name}")
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -258,6 +247,7 @@ if(__name__ == "__main__"):
         batch_size = 32
     
     neuronPerturbation = NeuronPerturbationUtilities(device)
+    neuronPerturbation.setmodel_name(model_name)
     image_list = []
     # Collect all images with their classes
     for class_name, class_label in class_dirs.items():
@@ -270,6 +260,7 @@ if(__name__ == "__main__"):
     classes = [(i[1], i[2]) for i in image_list]
     print(f"Image list collected with {len(image_list)} images.")
     print(f"Path of images are: image_list[0:5]: ", image_list[0:5])
+    print(f"Path to images are {images[0:10]}")
     
     neuronPerturbation.batch_process_images(images, batch_size=batch_size)
     print("Images loaded into memory ")
@@ -284,16 +275,16 @@ if(__name__ == "__main__"):
     pertubation_method = neuronPerturbation.getperturbation_methods(model_name)
     print(f"Pertubating with method Gaussian Noise ")
     print(f"layers to pertubate {layers_to_perturb} ")
-    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='gaussian')
-    save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_gaussian.xlsx', image_list)
+    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='gaussian',image_list = image_list)
+    #save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_gaussian.xlsx', image_list)
     # Clear memory before next perturbation method
     del consolidated_results
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     print(f"Pertubating with method Means {layers_to_perturb}",)
-    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean')
-    save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_means.xlsx', image_list)
+    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean',  image_list = images)
+    #save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_means.xlsx', image_list = image_list)
     # Clear memory before next perturbation method
     del consolidated_results
     gc.collect()

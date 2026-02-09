@@ -16,7 +16,7 @@ class NeuronPerturbationUtilities:
     model = None
     hooks = None
     device = None
-    
+    model_name = None
     def __init__(self, device=None) -> None :
         self.device = device if device is not None else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -25,6 +25,13 @@ class NeuronPerturbationUtilities:
         print(f"Number of batches: {len(self.image_tensor)}")
         print(f"Batch size: {self.image_tensor[0].shape[0]}")
         print(f"Image tensor shape: {self.image_tensor[0].shape}")
+    
+    def getmodel_name(self):
+        return  self.model_name
+        
+    def setmodel_name(self,model_name):
+        self.model_name = model_name
+        return
         
     def preprocess_image(self, image_path):
         """
