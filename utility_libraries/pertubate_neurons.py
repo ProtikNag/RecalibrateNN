@@ -1,5 +1,4 @@
 import itertools
-
 import torch
 from torchvision import models, transforms
 from PIL import Image
@@ -10,6 +9,8 @@ import pandas as pd
 import argparse
 import torch.nn as nn
 from  pertubation_utilities import NeuronPerturbationUtilities
+import yaml
+import gc
 
 
 #parser = argparse.ArgumentParser(description='Extract layer activations from a model')
@@ -26,9 +27,7 @@ from  pertubation_utilities import NeuronPerturbationUtilities
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Perturb neurons in a neural network model')
     parser.add_argument('--model_name', type=str, default='inception_v3', help='Name of the model (e.g., vgg16, resnet50, inception_v3)')
-    parser.add_argument('--model_path', type=str, help='Path to the model file')
-    parser.add_argument('--dataset', type=str, help='Path to the dataset directory')
-    parser.add_argument('--method', type=str, choices=['gaussian', 'mean'], default='gaussian', help='Perturbation method to use')
+    parser.add_argument('--config', type=str, help='Path to the yaml file')
     return parser.parse_args()
 
 def create_combinations(layers_to_modify):
@@ -61,12 +60,17 @@ def perturbate_neurons(layers_to_modify , neuromaperturbation, method='gaussian'
         #print(f"Original predicted probability: {results['original_predicted_prob']}, Perturbed predicted probability: {results['perturbed_predicted_prob']}")
         #print(f"Original predicted class: {results['original_predicted_class']}, Perturbed predicted class: {results['perturbed_predicted_class']}")
         print(f"length of the original predictions are {len(results['original_predicted_prob'])} and perturbed predictions are {len(results['perturbed_predicted_prob'])}")
+        del results
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
+
         original_probs = []
         predicted_probs = []
-        for i in range(len(results['original_predicted_prob'])):
-            #print(f"Original predicted probability for image {i}: {results['original_predicted_prob'][i]}, Perturbed predicted probability for image {i}: {results['perturbed_predicted_prob'][i]}")
-            #print(f"Original predicted class for image {i}: {results['original_predicted_class'][i]}, Perturbed predicted class for image {i}: {results['perturbed_predicted_class'][i]}")
-            pass
+         # Clear CUDA cache after each layer combination to free memory
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
     return return_consolidated_results
 
 
@@ -128,21 +132,104 @@ def save_results_to_excel(consolidated_results, filename, image_list):
     print(f"Results saved to {filename}")
 
 
-
-#model_path = os.path.join(args.model_path , model_name, f'{model_name}.pth') if args.model_path else model_base_path
-#base_image_dir = args.dataset if args.dataset else base_image_dir
-#if(args.saveactivations):
-#    save_activations = args.saveactivations
-#else:
-#    save_activations = False
-
-
-
-#os.makedirs(activations_dir, exist_ok=True)
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
+def load_layer_config(config_path='layer_config.yaml'):
+    """
+    Load layer configuration from a YAML file.
+    Args:
+        config_path: Path to the YAML configuration file
+    Returns:
+        Dictionary containing layer configurations for different models
+    """
+    try:
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        return config
+    except FileNotFoundError:
+        print(f"Config file not found at {config_path}. Using default configuration.")
+        return None
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML file: {e}")
+        return None
+
+def get_layers_from_config(model_name, config_path='layer_config.yaml'):
+    """
+    Get layers to perturb for a specific model from YAML configuration.
+    Args:
+        model_name: Name of the model (e.g., 'inception_v3', 'resnet50')
+        config_path: Path to the YAML configuration file
+    Returns:
+        List of layer names to perturb, or empty list if not found
+    """
+    config = load_layer_config(config_path)
+    if config and 'models' in config and model_name in config['models']:
+        layers = config['models'][model_name].get('layers_to_perturb', [])
+        print(f"Loaded {len(layers)} layers for {model_name} from config file.")
+        return layers
+    else:
+        print(f"No configuration found for model {model_name}. Returning empty list.")
+        return []
+
+def get_model_path_from_config(model_name, config_path='layer_config.yaml', default_path=None):
+    """
+    Get model path for a specific model from YAML configuration.
+    Args:
+        model_name: Name of the model (e.g., 'inception_v3', 'resnet50')
+        config_path: Path to the YAML configuration file
+        default_path: Default path to use if not found in config
+    Returns:
+        Model path as string
+    """
+    config = load_layer_config(config_path)
+    if config and 'models' in config and model_name in config['models']:
+        model_path = config['models'][model_name].get('model_path', default_path)
+        print(f"Model path for {model_name}: {model_path}")
+        return model_path
+    else:
+        print(f"No model path found for {model_name}. Using default: {default_path}")
+        return default_path
+
+    
+def get_dataset_path_from_config(model_name, config_path='layer_config.yaml', default_path=None):
+    """
+    Get dataset path for a specific model from YAML configuration.
+    Args:
+        model_name: Name of the model (e.g., 'inception_v3', 'resnet50')
+        config_path: Path to the YAML configuration file
+        default_path: Default path to use if not found in config
+    Returns:
+        Dataset path as string
+    """
+    config = load_layer_config(config_path)
+    batch_size = 32
+    if config and 'models' in config and model_name in config['models']:
+        batch_size = config['general'].get('batch_size', 64)
+        dataset_path = config['general'].get('dataset_path', default_path)
+        print(f"Dataset path for {model_name}: {dataset_path}")
+        return dataset_path, batch_size
+    else:
+        print(f"No dataset path found for {model_name}. Using default: {default_path}")
+        return default_path, batch_size
+
+def get_perturbation_methods_from_config(model_name, config_path='layer_config.yaml'):
+    """
+    Get perturbation methods for a specific model from YAML configuration.
+    Args:
+        model_name: Name of the model (e.g., 'inception_v3', 'resnet50')
+        config_path: Path to the YAML configuration file
+    Returns:
+        List of perturbation methods, defaults to ['gaussian', 'mean']
+    """
+    config = load_layer_config(config_path)
+    if config and 'models' in config and model_name in config['models']:
+        methods = config['models'][model_name].get('perturbation_methods', ['gaussian', 'mean'])
+        print(f"Perturbation methods for {model_name}: {methods}")
+        return methods
+    else:
+        print(f"No perturbation methods found for {model_name}. Using defaults: ['gaussian', 'mean']")
+        return ['gaussian', 'mean']
    
 
 if(__name__ == "__main__"):
@@ -158,17 +245,17 @@ if(__name__ == "__main__"):
     args = parse_arguments()
     if(os.name == 'posix'):
         model_name = args.model_name if args.model_name else 'inception_v3'
-        model_path = args.model_path if args.model_path  else '/mnt/sdd/basics/balanced_training' 
-        #f'/mnt/sdd/basics/balanced_training/{model_name}/{model_path}'
-        model_base_path = os.path.join(model_path, model_name , model_name+'.pth')
-        base_image_dir = args.dataset if args.dataset else '/home/balanced_dataset/train'  
-        #base_image_dir = '/home/balanced_dataset/'
-        method = args.method   
+        config_path = args.config if args.config else 'layer_config.yaml'
+        model_base_path = get_model_path_from_config(model_name, config_path, default_path=f'/mnt/sdd/basics/base_models/{model_name}.pth')
+        base_image_dir, batch_size = get_dataset_path_from_config(model_name, config_path, default_path='/home/datasets/train')
+        #Limit batch size to 32 to save memory
+        batch_size = min(batch_size, 32)
+        method = get_perturbation_methods_from_config(model_name, config_path)
     else:
         model_name = 'inception_v3'
         model_base_path = f'C:\\Users\\srikant1\\Downloads\\results\\neuronpertubation\\{model_name}.pth'  # Replace with your model path
         base_image_dir = r'C:\Users\srikant1\Downloads\results\neuronpertubation\train'  # Replace with your base image directory
-    
+        batch_size = 32
     
     neuronPerturbation = NeuronPerturbationUtilities(device)
     image_list = []
@@ -183,15 +270,14 @@ if(__name__ == "__main__"):
     classes = [(i[1], i[2]) for i in image_list]
     print(f"Image list collected with {len(image_list)} images.")
     print(f"Path of images are: image_list[0:5]: ", image_list[0:5])
-    neuronPerturbation.batch_process_images(images)
+    
+    neuronPerturbation.batch_process_images(images, batch_size=batch_size)
+    print("Images loaded into memory ")
     neuronPerturbation.print_parameters()
     neuronPerturbation.load_model(model_base_path)
-    layers_to_perturb = ['Mixed_6e.branch_pool.conv','Mixed_6e.branch7x7dbl_3.conv' ]
+    print("Main model loaded into memory ")
+    layers_to_perturb = get_layers_from_config(model_name)
     neuronPerturbation.set_layers_to_perturb(layers_to_perturb)
-
-    layers_to_perturb = neuronPerturbation.get_layerstoPerturb(model_name)
-    
-
     print(f"Layers to perturb: {layers_to_perturb}")    
     #Perform Image pertubation on these layers
     #define a function to get layers to perturb
@@ -200,10 +286,19 @@ if(__name__ == "__main__"):
     print(f"layers to pertubate {layers_to_perturb} ")
     consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='gaussian')
     save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_gaussian.xlsx', image_list)
+    # Clear memory before next perturbation method
+    del consolidated_results
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     print(f"Pertubating with method Means {layers_to_perturb}",)
     consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean')
     save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_means.xlsx', image_list)
-    
+    # Clear memory before next perturbation method
+    del consolidated_results
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 
