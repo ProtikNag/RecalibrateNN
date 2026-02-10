@@ -34,8 +34,15 @@ def create_combinations(layers_to_modify):
     combinations = []
     for i in range(1, len(layers_to_modify) + 1):
         combinations.extend(itertools.combinations(layers_to_modify, i))
+    
+    if len(combinations) > 11:
+        single_combos = [c for c in combinations if len(c) == 1]
+        multi_combos = [c for c in combinations if len(c) > 1]
+        random_multi = list(np.random.choice(len(multi_combos), min(10, len(multi_combos)), replace=False))
+        combinations = single_combos + [multi_combos[i] for i in random_multi]
+    print("Total numbe of combinations to perturb: ", len(combinations))
     return combinations
-
+    
 def perturbate_neurons(layers_to_modify, neuronPerturbation, method='gaussian', filename_prefix='perturbation_results', image_list=None):
     layers_to_modify = create_combinations(layers_to_modify)
         
