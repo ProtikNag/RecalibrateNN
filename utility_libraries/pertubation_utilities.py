@@ -10,6 +10,8 @@ from scipy import stats
 
 import torch.nn as nn
 
+from logger import Logger_Singleton
+
 class NeuronPerturbationUtilities:
     activations = {}
     image_tensor = []
@@ -17,15 +19,20 @@ class NeuronPerturbationUtilities:
     hooks = None
     device = None
     model_name = None
+    log_util = None
     def __init__(self, device=None) -> None :
         self.device = device if device is not None else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.log_util = Logger_Singleton()
 
     def print_parameters(self):
         print("Input image shapes")
         print(f"Number of batches: {len(self.image_tensor)}")
         print(f"Batch size: {self.image_tensor[0].shape[0]}")
         print(f"Image tensor shape: {self.image_tensor[0].shape}")
-    
+        self.log_util.log(f"Input image shapes: Number of batches: {len(self.image_tensor)}, \
+                          Batch size: {self.image_tensor[0].shape[0]}, \
+                          Image tensor shape: {self.image_tensor[0].shape}")    
+
     def getmodel_name(self):
         return  self.model_name
         
@@ -85,6 +92,8 @@ class NeuronPerturbationUtilities:
             batch_tensor = torch.cat(current_batch, dim=0)
             batches.append(batch_tensor)
         self.image_tensor = batches
+        self.log_util.log(f"Batch processed {len(image_path_list)} \
+                          images into {len(batches)} batches with batch size {batch_size}.")
         return batches
 
 
@@ -92,6 +101,8 @@ class NeuronPerturbationUtilities:
     def get_activation(self,name):
         def hook(_model, _input, output):
             self.activations[name] = output.detach()
+            self.log_util.log(f"Captured activation for layer: {name}, \
+                activation shape: {output.shape}")
         return hook
 
     def load_model(self, model_path=None):
@@ -100,7 +111,7 @@ class NeuronPerturbationUtilities:
         self.model = torch.load(model_path, map_location=self.device)
         self.model.to(self.device)
         self.model.eval()
-        
+        self.log_util.log(f"Model loaded from {model_path} and set to evaluation mode.")
         # Register hooks for all layers
         #hooks = []
         #for name, layer in self.model.named_modules():
@@ -128,6 +139,7 @@ class NeuronPerturbationUtilities:
     
     def set_layers_to_perturb(self, layers):
         self.layers_to_perturb = layers
+        self.log_util.log(f"Custom layers to perturb set: {layers}")
         return self.layers_to_perturb
 
     def getperturbation_methods(self, _model_name):
@@ -163,7 +175,7 @@ class NeuronPerturbationUtilities:
                 target_layer.append(layer)
                 break
                 
-        
+        self.log_util.log(f"Target layer found: {layer_name}")
         if len(target_layer) == 0:
             raise ValueError(f"Layer '{layer_name}' not found in model")
         
@@ -180,6 +192,7 @@ class NeuronPerturbationUtilities:
                 
             # Get activation for the specified layer
             if layer_name in self.activations:
+                self.log_util.log(f"Captured activation for layer: {layer_name}, activation shape: {self.activations[layer_name].shape}")
                 layer_activations.append(self.activations[layer_name].clone())
         
         # Remove the hook
@@ -189,22 +202,25 @@ class NeuronPerturbationUtilities:
         # Stack all activations and compute mean across batch dimension
         if len(layer_activations) > 0:
             stacked_activations = torch.cat(layer_activations, dim=0)
-            
+            self.log_util.log(f"Stacked activations shape for layer {layer_name}: {stacked_activations.shape}") 
             if gaussian_noise:
                 # Add Gaussian noise to original activations
-                noise = gaussian_value * torch.randn_like(stacked_activations) * stacked_activations.std(dim=0, keepdim=True) + stacked_activations.mean(dim=0, keepdim=True)
-                
+                #noise = gaussian_value * torch.randn_like(stacked_activations) * stacked_activations.std(dim=0, keepdim=True) + stacked_activations.mean(dim=0, keepdim=True)
                 noise =  gaussian_value * stacked_activations.std(dim=0, keepdim=True) * torch.randn_like(stacked_activations)
-
-                #noise = gaussian_value * torch.randn_like(stacked_activations)
                 noise = torch.full_like(stacked_activations, gaussian_value)
                 perturbed_activation = stacked_activations + noise
+                self.log_util.log(f"Added Gaussian noise with std: {gaussian_value}")
                 #print(f"Added Gaussian noise with std: {gaussian_value}")
-                #print(f"perurbed activation shape: {perturbed_activation.shape}, sample values: {perturbed_activation.view(-1)[:5]}")
+                #print(f"perurbed activation shape: {perturbed_activation.shape}, sample values: {perturbed_activation.view(-1)}")
             else:
                 # Use mean activation
+                self.log_util.log(f"Using mean replacement for perturbation.")
                 perturbed_activation = stacked_activations.mean(dim=0, keepdim=True)
+            self.log_util.log(f"Perturbed activation  values: {perturbed_activation[0].view(-1)[:]}")  # Log sample values for debugging
             
+            #Checking normality of activations using Shapiro-Wilk test and printing standard deviation of activations for debugging purposes. This can help identify if the activations are heavily skewed or have outliers which might affect the perturbation results.
+            self.log_util.log(f"Standard deviation of activations for layer {layer_name}: {stacked_activations.std(dim=0).mean().item():.4f}")  
+            self.log_util.log(f"Checking normality of activations for layer {layer_name} using Shapiro-Wilk test.") 
             # Check if activations are normally distributed using Shapiro-Wilk test
             flattened = stacked_activations.cpu().numpy().flatten()
             # Sample if too large (Shapiro-Wilk limited to 5000 samples)
@@ -213,12 +229,11 @@ class NeuronPerturbationUtilities:
             else:
                 sample = flattened
             stat, p_value = stats.shapiro(sample)
-            #print(f"Shapiro-Wilk test: statistic={stat:.4f}, p-value={p_value:.4e}")
-            #print(f"Normally distributed: {p_value > 0.05}")
+            self.log_util.log(f"Shapiro-Wilk test: statistic={stat:.4f}, p-value={p_value:.4e}")
+            self.log_util.log(f"Normally distributed: {p_value > 0.05}")
             stdev_activation = stacked_activations.std(dim=0, keepdim=True)
-            #print(f"Perturbed activation shape: {perturbed_activation.shape}, Std activation shape: {stdev_activation.shape}")
-            #print(f"Perturbed activation sample values: {perturbed_activation.view(-1)[:5]}")
-            #print(f"Std activation sample values: {stdev_activation.view(-1)[:5]}")
+            self.log_util.log(f"Perturbed activation shape: {perturbed_activation.shape}, Std activation shape: {stdev_activation.shape}")
+            self.log_util.log(f"Std activation sample values: {stdev_activation.view(-1)[:5]}")
             return perturbed_activation
         else:
             raise ValueError(f"Layer '{layer_name}' not found in activations")
@@ -244,7 +259,7 @@ class NeuronPerturbationUtilities:
         perturbed_logits_list = []
         org_predicted_prob = None
         perturbed_predicted_prob = None
-        
+        self.log_util.log(f"="*80)
         model = self.model if model is None else model
         if model is None:
             raise ValueError("Model cannot be None. Please load a model first using load_model().")
@@ -285,6 +300,7 @@ class NeuronPerturbationUtilities:
             for layer_name in layer_names:
                 def perturbation_replacement_hook(_module, _input, output, ln=layer_name):
                     # Broadcast the perturbed activation to match current output batch size
+                    self.log_util.log(f"Applying perturbation for layer: {ln}, original output shape: {output.shape}, perturbed activation shape: {perturbed_activation[ln].shape}")
                     perturb = perturbed_activation[ln]
                     #print(output.shape, perturb.shape, perturbed_activation.keys())
                     #return perturb.expand_as(output).clone()

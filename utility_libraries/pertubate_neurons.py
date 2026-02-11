@@ -10,16 +10,11 @@ import argparse
 import torch.nn as nn
 from  pertubation_utilities import NeuronPerturbationUtilities
 import yaml
+from logger import Logger_Singleton
 import gc
+from datetime import datetime
 
 
-#parser = argparse.ArgumentParser(description='Extract layer activations from a model')
-#parser.add_argument('--model_name', type=str, required=True, help='Name of the model (e.g., vgg16, resnet50)')
-#parser.add_argument('--model_path', type=str, default=None, help='Path to the model file (default:/mnt/sdd/basics/base_models/{model_name}.pth)')
-#parser.add_argument('--activation_path', type=str, default=None, help='Path to the model file (default:/mnt/sdd/basics/activations/{model_name}_activations/ )')
-#parser.add_argument('--dataset', type=str, default=None, help='Path to the dataset  file (default:/home/datasets/train )')
-#parser.add_argument('--saveactivations',action='store_true', help='Save activations (default: False)')
-#args = parser.parse_args()
 #activations
 #model_name = args.model_name
 #Usage 
@@ -37,9 +32,16 @@ def create_combinations(layers_to_modify):
     
     if len(combinations) > 11:
         single_combos = [c for c in combinations if len(c) == 1]
-        multi_combos = [c for c in combinations if len(c) > 1]
-        random_multi = list(np.random.choice(len(multi_combos), min(10, len(multi_combos)), replace=False))
-        combinations = single_combos + [multi_combos[i] for i in random_multi]
+        two_combos    = [c for c in combinations if len(c) == 2]
+        three_combos  = [c for c in combinations if len(c) == 3]
+        four_combos  = [c for c in combinations if len(c) == 4]
+        #multi_combos = [c for c in combinations if len(c) > 1]
+        two_combo_utils = list(np.random.choice(len(two_combos), min(3, len(two_combos)), replace=False))
+        three_combo_utils = list(np.random.choice(len(three_combos), min(3, len(three_combos)), replace=False))
+        four_combos_utils = list(np.random.choice(len(four_combos), min(3, len(four_combos)), replace=False))
+        #random_multi = list(np.random.choice(len(multi_combos), min(3, len(two_combos)), replace=False))
+        #combinations = single_combos + [multi_combos[i] for i in random_multi]
+        combinations = single_combos + two_combos + three_combos +four_combos
     print("Total numbe of combinations to perturb: ", len(combinations))
     return combinations
     
@@ -236,7 +238,10 @@ if(__name__ == "__main__"):
         'deer': 0,
         'horse': 1,
         'zebra': 2
-    }
+    }  
+    datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    log_util = Logger_Singleton(f"perturbation_log_{datetime_str}.log")
 
     args = parse_arguments()
     if(os.name == 'posix'):
@@ -252,7 +257,12 @@ if(__name__ == "__main__"):
         model_base_path = f'C:\\Users\\srikant1\\Downloads\\results\\neuronpertubation\\{model_name}.pth'  # Replace with your model path
         base_image_dir = r'C:\Users\srikant1\Downloads\results\neuronpertubation\train'  # Replace with your base image directory
         batch_size = 32
-    
+    log_util.log("="*80)
+    log_util.log(f"Starting perturbation process at {datetime_str}")
+    log_util.log(f"Model Name: {model_name}")
+    log_util.log(f"Model Path: {model_base_path}")
+    log_util.log(f"Base Image Directory: {base_image_dir}")
+    log_util.log(f"Batch Size: {batch_size}")    
     neuronPerturbation = NeuronPerturbationUtilities(device)
     neuronPerturbation.setmodel_name(model_name)
     image_list = []
@@ -268,6 +278,7 @@ if(__name__ == "__main__"):
     print(f"Image list collected with {len(image_list)} images.")
     print(f"Path of images are: image_list[0:5]: ", image_list[0:5])
     print(f"Path to images are {images[0:10]}")
+    log_util.log(f"Collected {len(image_list)} images for analysis.")
     
     neuronPerturbation.batch_process_images(images, batch_size=batch_size)
     print("Images loaded into memory ")
@@ -297,43 +308,3 @@ if(__name__ == "__main__"):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
-
-
-
-
-
-
-"""
-    for layer in layers_to_perturb:
-        print(f"Perturbing layer: {layer}")
-        layer = [layer]
-        results = neuronPerturbation.compute_delta_logits_with_perturbation(gausian_noise=True, layer_names=layers_to_perturb)
-        print(f"Delta logits for layer {layer}: {results['delta_logits']}")
-        print(f"Original predicted probability: {results['original_predicted_prob']}, Perturbed predicted probability: {results['perturbed_predicted_prob']}")
-        print(f"Original predicted class: {results['original_predicted_class']}, Perturbed predicted class: {results['perturbed_predicted_class']}")
-
-        #print(f"Pertubating with method Gaussian Noise ")
-        #results = neuronPerturbation.compute_delta_logits_with_perturbation(gausian_noise=True, layer_names=layers_to_perturb)
-        #print(f"Delta logits with Gaussian Noise: {results['delta_logits']}")
-        #print(f"Original predicted probability: {results['original_predicted_prob']}, Perturbed predicted probability: {results['perturbed_predicted_prob']}")
-        #print(f"Original predicted class: {results['original_predicted_class']}, Perturbed predicted class: {results['perturbed_predicted_class']}")
-
-
-
-    print(f"Pertubating with method Means ")
-    for layer in layers_to_perturb:
-        print(f"Perturbing layer: {layer}")
-        layer = [layer]
-        results = neuronPerturbation.compute_delta_logits_with_perturbation(layer_names=layer)
-        print(f"Delta logits for layer {layer}: {results['delta_logits']}")
-        print(f"Original predicted probability: {results['original_predicted_prob']}, Perturbed predicted probability: {results['perturbed_predicted_prob']}")
-        print(f"Original predicted class: {results['original_predicted_class']}, Perturbed predicted class: {results['perturbed_predicted_class']}")
-
-    
-    
-    
-    
-    #print(delta_logits_list, original_logits_list, perturbed_logits_list)
-
-"""
