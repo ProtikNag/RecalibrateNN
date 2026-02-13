@@ -41,12 +41,11 @@ def create_combinations(layers_to_modify):
         two_combo_utils = list(np.random.choice(len(two_combos), min(3, len(two_combos)), replace=False))
         three_combo_utils = list(np.random.choice(len(three_combos), min(3, len(three_combos)), replace=False))
         four_combos_utils = list(np.random.choice(len(four_combos), min(3, len(four_combos)), replace=False))
-        #random_multi = list(np.random.choice(len(multi_combos), min(3, len(two_combos)), replace=False))
-        #combinations = single_combos + [multi_combos[i] for i in random_multi]
         combinations = single_combos + [two_combos[i] for i in two_combo_utils] + [three_combos[i] for i in three_combo_utils] + [four_combos[i] for i in four_combos_utils]
         log_util.log(f"Total combinations before sampling: {len(combinations)}")
         log_util.log(f"Selected {len(combinations) - len(single_combos)} combinations after sampling: {combinations[len(single_combos):]}")
     print("Total numbe of combinations to perturb: ", len(combinations))
+    print(f"Selected {len(combinations) - len(single_combos)} combinations after sampling: {combinations[len(single_combos):]}")
     return combinations
 
     
@@ -320,7 +319,7 @@ if(__name__ == "__main__"):
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     print(f"Pertubating with method Means {layers_to_perturb}",)
-    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean',  image_list = images, saveas=saveas)
+    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean',  image_list = image_list, saveas=saveas)
     #save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_means.xlsx', image_list = image_list)
     # Clear memory before next perturbation method
     del consolidated_results

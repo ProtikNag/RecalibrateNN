@@ -90,6 +90,18 @@ class Logger_Singleton:
         else:
             self.logger.warning(f"Unknown log level: {level} - {message}")
 
+    def log(self, level, message):
+        if(self._instance == None):
+            return
+        if level == 'info':
+            self.logger.info(message)
+        elif level == 'debug':
+            self.logger.debug(message)
+        elif level == 'error':
+            self.logger.error(message)
+        else:
+            self.logger.warning(f"Unknown log level: {level} - {message}")
+
     def info(self, message):
         if(self._instance == None):
             return
