@@ -23,13 +23,15 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Perturb neurons in a neural network model')
     parser.add_argument('--model_name', type=str, default='inception_v3', help='Name of the model (e.g., vgg16, resnet50, inception_v3)')
     parser.add_argument('--config', type=str, help='Path to the yaml file')
+    parser.add_argument('--layers_to_pertubate', default=None, type=str, help='list of layers to pertubate') 
+    parser.add_argument('--saveas', type=str, help='Destination excel file name')
+
     return parser.parse_args()
 
 def create_combinations(layers_to_modify):
     combinations = []
     for i in range(1, len(layers_to_modify) + 1):
-        combinations.extend(itertools.combinations(layers_to_modify, i))
-    
+        combinations.extend(itertools.combinations(layers_to_modify, i))   
     if len(combinations) > 11:
         single_combos = [c for c in combinations if len(c) == 1]
         two_combos    = [c for c in combinations if len(c) == 2]
@@ -41,18 +43,21 @@ def create_combinations(layers_to_modify):
         four_combos_utils = list(np.random.choice(len(four_combos), min(3, len(four_combos)), replace=False))
         #random_multi = list(np.random.choice(len(multi_combos), min(3, len(two_combos)), replace=False))
         #combinations = single_combos + [multi_combos[i] for i in random_multi]
-        combinations = single_combos + two_combos + three_combos +four_combos
+        combinations = single_combos + [two_combos[i] for i in two_combo_utils] + [three_combos[i] for i in three_combo_utils] + [four_combos[i] for i in four_combos_utils]
+        log_util.log(f"Total combinations before sampling: {len(combinations)}")
+        log_util.log(f"Selected {len(combinations) - len(single_combos)} combinations after sampling: {combinations[len(single_combos):]}")
     print("Total numbe of combinations to perturb: ", len(combinations))
     return combinations
+
     
-def perturbate_neurons(layers_to_modify, neuronPerturbation, method='gaussian', filename_prefix='perturbation_results', image_list=None):
+def perturbate_neurons(layers_to_modify, neuronPerturbation, method='gaussian', saveas='perturbation_results', image_list=None):
     layers_to_modify = create_combinations(layers_to_modify)
         
     print(f"Created {len(layers_to_modify)} combinations of layers to perturb.")
     print(f"Layers to modify: {layers_to_modify}")
     filename_prefix = neuronPerturbation.getmodel_name()
     # Create Excel writer once for all combinations
-    filename = f'{filename_prefix}_{method}.xlsx'
+    filename = f'{filename_prefix}_{saveas}_{method}.xlsx'
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         # Write summary sheet first
         layers_column = [" | ".join(tup) for tup in layers_to_modify]
@@ -95,6 +100,7 @@ def save_single_result_to_sheet(writer, results, image_list, combination_idx):
         image_list: List of tuples containing (image_path, class_id, class_name)
         combination_idx: Index of the current combination
     """
+    
     image_paths = [x[0] for x in image_list]
     class_ids = [x[1] for x in image_list]
     class_names = [x[2] for x in image_list]
@@ -252,12 +258,18 @@ if(__name__ == "__main__"):
         #Limit batch size to 32 to save memory
         batch_size = min(batch_size, 32)
         method = get_perturbation_methods_from_config(model_name, config_path)
+        saveas = args.saveas if args.saveas else 'perturbation_results.xlsx'
     else:
         model_name = 'inception_v3'
         model_base_path = f'C:\\Users\\srikant1\\Downloads\\results\\neuronpertubation\\{model_name}.pth'  # Replace with your model path
         base_image_dir = r'C:\Users\srikant1\Downloads\results\neuronpertubation\train'  # Replace with your base image directory
         batch_size = 32
+        saveas = 'perbutation_results.xlsx'
+    
     log_util.log("="*80)
+    log_util.log(f"Perturbation method and options {saveas}")
+    log_util.log("="*80)
+    
     log_util.log(f"Starting perturbation process at {datetime_str}")
     log_util.log(f"Model Name: {model_name}")
     log_util.log(f"Model Path: {model_base_path}")
@@ -285,15 +297,22 @@ if(__name__ == "__main__"):
     neuronPerturbation.print_parameters()
     neuronPerturbation.load_model(model_base_path)
     print("Main model loaded into memory ")
-    layers_to_perturb = get_layers_from_config(model_name)
+    if(args.layers_to_pertubate is not None):
+        temp = args.layers_to_pertubate
+        layers_to_perturb = [item.strip() for item in temp.split(',')]
+    else:
+        layers_to_perturb = get_layers_from_config(model_name)
+    
     neuronPerturbation.set_layers_to_perturb(layers_to_perturb)
-    print(f"Layers to perturb: {layers_to_perturb}")    
+    print(f"Layers to perturb: {layers_to_perturb}")
+    log_util.log(f"Options class and artifact {saveas}")
+    log_util.log(f"List of layers to pertubate {layers_to_perturb}")
     #Perform Image pertubation on these layers
     #define a function to get layers to perturb
     pertubation_method = neuronPerturbation.getperturbation_methods(model_name)
     print(f"Pertubating with method Gaussian Noise ")
     print(f"layers to pertubate {layers_to_perturb} ")
-    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='gaussian',image_list = image_list)
+    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='gaussian',image_list = image_list, saveas=saveas)
     #save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_gaussian.xlsx', image_list)
     # Clear memory before next perturbation method
     del consolidated_results
@@ -301,7 +320,7 @@ if(__name__ == "__main__"):
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     print(f"Pertubating with method Means {layers_to_perturb}",)
-    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean',  image_list = images)
+    consolidated_results = perturbate_neurons(layers_to_perturb, neuronPerturbation, method='mean',  image_list = images, saveas=saveas)
     #save_results_to_excel(consolidated_results, f'perturbation_results_{model_name}_means.xlsx', image_list = image_list)
     # Clear memory before next perturbation method
     del consolidated_results

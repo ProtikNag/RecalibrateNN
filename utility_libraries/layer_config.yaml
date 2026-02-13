@@ -9,11 +9,19 @@ models:
     layers_to_perturb:
     #Layers specific and sensitive to background
     #Class 0 background
-      - 'maxpool2'
-      - 'Mixed_5d.branch3x3dbl_3.conv'
-      - 'Mixed_6e.branch_pool.conv'
+    #  - 'maxpool2'
+    #  - 'Mixed_5d.branch3x3dbl_3.conv'
+    #  - 'Mixed_6e.branch_pool.conv'
+    #  - 'Mixed_7a.branch7x7x3_2.conv'
+    #  - 'Mixed_7c.branch1x1.conv'
+    #Class 1 background
+      - 'Conv2d_4a_3x3.conv'
+      - 'Mixed_5c.branch5x5_1.conv'
+      - 'Mixed_6e.branch7x7dbl_3.conv'
       - 'Mixed_7a.branch7x7x3_2.conv'
-      - 'Mixed_7c.branch1x1.conv'
+      - 'Mixed_7c.branch3x3dbl_3a.conv'
+    #Class 2 background
+  
   vgg16:
     model_path: '/mnt/sdd/basics/balanced_training/vgg16/vgg16.pth'
     layers_to_perturb:

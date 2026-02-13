@@ -23,7 +23,7 @@ model_name = args.model_name
 if(os.name == 'posix'):
     model_name = args.model_name
     model_path = model_name + '.pth'
-    model_base_path = f'/mnt/sdd/basics/base_models/{model_name}/{model_path}'  # Replace with your model path
+    model_base_path = f'/mnt/sdd/basics/balanced_training/{model_name}/{model_path}'  # Replace with your model path
     base_image_dir = '/home/datasets/train'  # Replace with your base image directory
 else:
     model_base_path = f'C:\\Users\\srikant1\\Downloads\\gpu\\legacy\\training\\{model_name}\\{model_path}'  # Replace with your model path
