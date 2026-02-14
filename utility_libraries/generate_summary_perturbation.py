@@ -20,8 +20,8 @@ def write_summary_to_excel(summary_data, output_path):
     ws.title = "Summary_gaussian"
     
     # Write headers
-    headers = ['File', 'Combination', 'Combination Layer', 'Method', 'Class', 'Mean_Original_Prob', 'Mean_Perturbed_Prob', 
-               'Mean_Delta_Logits_Class0', 'Mean_Delta_Logits_Class1', 'Mean_Delta_Logits_Class2']
+    headers = ['File','Method Used', 'Artifact used', 'Class Used', 'Combination', 'Combination Layer', 'Method', 'Class', 'Mean_Original_Prob',   
+    'Mean_Perturbed_Prob', 'Mean_Delta_Logits_Class0', 'Mean_Delta_Logits_Class1', 'Mean_Delta_Logits_Class2']
     ws.append(headers)
     
     # Write summary data
@@ -33,7 +33,9 @@ def write_summary_to_excel(summary_data, output_path):
     print(f"Summary saved to: {output_path}")
 
 def create_desitnation_file(directory):
-    summary_path = os.path.join(directory, 'summary.xlsx')
+    temp = directory.split('/')[-1]
+    print(temp)
+    summary_path = os.path.join(directory,  temp + '_summary.xlsx')
     wb = Workbook()
     # Remove default sheet
     if 'Sheet' in wb.sheetnames:
@@ -69,6 +71,10 @@ def process_files(perturbation_list,method_name, directory, wb):
         sheet_names = xl_file.sheet_names
         sheet_names.pop(0)  # Remove Summary sheet
         print(f"Sheets in {filename}: {sheet_names}")      
+        method_used = filename.split('_')[-1]
+        artifact_used = filename.split('_')[-2]
+        class_used = filename.split('_')[-3]
+        
         # Read the summary sheet and create a list of the first column
         try:
             summary_df = pd.read_excel(file_path, sheet_name='Summary')
@@ -86,6 +92,7 @@ def process_files(perturbation_list,method_name, directory, wb):
                 # Replace class_id values: 'd' -> 0, 'h' -> 1, 'z' -> 2
                 #mapping = {'d': 0, 'h': 1, 'z': 2}
                 #df['class_id'] = df['class_id'].map(mapping).fillna(df['class_id'])
+                
                 for class_id in [0, 1, 2]:
                     class_df = df[df['class_id'] == class_id]
                     if class_df.empty:
@@ -104,9 +111,11 @@ def process_files(perturbation_list,method_name, directory, wb):
                     # 12 & 13. Store results in summary file
                     row_data = [
                         filename,
+                        method_used,
+                        artifact_used,
+                        class_used,
                         worksheet,
                         combination_layer,
-                        method_name,
                         class_id,
                         mean_original_prob,
                         mean_perturbed_prob,
@@ -125,7 +134,7 @@ def process_files(perturbation_list,method_name, directory, wb):
 def main():
     # 1. Get directory name from command line
     if len(sys.argv) < 2:
-        print("Usage: python summariseperturbation.py <directory_path>")
+        print("Usage: python generate_summary_perturbation.py <directory_path>")
         sys.exit(1)
     
     directory = sys.argv[1]
