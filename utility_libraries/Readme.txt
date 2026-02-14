@@ -94,7 +94,7 @@ python generate_summary_excel.py
 Generic scripts: 
 ------------------------------------------------------------------------------------------
 1. image_topdf.py: Convert images to pdf for paper
- 
+2. Silhoutte.py: Generate Silhoutte.py of image2. Silhoutte.py: Generate Silhoutte.py of image 
  
 
 ==========================================================================================
@@ -113,3 +113,5 @@ Create summary of the corellation sheets
         r'/mnt/sdb2/sensitivity_analysis_paper/corelation_face',
         r'/mnt/sdb2/sensitivity_analysis_paper/corelation_leg'
 Creates 1 sheet containint 1 artifact per for all models
+
+
