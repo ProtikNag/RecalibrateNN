@@ -112,30 +112,7 @@ class NeuronPerturbationUtilities:
         self.model.to(self.device)
         self.model.eval()
         self.log_util.log(f"Model loaded from {model_path} and set to evaluation mode.")
-        # Register hooks for all layers
-        #hooks = []
-        #for name, layer in self.model.named_modules():
-        #    if isinstance(layer, (nn.Conv2d, nn.Linear, nn.ReLU, nn.MaxPool2d)):
-        #        hooks.append(layer.register_forward_hook(self.get_activation(name)))
-        
         return 
-
-    def get_layerstoPerturb(self, model_name):
-        layers_to_perturb = []
-        if(model_name == "vgg16"):
-            layers_to_perturb = ['features.2']
-        if(model_name == "inception_v3"):
-            layers_to_perturb = ['Conv2d_3b_1x1.conv','Mixed_5b.branch1x1.conv','Mixed_6a.branch3x3.conv','Mixed_6e.branch_pool.conv','Mixed_7a.branch7x7x3_3.conv','Mixed_7c.branch_pool.conv']
-            layers_to_perturb = ['Conv2d_1a_3x3.conv',
-'Mixed_5b.branch1x1.conv',
-'Mixed_5c.branch3x3dbl_1.conv',
-'Mixed_5d.branch5x5_2.conv',
-'Mixed_6a.branch3x3dbl_1.conv',
-'Mixed_6b.branch7x7_3.conv']
-        #Using overriding methods here to make it easier to test with different layers. If layers_to_perturb is set using set_layers_to_perturb, it will override the default layers for the model.
-        layers_to_perturb = self.layers_to_perturb if hasattr(self, 'layers_to_perturb') and self.layers_to_perturb is not None else layers_to_perturb
-        return layers_to_perturb
-    
     
     def set_layers_to_perturb(self, layers):
         self.layers_to_perturb = layers
@@ -146,7 +123,7 @@ class NeuronPerturbationUtilities:
         perturbation_methods = ['mean_replacement', 'tcav_concept_subspacermoval', 'gaussian_noise_injection']
         return perturbation_methods
 
-    def compute_perturbated_neuron_activation(self, model= None, image_list= None, layer_name= None, gaussian_noise=False, gaussian_value=1e-3):
+    def compute_perturbated_neuron_activation(self, model= None, image_list= None, layer_name= None, method_name = None, pertubation_value=1e-3):
         """
         Computes the mean neuron activation for a specified layer across multiple images.
         Optionally adds Gaussian noise to the activations.
@@ -155,8 +132,8 @@ class NeuronPerturbationUtilities:
             model: PyTorch model
             image_list: List of preprocessed image tensors
             layer_name: Name of the layer to compute mean activations for
-            gaussian_noise: If True, adds Gaussian noise instead of using mean replacement
-            gaussian_value: Standard deviation of Gaussian noise (default: 1e-3)
+            method_name: Method to use for perturbation ('mean', 'gaussian', or 'alpha')
+            pertubation_value: Value used for perturbation (standard deviation for 'gaussian', alpha for 'alpha') (default: 1e-3)
             
         Returns:
             perturbed_activation: Tensor with the same shape as the layer's output, 
@@ -203,19 +180,29 @@ class NeuronPerturbationUtilities:
         if len(layer_activations) > 0:
             stacked_activations = torch.cat(layer_activations, dim=0)
             self.log_util.log(f"Stacked activations shape for layer {layer_name}: {stacked_activations.shape}") 
-            if gaussian_noise:
+            if method_name == 'gaussian':
                 # Add Gaussian noise to original activations
                 #noise = gaussian_value * torch.randn_like(stacked_activations) * stacked_activations.std(dim=0, keepdim=True) + stacked_activations.mean(dim=0, keepdim=True)
-                noise =  gaussian_value * stacked_activations.std(dim=0, keepdim=True) * torch.randn_like(stacked_activations)
-                noise = torch.full_like(stacked_activations, gaussian_value)
+                noise =  pertubation_value * stacked_activations.std(dim=0, keepdim=True) * torch.randn_like(stacked_activations)
+                noise = torch.full_like(stacked_activations, pertubation_value)
                 perturbed_activation = stacked_activations + noise
-                self.log_util.log(f"Added Gaussian noise with std: {gaussian_value}")
+                self.log_util.log(f"Added Gaussian noise with std: {pertubation_value}")
                 #print(f"Added Gaussian noise with std: {gaussian_value}")
                 #print(f"perurbed activation shape: {perturbed_activation.shape}, sample values: {perturbed_activation.view(-1)}")
-            else:
+            elif method_name == 'mean':
                 # Use mean activation
                 self.log_util.log(f"Using mean replacement for perturbation.")
                 perturbed_activation = stacked_activations.mean(dim=0, keepdim=True)
+            elif method_name == 'alpha':
+                alpha = pertubation_value     
+                print(f"Using alpha scaling for perturbation with alpha: {alpha}")           
+                self.log_util.log(f"Using alpha scaling for perturbation with alpha: {alpha}")
+                perturbed_activation = stacked_activations + stacked_activations * alpha
+                print(f"Applied alpha scaling with alpha: {alpha}, sample values: {perturbed_activation.view(-1)[:5]}")
+                print(f"Stacked activations sample values: {stacked_activations.view(-1)[:5]}")
+            else:
+                raise ValueError(f"Unsupported method_name: {method_name}. Use 'mean', 'gaussian', or 'alpha'.")
+            
             self.log_util.log(f"Perturbed activation  values: {perturbed_activation[0].view(-1)[:]}")  # Log sample values for debugging
             
             #Checking normality of activations using Shapiro-Wilk test and printing standard deviation of activations for debugging purposes. This can help identify if the activations are heavily skewed or have outliers which might affect the perturbation results.
@@ -239,8 +226,9 @@ class NeuronPerturbationUtilities:
             raise ValueError(f"Layer '{layer_name}' not found in activations")
 
 
+            
 
-    def compute_delta_logits_with_perturbation(self, gausian_noise = False, gausian_value = 1e-3,model = None, image_list = None, layer_names = None):
+    def compute_delta_logits_with_perturbation(self, method_name = None, pertubation_value = 1e-3,model = None, image_list = None, layer_names = None):
         """
         Computes delta logits between original and perturbed predictions using mean replacement.
         
@@ -272,19 +260,19 @@ class NeuronPerturbationUtilities:
         perturbed_activation = {}
         target_layers = {}
         for layer_name in layer_names:
-            perturbed_activation[layer_name] = self.compute_perturbated_neuron_activation( model = model, gaussian_noise = gausian_noise, gaussian_value = gausian_value, image_list = image_list, layer_name = layer_name)
+            perturbed_activation[layer_name] = self.compute_perturbated_neuron_activation(model=model, image_list=image_list, layer_name=layer_name, method_name=method_name, pertubation_value=pertubation_value)              
             # Find the layer module
             for name, layer in model.named_modules():
                 if name == layer_name:
                     target_layers[layer_name] = layer
                     break
-            
             if layer_name not in target_layers:
                 raise ValueError(f"Layer '{layer_name}' not found in model")
         org_predicted_prob = []
         perturbed_predicted_prob = []
         org_predicted_class = []
         perturbedpredicted_class = []
+        
         for image_tensor in image_list:
             # Get original logits
             with torch.no_grad():
@@ -302,15 +290,14 @@ class NeuronPerturbationUtilities:
                     # Broadcast the perturbed activation to match current output batch size
                     self.log_util.log(f"Applying perturbation for layer: {ln}, original output shape: {output.shape}, perturbed activation shape: {perturbed_activation[ln].shape}")
                     perturb = perturbed_activation[ln]
-                    #print(output.shape, perturb.shape, perturbed_activation.keys())
-                    #return perturb.expand_as(output).clone()
-                
-                    if perturb.shape[0] == 1:
-                        # If perturbed activation has batch size 1, expand it to match output
-                        return perturb.expand_as(output).clone()
-                    else:
-                        # Otherwise, use only the first sample and expand
-                        return perturb[0:1].expand_as(output).clone()
+                    #Get the batch size from the output
+                    batch_size = output.shape[0]
+                    if perturb.shape[0] > batch_size:
+                        perturb = perturb[:batch_size]  # Use only the first 'batch_size' samples if perturbed activation has more samples than current output
+                        #pop out the perturbed activation for the current layer to free up memory
+                        perturbed_activation[ln] = perturbed_activation[ln][batch_size:]
+                    print(output.shape, perturb.shape, perturbed_activation.keys())
+                    return perturb.expand_as(output).clone()
                 
                 hook = target_layers[layer_name].register_forward_hook(perturbation_replacement_hook)
                 hooks.append(hook)
@@ -340,6 +327,8 @@ class NeuronPerturbationUtilities:
             perturbed_logits_list.append(perturbed_logits)
         
         results = {
+            "method_name": method_name,
+            "pertubation_value": pertubation_value,
             "delta_logits": delta_logits_list,
             "original_logits": original_logits_list,
             "perturbed_logits": perturbed_logits_list,
@@ -347,8 +336,5 @@ class NeuronPerturbationUtilities:
             "perturbed_predicted_prob": perturbed_predicted_prob,
             "original_predicted_class": org_predicted_class,
             "perturbed_predicted_class": perturbedpredicted_class
-            
-            
         }
-        
         return results
