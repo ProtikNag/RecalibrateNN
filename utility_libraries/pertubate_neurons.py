@@ -45,10 +45,11 @@ def create_combinations(layers_to_modify):
         four_combos  = [c for c in combinations if len(c) == 4]
         #multi_combos = [c for c in combinations if len(c) > 1]
         print(f"single_combos combinations of layers to perturb: {len(single_combos)}")
-        two_combo_utils = list(np.random.choice(len(two_combos), min(3, len(two_combos)), replace=False))
-        three_combo_utils = list(np.random.choice(len(three_combos), min(3, len(three_combos)), replace=False))
-        four_combos_utils = list(np.random.choice(len(four_combos), min(3, len(four_combos)), replace=False))
+        two_combo_utils = list(np.random.choice(len(two_combos), min(2, len(two_combos)), replace=False))
+        three_combo_utils = list(np.random.choice(len(three_combos), min(1, len(three_combos)), replace=False))
+        four_combos_utils = list(np.random.choice(len(four_combos), min(1, len(four_combos)), replace=False))
     combinations = single_combos
+    
     if(two_combo_utils is not None):
         combinations += [two_combos[i] for i in two_combo_utils]
     if(three_combo_utils is not None):
@@ -361,7 +362,7 @@ if(__name__ == "__main__"):
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-    for alpha in np.linspace(0, 1, 2):
+    for alpha in np.linspace(0, 1, 4):
         print(f"Pertubating with method Alpha Noise : {alpha} ")
         print("value of alpha is ", alpha)
         pertubate_store_results(layers_to_perturb, neuronPerturbation, method='alpha',pertubation_value=alpha , image_list = image_list, saveas=saveas)
