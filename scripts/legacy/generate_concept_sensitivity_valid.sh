@@ -25,7 +25,7 @@ SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/legacy/valid/s
 #2
 CONFIG_FILE="../../config/legacy/config_s_${ARTIFACT}.yaml"
 #Only for overriding it
-#MODELS_ARRAY=("inception_v3")
+MODELS_ARRAY=("inception_v3")
 BEFORE_AFTER=false
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 

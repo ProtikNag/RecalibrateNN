@@ -52,6 +52,9 @@ def create_combinations(layers_to_modify):
     
     if(two_combo_utils is not None):
         combinations += [two_combos[i] for i in two_combo_utils]
+    #Force return
+    return combinations
+    
     if(three_combo_utils is not None):
         combinations += [three_combos[i] for i in three_combo_utils]
     if(four_combos_utils is not None):        
@@ -133,16 +136,16 @@ def save_single_result_to_sheet(writer, results, image_list, combination_idx):
     original_class_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['original_predicted_class']])
     pertubrated_class_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['perturbed_predicted_class']])
     delta_logits_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['delta_logits']])
-    oritinal_logits_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['original_logits']])
+    original_logits_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['original_logits']])
     perturbed_logits_tensor = np.concatenate([t.detach().cpu().numpy() for t in results['perturbed_logits']])
     # Split delta_logits into separate columns for each class
     delta_logits_class0 = delta_logits_tensor[:, 0]
     delta_logits_class1 = delta_logits_tensor[:, 1]
     delta_logits_class2 = delta_logits_tensor[:, 2]
     
-    oritinal_logits_tensor_class0 = oritinal_logits_tensor[:, 0]  
-    oritinal_logits_tensor_class1 = oritinal_logits_tensor[:, 1]  
-    oritinal_logits_tensor_class2 = oritinal_logits_tensor[:, 2] 
+    original_logits_tensor_class0 = original_logits_tensor[:, 0]  
+    original_logits_tensor_class1 = original_logits_tensor[:, 1]  
+    original_logits_tensor_class2 = original_logits_tensor[:, 2] 
     perturbed_logits_tensor_class0 = perturbed_logits_tensor[:, 0]
     perturbed_logits_tensor_class1 = perturbed_logits_tensor[:, 1]
     perturbed_logits_tensor_class2 = perturbed_logits_tensor[:, 2]
@@ -157,9 +160,9 @@ def save_single_result_to_sheet(writer, results, image_list, combination_idx):
         'original_predicted_class': original_class_tensor,
         'perturbed_prob': pertubrated_prob_tensor,
         'perturbed_predicted_class': pertubrated_class_tensor,
-        'oritinal_logits_tensor_class0': oritinal_logits_tensor_class0,
-        'oritinal_logits_tensor_class1': oritinal_logits_tensor_class1,
-        'oritinal_logits_tensor_class2': oritinal_logits_tensor_class2,
+        'original_logits_tensor_class0': original_logits_tensor_class0,
+        'original_logits_tensor_class1': original_logits_tensor_class1,
+        'original_logits_tensor_class2': original_logits_tensor_class2,
         'perturbed_logits_tensor_class0': perturbed_logits_tensor_class0,
         'perturbed_logits_tensor_class1': perturbed_logits_tensor_class1,
         'perturbed_logits_tensor_class2': perturbed_logits_tensor_class2,

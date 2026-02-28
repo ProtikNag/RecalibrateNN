@@ -9,7 +9,7 @@ source ../utility_scripts.sh
 PYTHON_SCRIPT="../../util_sensitivity_compute.py"
 
 if [ "$#" -eq 0 ]; then
-    echo "Error: No argument provided. Expected arguments are all, legs, face, coat"
+    echo "Error: No argument provided. Expected arguments are beak, forehead, breast"
     echo "Usage: $0 <argument>"
     exit 1
 fi
@@ -19,11 +19,11 @@ echo "Argument provided: $1"
 
 ARTIFACT=$1
 #force update sensitivity result location
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/sensitivity_config_s_${ARTIFACT}"
-
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/cub_3c/sensitivity_config_cub_3c_${ARTIFACT}"
+mkdir -p ${SENSITIVITY_RESULTS_LOCATION}
 # Call the function to display parameters and get confirmation
 #2
-CONFIG_FILE="../../config/legacy/config_s_${ARTIFACT}.yaml"
+CONFIG_FILE="../../config/cub_3c/config_cub_3c_${ARTIFACT}.yaml"
 #Only for overriding it
 #MODELS_ARRAY=("mobilenet_v3_small")
 BEFORE_AFTER=false
@@ -61,3 +61,4 @@ done
 
 
 ###########################################################################################
+
