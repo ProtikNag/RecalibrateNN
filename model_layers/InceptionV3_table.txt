@@ -1,0 +1,56 @@
+\begin{table}[h]
+\centering
+\caption{InceptionV3 Layer Classification by Architectural Stage}
+\label{tab:inceptionv3_stages}
+\begin{tabular}{|c|l|l|}
+\hline
+\textbf{Stage} & \textbf{Block Type} & \textbf{Layers} \\
+\hline
+Stem &
+Initial Convolutions &
+Conv2d\_1a\_3x3,
+Conv2d\_2a\_3x3,
+Conv2d\_2b\_3x3,
+maxpool1,
+Conv2d\_3b\_1x1,
+Conv2d\_4a\_3x3,
+maxpool2 \\
+\hline
+Inception1 &
+Inception-A &
+Mixed\_5b,
+Mixed\_5c,
+Mixed\_5d \\
+\hline
+Reduction1 &
+Reduction-A &
+Mixed\_6a \\
+\hline
+Inception2 &
+Inception-B &
+Mixed\_6b,
+Mixed\_6c,
+Mixed\_6d,
+Mixed\_6e \\
+\hline
+Aux &
+Auxiliary Classifier &
+Auxiliary logits branch attached after Mixed\_6e \\
+\hline
+Reduction2 &
+Reduction-B &
+Mixed\_7a \\
+\hline
+Inception3 &
+Inception-C &
+Mixed\_7b,
+Mixed\_7c \\
+\hline
+Classifier &
+Output Head &
+avgpool,
+dropout,
+fc \\
+\hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,47 @@
+\begin{table}[ht]
+\centering
+\caption{ResNet-50 Architecture Stages and Layer Composition}
+\label{tab:resnet50_stages}
+\begin{tabular}{|c|c|p{7.5cm}|}
+\hline
+\textbf{Stage} & \textbf{ResNet Block} & \textbf{Layers Included} \\
+\hline
+Stage 1 & Stem &
+conv1, bn1, relu, maxpool \\
+\hline
+Stage 2 & Conv2\_x &
+layer1.0 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, downsample, relu); \newline
+layer1.1 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer1.2 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu) \\
+\hline
+Stage 3 & Conv3\_x &
+layer2.0 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, downsample, relu); \newline
+layer2.1 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer2.2 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer2.3 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu) \\
+\hline
+Stage 4 & Conv4\_x &
+layer3.0 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, downsample, relu); \newline
+layer3.1 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer3.2 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer3.3 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer3.4 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer3.5 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu) \\
+\hline
+Stage 5 & Conv5\_x + Head &
+layer4.0 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, downsample, relu); \newline
+layer4.1 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+layer4.2 (conv1, bn1, relu, conv2, bn2, relu, conv3, bn3, relu); \newline
+avgpool; fc \\
+\hline
+\end{tabular}
+\end{table}
+
+
+| **Stage**   | **ResNet Name** | **Layers Included**                                                          | **Description**                                        |
+| ----------- | --------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Stage 1** | Stem            | `conv1`, `bn1`, `relu`, `maxpool`                                            | Initial feature extraction, reduces spatial resolution |
+| **Stage 2** | Conv2_x         | `layer1.0`, `layer1.1`, `layer1.2` (all sub-layers: conv/bn/relu/downsample) | 3 bottleneck blocks, output channels = 256             |
+| **Stage 3** | Conv3_x         | `layer2.0`, `layer2.1`, `layer2.2`, `layer2.3`                               | 4 bottleneck blocks, output channels = 512             |
+| **Stage 4** | Conv4_x         | `layer3.0` ? `layer3.5`                                                      | 6 bottleneck blocks, output channels = 1024            |
+| **Stage 5** | Conv5_x + Head  | `layer4.0`, `layer4.1`, `layer4.2`, `avgpool`, `fc`                          | 3 bottleneck blocks + classification head              |
