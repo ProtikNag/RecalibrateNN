@@ -124,12 +124,12 @@ def parse_bbox_file(bbox_path):
 
 # Execute
 
-animal_base_folder = input("Enter the path to the zebra segmentation folder: ")
-animal_segmentation = os.path.join(animal_base_folder, "segmented")
-animal_bbox = os.path.join(animal_base_folder, "bbox")
-background_folder = input("Enter the path to the background folder: ")
-output_folder = input("Enter the path to the output folder for morphed images: ")
-process_all_zebras(animal_segmentation, animal_bbox, background_folder, output_folder)
+#animal_base_folder = input("Enter the path to the zebra segmentation folder: ")
+#animal_segmentation = os.path.join(animal_base_folder, "segmented")
+#animal_bbox = os.path.join(animal_base_folder, "bbox")
+#background_folder = input("Enter the path to the background folder: ")
+#output_folder = input("Enter the path to the output folder for morphed images: ")
+#process_all_zebras(animal_segmentation, animal_bbox, background_folder, output_folder)
 
 
 parser = argparse.ArgumentParser(description="Create morphed zebra images by overlaying segmentations onto backgrounds.")
