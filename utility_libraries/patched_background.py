@@ -4,9 +4,9 @@ import os
 import argparse
 import random
 
-def superimpose_with_transparency(image_path, concept_image_path, bbox, scale = 0.5):
+def superimpose_with_transparency(image_path, concept_image_path, bbox, scale = 0.3):
     """
-    Superimpose 10% of bounding box with a concept image and make background transparent.
+    Superimpose 30% of bounding box with a concept image and make background transparent.
     
     Args:
         image_path: Path to main image
@@ -98,7 +98,18 @@ if(__name__ == '__main__'):
     count = 0
     for bb_file in sorted(bb_items):
         #extract file name from the file 
-        file_name = bb_file.replace('.txt', '.png')
+        # Try to find the corresponding image file for the bbox file
+        base_name = bb_file.replace('.txt', '')
+        found = False
+        for ext in ['.png', '.jpg', '.jpeg']:
+            file_name = base_name + ext
+            image_path = os.path.join(original_image_directory, file_name)
+            if os.path.isfile(image_path):
+                found = True
+                break
+        if not found:
+            print(f"No image found for bbox file {bb_file} with image path {image_path}")
+            continue
         x, y, w, h = parse_bbox_file(os.path.join(bb_directory, bb_file))
         image_path = os.path.join(original_image_directory, file_name)  
         concept_image_path = random.choice(concept_images)
@@ -107,7 +118,7 @@ if(__name__ == '__main__'):
         #print(f"with bbox ({x}, {y}, {w}, {h})")
         #print(f"and concept image {concept_image_path}")
         try:
-            result_image, concept_img = superimpose_with_transparency(image_path, concept_image_path, (x, y, w, h), scale = 0.4)
+            result_image, concept_img = superimpose_with_transparency(image_path, concept_image_path, (x, y, w, h), scale = 0.3)
             print(f"Saved patched image to {output_path}")
             # Convert RGBA to RGB before saving as JPEG
             if result_image.mode == 'RGBA':
