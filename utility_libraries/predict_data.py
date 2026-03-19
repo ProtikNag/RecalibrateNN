@@ -31,11 +31,12 @@ def load_model(base_model_path):
     """
     print(base_model_path)
     try:
-      model = torch.load(base_model_path)
+      model = torch.load(base_model_path,map_location=device)
       model.eval()
     except Exception:
-      model = torch.load(base_model_path, weights_only=False)
-      model.eval()
+      model = torch.load(base_model_path,map_location=device, weights_only=False)
+      if(device == 'cpu'):
+        model.eval()
     return model
 
 # Define the inference function
@@ -129,10 +130,11 @@ def calculate_statistics(y_true, y_pred, output_dir, output_excel):
 
         f.write("PREDICTION STATISTICS\n")
         f.write("=" * 50 + "\n\n")
-        f.write('--------------------------------------')
-        f.write('----------Confusion Matrix------------')
+        f.write('--------------------------------------\n')
+        f.write('----------Confusion Matrix------------\n')
         f.write(str(cm))
-        f.write('----------Confusion Matrix------------')
+        f.write("\n")
+        f.write('----------Confusion Matrix------------\n')
 
         f.write(f"Overall Accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)\n\n")
         
