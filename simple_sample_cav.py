@@ -91,6 +91,7 @@ def extract_activations(model, loader, layer_name, activation_store):
     return np.vstack(collected_activations)
 
 
+
 def compute_cav_for_sample(
     model,
     layer_name,
@@ -123,6 +124,7 @@ def compute_cav_for_sample(
             orthogonal=False,
             classifier_type=classifier_type,
         )
+        
     finally:
         hook_handle.remove()
 
@@ -178,8 +180,9 @@ def build_sampled_cav_list(
 
 def cosine_similarity(cav_list):
     cosine_similarities = []
+    base_statistics = {}
     if len(cav_list) < 2:
-        return cosine_similarities, float("nan")
+        return cosine_similarities, base_statistics
 
     normalized_cavs = [F.normalize(cav.detach().flatten(), p=2, dim=0) for cav in cav_list]
     for index_a in range(len(normalized_cavs)):
@@ -188,15 +191,19 @@ def cosine_similarity(cav_list):
             cosine_similarities.append(similarity)
 
     mean_cosine_similarity = float(np.mean(cosine_similarities))
-    return cosine_similarities, mean_cosine_similarity
+    std_cosine_similarity = float(np.std(cosine_similarities))
+    ci_95 = 1.96 * std_cosine_similarity / np.sqrt(len(cosine_similarities))
+    
+    base_statistics['mean_cosine_similarity'] = mean_cosine_similarity
+    base_statistics['std_cosine_similarity'] = std_cosine_similarity
+    base_statistics['ci_95'] = ci_95
+    base_statistics['num_cavs'] = len(cav_list)
+    base_statistics['Lower CI'] = mean_cosine_similarity - ci_95
+    base_statistics['Upper CI'] = mean_cosine_similarity + ci_95
+    
+    return cosine_similarities, base_statistics
 
 
-def compute_consistency(mean_cosine_similarity, num_cavs):
-    if num_cavs < 2 or np.isnan(mean_cosine_similarity):
-        return float("nan")
-    if mean_cosine_similarity == 0:
-        return float("inf")
-    return 2 * num_cavs / (num_cavs * (num_cavs - 1) * mean_cosine_similarity)
 
 
 def write_experiment_results(output_path, results):
@@ -207,7 +214,10 @@ def write_experiment_results(output_path, results):
             "random_samples",
             "num_cavs",
             "mean_cosine_similarity",
-            "consistency",
+            "std_cosine_similarity",
+	    "ci_95",
+	    "Lower CI",
+	    "Upper CI"
         ])
         for result in results:
             writer.writerow([
@@ -215,7 +225,11 @@ def write_experiment_results(output_path, results):
                 result["random_samples"],
                 result["num_cavs"],
                 result["mean_cosine_similarity"],
-                result["consistency"],
+		result['std_cosine_similarity'],
+		result['ci_95'],
+		result['Lower CI'],
+		result['Upper CI']
+		
             ])
 
 
@@ -250,15 +264,20 @@ def run_sample_size_experiment(
             classifier_type=classifier_type,
             image_size=image_size,
         )
-        _cosine_similarities, mean_cosine_similarity = cosine_similarity(cav_list)
-        consistency = compute_consistency(mean_cosine_similarity, len(cav_list))
+        _cosine_similarities, base_statistics = cosine_similarity(cav_list)
+        
+        
+        
         results.append({
             "Number of samples": current_sample_size,
             "concept_samples": len(conceptlist[0]) if conceptlist else 0,
             "random_samples": len(random_list[0]) if random_list else 0,
             "num_cavs": len(cav_list),
-            "mean_cosine_similarity": mean_cosine_similarity,
-            "consistency": consistency,
+            "mean_cosine_similarity": base_statistics['mean_cosine_similarity'],
+            "std_cosine_similarity": base_statistics['std_cosine_similarity'],
+            "ci_95": base_statistics['ci_95'],
+            "Lower CI": base_statistics['Lower CI'],
+            "Upper CI": base_statistics['Upper CI'],
         })
 
     return results
@@ -313,7 +332,10 @@ def main():
             f"sample_size={result['concept_samples']}, "
             f"num_cavs={result['num_cavs']}, "
             f"mean_cosine_similarity={result['mean_cosine_similarity']}, "
-            f"consistency={result['consistency']}"
+            f"std_cosine_similarity={result['std_cosine_similarity']}, "
+            f"ci_95={result['ci_95']}, "
+            f"Lower CI={result['Lower CI']}, "
+            f"Upper CI={result['Upper CI']}"
         )
 
 
