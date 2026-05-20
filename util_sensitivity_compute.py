@@ -177,6 +177,7 @@ if __name__ == "__main__":
 
     dataframe_filename = os.path.join(save_folder , f"sensitivity_audit_trail_{MODEL_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
 
+
     
     logger = Logger_Singleton(log_filename)   
     logger.info(f"Using org_model_path: {BASE_MODEL_PATH}, model_name: {MODEL_NAME}")
@@ -225,12 +226,13 @@ if __name__ == "__main__":
     print(df["Full filepath"], df["Full Class Index"])  
     concept_loader_list, random_loader = load_train_dataset_concept_random(MODEL_NAME, CONCEPT_FOLDER_LIST, RANDOM_FOLDER, BATCH_SIZE)
     stored_cav_vector = {}
+    
     for layer_name in layers:
         try:
             ############## BEFORE Do it once #################################
             model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
+            model_trained.to(device)
             hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-            model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
             print("Computing the cav vectors can take a while stand by")
             logger.info("Computing the cav vectors can take a while stand by")
             #cav_vectors = [util_compute_cav(model_trained, concept_loader, random_loader, layer_name, activation, LINEAR_CLASSIFIER_TYPE) for concept_loader in concept_loader_list]
@@ -246,14 +248,17 @@ if __name__ == "__main__":
             logger.info(f"tcav_before is {tcav_before}")
             sensitivityscore_Before = f"sensitivityscore_before_{layer_name}"
             df[sensitivityscore_Before ] = independent_sensitivityscore
+            print(df[sensitivityscore_Before ])
             hook_handle.remove()
             activation.clear()  # Clear activations to free memory
-            torch.cuda.empty_cache()
             df.to_csv(dataframe_filename, index = False)
+            torch.cuda.empty_cache()
             try:
                 del model_trained
+                torch.cuda.empty_cache()
             except Exception as e:
                 print(f"Model trained variable not yet defined  ")
+            
             if(before_after == True):
                 for lambda_val in lambda_val_list:
                     try:
