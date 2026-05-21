@@ -6,10 +6,11 @@ import os
 import sys
 
 # a) Read the CSV file into a dataframe
-if len(sys.argv) < 2:
-    print("Usage: python anova_boxplots.py <input_csv_file>")
+if len(sys.argv) < 3:
+    print("Usage: python anova_boxplots.py <input_csv_file> <output_folder>")
     sys.exit(1)
 csv_file = sys.argv[1]
+output_folder = sys.argv[2]
 
 df = pd.read_csv(csv_file)
 
@@ -31,9 +32,9 @@ sensitivity_after_cols = [col for col in df.columns if col.startswith('sensitivi
 from itertools import product
 sensitivity_pairs = list(product(sensitivity_before_cols, sensitivity_after_cols))
 
-# Create Images folder if it doesn't exist
-os.makedirs('Images', exist_ok=True)
-os.makedirs('Results', exist_ok=True)
+# Create output folders if they don't exist
+os.makedirs(os.path.join(output_folder, 'Images'), exist_ok=True)
+os.makedirs(os.path.join(output_folder, 'Results'), exist_ok=True)
 
 sorted_classes = sorted(unique_classes)
 
@@ -97,7 +98,7 @@ for before_col, after_col in sensitivity_pairs:
             results_lines.append(f"    95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
 
     # Save results text file
-    results_filename = f'Results/{pair_name}_results.txt'
+    results_filename = os.path.join(output_folder, 'Results', f'{pair_name}_results.txt')
     with open(results_filename, 'w', encoding='utf-8') as f:
         f.write('\n'.join(results_lines))
     print(f"Results saved: {results_filename}")
