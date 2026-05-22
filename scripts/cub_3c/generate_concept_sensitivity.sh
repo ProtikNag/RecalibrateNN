@@ -19,14 +19,14 @@ echo "Argument provided: $1"
 
 ARTIFACT=$1
 #force update sensitivity result location
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_analysis_paper/cub_3c/sensitivity_config_cub_3c_${ARTIFACT}"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_3c_models/sensitivity/sensitivity_config_cub_3c_${ARTIFACT}"
 mkdir -p ${SENSITIVITY_RESULTS_LOCATION}
 # Call the function to display parameters and get confirmation
 #2
 CONFIG_FILE="../../config/cub_3c/config_cub_3c_${ARTIFACT}.yaml"
 #Only for overriding it
 #MODELS_ARRAY=("mobilenet_v3_small")
-BEFORE_AFTER=false
+BEFORE_AFTER=true
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 
 print_parameters
@@ -37,7 +37,7 @@ else
   BEFORE_AFTER_OPTION=""
 fi
 
-wait_for_user
+#wait_for_user
 
 ###########################################################################################
 

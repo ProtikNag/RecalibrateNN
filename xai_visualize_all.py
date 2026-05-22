@@ -182,7 +182,7 @@ if __name__ == '__main__':
     if(args.override_image_path == True):
       base_image_path = input("? --override_image_path flag is set. Please enter the image path: ")        
     print(base_image_path)
-    base_image_path = os.path.join(base_image_path, "train")
+    base_image_path = os.path.join(base_image_path, "valid")
     print(base_image_path)
     image_dirs = [os.path.join(base_image_path, d) for d in os.listdir(base_image_path) if os.path.isdir(os.path.join(base_image_path, d))]
     image_dirs = sorted(image_dirs)
@@ -197,14 +197,29 @@ if __name__ == '__main__':
                 if file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp')):
                     IMAGES[i].append(os.path.join(root, file))
                     count = count + 1
-                    if(count >=200) :
-                        break
+                    if(count >=500) :
+                        pass 
     # Sort the paths for consistent ordering
     #for i in range(0,len(IMAGES)):
 	  #  print(f"Image files in {IMAGES[i]}")
     if not IMAGES:
         print(f"No images found in {image_dirs}")
         exit()
+
+    # Store images and paths in a DataFrame and save as CSV
+    image_data = []
+    for class_idx, image_list in enumerate(IMAGES):
+        for image_path in image_list:
+            image_data.append({'class': class_idx, 'image_path': image_path})
+    
+    df = pd.DataFrame(image_data)
+    csv_output_path = os.path.join(save_dir, 'image_paths.csv')
+    os.makedirs(save_dir, exist_ok=True)
+    df.to_csv(csv_output_path, index=False)
+    print(f"Image paths saved to {csv_output_path}")
+    
+    
+    
     ################################################################################################################
     ############# GRAD CAM Implementation ##########################################################
     if(XAI_GradCAM == True):

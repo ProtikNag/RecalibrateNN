@@ -37,7 +37,7 @@ concept:
     - '009.Brewer_Blackbird/forehead'
     - '010.Red_winged_Blackbird/forehead'
     
-  random_folder: '/home/concept/random'
+  random_folder: '/mnt/sdc/concepts/concepts_links/concept_150/random_60'
 
 hyperparameters:
   learning_rate: 1e-03
@@ -47,7 +47,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: false
+  override_retraining: true
   layers_to_train:
     vgg16:
       #- 'features.7'
@@ -63,18 +63,10 @@ recalibration:
       #- 'features.28'
 
     inception_v3:
-      - 'Mixed_6e.branch1x1.conv'
-      - 'Mixed_6e.branch1x1'
-      - 'Mixed_6e.branch7x7_1.conv'
-      - 'Mixed_6e.branch7x7_2.conv'
-      - 'Mixed_6e.branch7x7_3.conv'
-      - 'Mixed_6e.branch7x7dbl_1.conv'
-      - 'Mixed_7b.branch1x1.conv'
-      - 'Mixed_7b.branch3x3_1.conv'
-      - 'Mixed_7b.branch3x3_2a.conv'
-      - 'Mixed_7b.branch3x3_2b.conv'
-      - 'Mixed_7b.branch3x3dbl_3a'
-      - 'Mixed_7b.branch_pool.conv'
+      - 'Mixed_6b.branch7x7_1.conv'
+      - 'Mixed_5c.branch3x3dbl_1.conv'
+      - 'Mixed_5d.branch5x5_2.conv'
+      - 'Mixed_6b.branch7x7dbl_1.conv'
       
 
     resnet50:

@@ -69,8 +69,8 @@ process_pth_file() {
         export RESULTS="${XAI_RESULTS_LOCATION}/${MODEL_NAME}/$(basename "${pth_file%.*}")"
         mkdir -p "$RESULTS"
         export MODEFIED_MODEL="$pth_file"
-        echo "command: python ${PYTHON_SCRIPT} --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL} --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE} --save_dir ${RESULTS}"
-        python ${PYTHON_SCRIPT} --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL} --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE} --save_dir ${RESULTS}
+        echo "command: python ${PYTHON_SCRIPT} --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL} --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE} --save_dir ${RESULTS} --before_after" 
+        python ${PYTHON_SCRIPT} --org_model_path ${ORIGINAL_MODEL} --modified_model_path ${MODEFIED_MODEL} --model_name ${MODEL_NAME} --config_file ${CONFIG_FILE} --save_dir ${RESULTS} --before_after
     fi
 }
 ####################################################################################################################

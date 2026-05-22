@@ -17,8 +17,8 @@ PYTHON_SCRIPT="../../xai_visualize_all.py"
 VGG_XAI=false
 RNET_XAI=false
 IV3_XAI=true
-MET_S_XAI=true
-MET_L_XAI=true
+MET_S_XAI=false
+MET_L_XAI=false
 
 
 # Call the function to display parameters and get confirmation
@@ -44,10 +44,12 @@ if [ "$VGG_XAI" = true ]; then
                          "loss_vgg16_features.17_0.2.pth"
                          "loss_vgg16_features.7_0.4.pth"
                          "loss_vgg16_features.14_0.3.pth")
+    # Takes 2 parameters Model name and pth file array
+    process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 fi
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
-  # Takes 2 parameters Model name and pth file array
-  process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
+  
+  
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 #process_xai_selected models
@@ -57,10 +59,10 @@ if [ "$RNET_XAI" = true ]; then
                          "loss_resnet50_layer4.1.conv1_0.6.pth"
                          "loss_resnet50_layer4.2.conv3_0.6.pth"
                          "loss_resnet50_layer2.3.conv1_0.6.pth")
+    # Takes 2 parameters Model name and pth file array
+    process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
+
 fi
-################ DO NOT EDIT BEYOND THIS POINT #####################################################################
-  # Takes 2 parameters Model name and pth file array
-  process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
@@ -68,14 +70,14 @@ fi
 #process_xai_selected models
 if [ "$IV3_XAI" = true ]; then
     MODEL="inception_v3"
-    RECALIBRATED_MODELS=("loss_inception_v3_Mixed_6e.branch1x1.conv_0.5.pth"
-                         "loss_inception_v3_Mixed_6e.branch1x1.conv_0.6.pth"
-                         "loss_inception_v3_Mixed_6e.branch7x7_1.conv_0.6.pth"
-                         "loss_inception_v3_Mixed_6e.branch7x7_1.conv_0.7.pth")
+    RECALIBRATED_MODELS=("loss_inception_v3_Mixed_6b.branch7x7_1.conv_0.5.pth"
+                         "loss_inception_v3_Mixed_6b.branch7x7dbl_1.conv_0.6.pth"
+                         "loss_inception_v3_Mixed_5d.branch5x5_2.conv_0.5.pth"
+                         "loss_inception_v3_Mixed_5c.branch3x3dbl_1.conv_0.5.pth")
+    # Takes 2 parameters Model name and pth file array
+    process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
+
 fi
-################ DO NOT EDIT BEYOND THIS POINT #####################################################################
-  # Takes 2 parameters Model name and pth file array
-  process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
@@ -86,10 +88,10 @@ if [ "$MET_S_XAI" = true ]; then
                          "loss_mobilenet_v3_small_features.10.block.3.0_0.7.pth"
                          "loss_mobilenet_v3_small_features.8.block.3.0_0.7.pth"
                          "loss_mobilenet_v3_small_features.8.block.0.0_0.5.pth")
+    # Takes 2 parameters Model name and pth file array
+    process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
+
 fi
-################ DO NOT EDIT BEYOND THIS POINT #####################################################################
-  # Takes 2 parameters Model name and pth file array
-  process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 
@@ -100,10 +102,10 @@ if [ "$MET_L_XAI" = true ]; then
                          "loss_mobilenet_v3_large_features.14.block.2.fc1_0.5.pth"
                          "loss_mobilenet_v3_large_features.15.block.2.fc2_0.6.pth"
                          "loss_mobilenet_v3_large_features.16.0_0.6.pth")
+    # Takes 2 parameters Model name and pth file array
+    process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
+
 fi
-################ DO NOT EDIT BEYOND THIS POINT #####################################################################
-  # Takes 2 parameters Model name and pth file array
-  process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 ################ DO NOT EDIT BEYOND THIS POINT #####################################################################
 
 

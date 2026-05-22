@@ -2,17 +2,18 @@
 #  Commom variables
 # ####################################################################################################################
 
-BASE_MODEL_DIR="/mnt/sdc/data/caltech/CUB_200_2011/cub_trained_cpu/threeclasses"
-CONFIG_FILE='../../config/cub_3c/config_cub_3c_forehead.yaml'
-MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50" "inception_v3")
+BASE_MODEL_DIR="/mnt/sdc/data/caltech/CUB_200_2011/cub_trained_cpu/tenclasses"
+CONFIG_FILE='../../config/cub_10c/config_cub_10c_forehead.yaml'
+#MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50" "inception_v3")
 
+MODELS_ARRAY=("inception_v3")
 #Recalibration Results location
-RECALIBRATED_RESULTS_LOCATION=" /mnt/sdd/cub_3c/recalib/"
+RECALIBRATED_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib"
 
 #Sensitivity and XAI Results location 
-RECALIBRATED_MODELS_BASE="/mnt/sdd/cub_3c/recalib/"
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/cub_3c/sensitivity"
-XAI_RESULTS_LOCATION="/tmp/legacy_full"
+RECALIBRATED_MODELS_BASE="/mnt/sdd/cub_10c/recalib/"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/cub_10c/sensitivity"
+XAI_RESULTS_LOCATION="/mnt/sdd/cub_10c/xai"
 
 ####################################################################################################################
 
