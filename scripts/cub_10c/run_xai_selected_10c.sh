@@ -36,14 +36,14 @@ wait_for_user
 #process_xai_selected models
 if [ "$VGG_XAI" = true ]; then
     MODEL="vgg16"
-    RECALIBRATED_MODELS=("loss_vgg16_features.14_1.0.pth"
-                         "loss_vgg16_features.14_0.6.pth"
-                         "loss_vgg16_features.21_0.2.pth"
-                         "loss_vgg16_features.12_0.6.pth"
-                         "loss_vgg16_features.26_0.4.pth"
-                         "loss_vgg16_features.17_0.2.pth"
-                         "loss_vgg16_features.7_0.4.pth"
-                         "loss_vgg16_features.14_0.3.pth")
+    RECALIBRATED_MODELS=("/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.14_1.0.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.14_0.6.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.21_0.2.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.12_0.6.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.26_0.4.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.17_0.2.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.7_0.4.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/vgg16/loss_vgg16_features.14_0.3.pth")
     # Takes 2 parameters Model name and pth file array
     process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 fi
@@ -55,10 +55,10 @@ fi
 #process_xai_selected models
 if [ "$RNET_XAI" = true ]; then
     MODEL="resnet50"
-    RECALIBRATED_MODELS=("loss_resnet50_layer4.1.conv1_0.5.pth"
-                         "loss_resnet50_layer4.1.conv1_0.6.pth"
-                         "loss_resnet50_layer4.2.conv3_0.6.pth"
-                         "loss_resnet50_layer2.3.conv1_0.6.pth")
+    RECALIBRATED_MODELS=("/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/resnet50/loss_resnet50_layer4.1.conv1_0.5.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/resnet50/loss_resnet50_layer4.1.conv1_0.6.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/resnet50/loss_resnet50_layer4.2.conv3_0.6.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/resnet50/loss_resnet50_layer2.3.conv1_0.6.pth")
     # Takes 2 parameters Model name and pth file array
     process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 
@@ -70,10 +70,10 @@ fi
 #process_xai_selected models
 if [ "$IV3_XAI" = true ]; then
     MODEL="inception_v3"
-    RECALIBRATED_MODELS=("loss_inception_v3_Mixed_6b.branch7x7_1.conv_0.5.pth"
-                         "loss_inception_v3_Mixed_6b.branch7x7dbl_1.conv_0.6.pth"
-                         "loss_inception_v3_Mixed_5d.branch5x5_2.conv_0.5.pth"
-                         "loss_inception_v3_Mixed_5c.branch3x3dbl_1.conv_0.5.pth")
+    RECALIBRATED_MODELS=("/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/inception_v3/loss_inception_v3_Mixed_6b.branch7x7_1.conv_0.5.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/inception_v3/loss_inception_v3_Mixed_6b.branch7x7dbl_1.conv_0.6.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/inception_v3/loss_inception_v3_Mixed_5d.branch5x5_2.conv_0.5.pth"
+                         "/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivity/sensitivity_config_cub_10c_forehead/recalib/inception_v3/loss_inception_v3_Mixed_5c.branch3x3dbl_1.conv_0.5.pth")
     # Takes 2 parameters Model name and pth file array
     process_xai_for_selected_model "${MODEL}" "${RECALIBRATED_MODELS[@]}"
 

@@ -9,19 +9,24 @@ source ../utility_scripts.sh
 PYTHON_SCRIPT="../../util_sensitivity_compute.py"
 
 # Call the function to display parameters and get confirmation
-print_parameters
-BEFORE_AFTER=false
+
+BEFORE_AFTER=true
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 
+RECALIBRATED_MODELS_BASE="/mnt/sdc/try2/"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_try2"
 if [ "$BEFORE_AFTER" = true ]; then
   BEFORE_AFTER_OPTION="--before_after"
 else
   BEFORE_AFTER_OPTION=""
 fi
-wait_for_user
+
+MODELS_ARRAY=("inception_v3")
+
+print_parameters
+#wait_for_user
 
 ###########################################################################################
-
 
 
 

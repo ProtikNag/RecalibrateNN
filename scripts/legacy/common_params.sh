@@ -4,15 +4,18 @@
 
 BASE_MODEL_DIR="/mnt/sdd/basics/balanced_training/"
 CONFIG_FILE='../../config/legacy/config_legacy_3classes.yaml'
-MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50" "inception_v3")
+#MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50" "inception_v3")
+MODELS_ARRAY=("vgg16" "resnet50" "inception_v3" "mobilenet_v3_small" "mobilenet_v3_large")
 
 #Recalibration Results location
-RECALIBRATED_RESULTS_LOCATION="/mnt/sdd/basics/recalib"
+#RECALIBRATED_RESULTS_LOCATION="/mnt/sdd/basics/recalib"
+RECALIBRATED_RESULTS_LOCATION="/mnt/sdc/try2"
 
 #Sensitivity and XAI Results location 
-RECALIBRATED_MODELS_BASE="/mnt/sdd/basics/recalib"
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/basics/sensitivity"
-XAI_RESULTS_LOCATION="/tmp/legacy_full"
+#RECALIBRATED_MODELS_BASE="/mnt/sdd/basics/recalib"
+RECALIBRATED_MODELS_BASE="/mnt/sdc/try2"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/sensitivity_try2/"
+XAI_RESULTS_LOCATION="/mnt/sdc/sensitivity_try2/xai"
 
 ####################################################################################################################
 

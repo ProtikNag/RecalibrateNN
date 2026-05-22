@@ -13,7 +13,7 @@ RECALIBRATED_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_10c_models/sensitivi
 #Sensitivity and XAI Results location 
 RECALIBRATED_MODELS_BASE="/mnt/sdd/cub_10c/recalib/"
 SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/cub_10c/sensitivity"
-XAI_RESULTS_LOCATION="/mnt/sdd/cub_10c/xai"
+XAI_RESULTS_LOCATION="/mnt/sdd/cub_10c/sensitivity/xai"
 
 ####################################################################################################################
 

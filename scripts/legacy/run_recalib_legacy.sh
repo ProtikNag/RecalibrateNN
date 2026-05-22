@@ -8,16 +8,16 @@ source ../utility_scripts.sh
 
 PYTHON_SCRIPT="../../main.py"
 
-
-export RECALIBRATED_RESULTS_LOCATION='/mnt/sdh/basics/recalib'
+#export RECALIBRATED_RESULTS_LOCATION='/mnt/sdh/basics/recalib'
+export RECALIBRATED_RESULTS_LOCATION='/mnt/sdc/try2'
 print_parameters
-RUN_SPECIFIC_MODEL=false
+RUN_SPECIFIC_MODEL=true 
 
-wait_for_user
+#wait_for_user
 
 
 if [ "$RUN_SPECIFIC_MODEL" = true ]; then
-  MODELS_ARRAY=("vgg16")
+  MODELS_ARRAY=("mobilenet_v3_small")
 fi
 
 

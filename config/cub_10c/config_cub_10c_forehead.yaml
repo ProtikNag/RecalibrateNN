@@ -5,7 +5,7 @@ misc:
    seed: 0
 
 classification:
-  data_base_path: "/mnt/sdc/data/caltech/CUB_200_2011/cub_dataset/tenclasses/" # Path to the classification dataset base directory.
+  data_base_path: "/mnt/sdc/data/caltech/CUB_200_2011/cub_dataset/tenclasses" # Path to the classification dataset base directory.
   target_class_list:
     - '001.Black_footed_Albatross'
     - '002.Laysan_Albatross'
@@ -124,7 +124,7 @@ xai_before_after:
   integrated_gradients: true
   grad_cam: true
   lime: false
-  num_classes: 3
+  num_classes: 10
   class_images:
     class0:
       - '/mnt/data/caltech_training/train/001.Black_footed_Albatross/Black_Footed_Albatross_0001_796111.jpg'
@@ -132,4 +132,18 @@ xai_before_after:
       - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0001_545.jpg'
       - '/mnt/data/caltech_training/train/002.Laysan_Albatross/Laysan_Albatross_0104_630.jpg'
     class2:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class3:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class4:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class5:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class6:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class7:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class8:
+      - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
+    class9:
       - '/mnt/data/caltech_training/train/003.Sooty_Albatross/Sooty_Albatross_0001_1071.jpg'
