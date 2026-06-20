@@ -24,7 +24,7 @@ concept:
     - "deer/coat"
     - "horse/coat"
     - "zebra/coat"
-  random_folder: "/home/concept/random"
+  random_folder: "/mnt/sdc/concepts/concepts_links/concept_150/random"
 
 
 #concept:
@@ -44,7 +44,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: true
+  override_retraining: false
   layers_to_train:
     vgg16:
       - 'features.17'
