@@ -7,12 +7,12 @@ CONFIG_FILE='../../config/cub_3c/config_cub_3c_forehead.yaml'
 MODELS_ARRAY=("vgg16" "mobilenet_v3_small" "mobilenet_v3_large" "resnet50" "inception_v3")
 
 #Recalibration Results location
-RECALIBRATED_RESULTS_LOCATION=" /mnt/sdd/cub_3c/recalib/"
+RECALIBRATED_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_3c_models/recalib/"
 
 #Sensitivity and XAI Results location 
-RECALIBRATED_MODELS_BASE="/mnt/sdd/cub_3c/recalib/"
-SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/cub_3c/sensitivity"
-XAI_RESULTS_LOCATION="/tmp/legacy_full"
+RECALIBRATED_MODELS_BASE="/mnt/sdc/cub_sensitivity/cub_3c_models/recalib/"
+SENSITIVITY_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_3c_models/sensitivity"
+XAI_RESULTS_LOCATION="/mnt/sdc/cub_sensitivity/cub_3c_models/xai"
 
 ####################################################################################################################
 

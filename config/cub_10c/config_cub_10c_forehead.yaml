@@ -64,9 +64,9 @@ recalibration:
 
     inception_v3:
       - 'Mixed_6b.branch7x7_1.conv'
-      - 'Mixed_5c.branch3x3dbl_1.conv'
-      - 'Mixed_5d.branch5x5_2.conv'
-      - 'Mixed_6b.branch7x7dbl_1.conv'
+      #- 'Mixed_5c.branch3x3dbl_1.conv'
+      #- 'Mixed_5d.branch5x5_2.conv'
+      #- 'Mixed_6b.branch7x7dbl_1.conv'
       
 
     resnet50:

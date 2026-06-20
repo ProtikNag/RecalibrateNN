@@ -25,7 +25,7 @@ mkdir -p ${SENSITIVITY_RESULTS_LOCATION}
 #2
 CONFIG_FILE="../../config/cub_3c/config_cub_3c_${ARTIFACT}.yaml"
 #Only for overriding it
-#MODELS_ARRAY=("mobilenet_v3_small")
+MODELS_ARRAY=("vgg16")
 BEFORE_AFTER=true
 echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 

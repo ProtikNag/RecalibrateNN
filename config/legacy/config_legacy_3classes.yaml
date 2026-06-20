@@ -44,7 +44,7 @@ hyperparameters:
 # --- MODEL CONFIGURATIONS ---
 # This section specifies model-specific settings, including layers to train.  
 recalibration:
-  override_retraining: false
+  override_retraining: true
   layers_to_train:
     vgg16:
       - 'features.17'
@@ -70,16 +70,16 @@ recalibration:
       
 
     resnet50:
-      - 'layer4.0.conv1'
-      - 'layer4.0.conv2'
-      - 'layer4.0.conv3'
-      - 'layer4.0.downsample.0'
-      - 'layer4.1.conv1'
-      - 'layer4.1.conv2'
-      - 'layer4.1.conv3'
+      #- 'layer4.0.conv1'
+      #- 'layer4.0.conv2'
+      #- 'layer4.0.conv3'
+      #- 'layer4.0.downsample.0'
+      #- 'layer4.1.conv1'
+      #- 'layer4.1.conv2'
+      #- 'layer4.1.conv3'
       - 'layer4.2.conv1'
-      - 'layer4.2.conv2'
-      - 'layer4.2.conv3'
+      #- 'layer4.2.conv2'
+      #- 'layer4.2.conv3'
       
       
 

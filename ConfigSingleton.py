@@ -157,6 +157,7 @@ class ConfigSingleton:
         
 
     def _get_num_classes(self, base_path):
+        base_path = os.path.join(base_path, "train")
         return len([
             name for name in os.listdir(base_path)
             if os.path.isdir(os.path.join(base_path, name))
@@ -254,7 +255,7 @@ if __name__ == '__main__':
     notfound = 0
     #print(config.XAI_IMAGE_PATH)
     for classIdx in range(0,config.XAI_NUMCLASSES):
-      print(f"Number of images in {classIdx} is {len(config.XAI_IMAGE_PATH[classIdx])}")
+      print(f"Number of XAI images to scan in {classIdx} is {len(config.XAI_IMAGE_PATH[classIdx])}")
       for i in config.XAI_IMAGE_PATH[classIdx]:
           
           if not (os.path.isfile(i) or os.path.islink(i)):
