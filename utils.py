@@ -70,7 +70,7 @@ def get_base_model_image_size(base_model_path):
 
 
 def get_model_weight_path(base_model, model_root_path=r'./model_weights'):
-    base_model_path = os.path.join(model_root_path, base_model + "/" + base_model + ".pth")
+    base_model_path = os.path.join(model_root_path, base_model + os.sep + base_model + ".pth")
     print(model_root_path, base_model_path)
     if not os.path.exists(base_model_path):
         raise FileNotFoundError(f"Model weights not found at {base_model_path}")
@@ -198,7 +198,7 @@ def evaluate_accuracy(model, loader):
 
     if len(all_preds) == 0 or len(all_labels) == 0:
         print("[Error] No predictions or labels collected. Returning default scores.")
-        return 0.0, 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0, {}
 
     acc = accuracy_score(all_labels, all_preds)
     precision = precision_score(all_labels, all_preds, average='macro', zero_division=0)
@@ -220,12 +220,14 @@ def evaluate_accuracy(model, loader):
         except IndexError:
             print(f"[Error] Label index {true} out of class_names range.")
 
+    class_results = {}
     for class_name in class_names:
         correct = class_correct_counts[class_name]
         total = class_total_counts[class_name]
         print(f"Class: {class_name} — Correct: {correct} / {total}")
+        class_results[class_name] = {"correct": correct, "total": total}
 
-    return acc, precision, recall, f1
+    return acc, precision, recall, f1, class_results
 
 
 def compute_avg_confidence(model, loader, target_idx_list):
@@ -274,6 +276,9 @@ def predict_from_loader(val_loader, model, class_names):
     all_preds = []
     class_confidences = {cls: [] for cls in class_names}
     class_counts = {cls: 0 for cls in class_names}
+    class_correct = {cls: 0 for cls in class_names}
+    class_incorrect = {cls: 0 for cls in class_names}
+    predictions_list = []
     with torch.no_grad():
         for images, labels in val_loader:
             images = images.to(DEVICE)
@@ -287,15 +292,38 @@ def predict_from_loader(val_loader, model, class_names):
                 all_labels.append(true_class)
                 class_confidences[pred_class].append(confidences[i].item())
                 class_counts[true_class] += 1
+                
+                # Track correct and incorrect predictions
+                if true_class == pred_class:
+                    class_correct[true_class] += 1
+                else:
+                    class_incorrect[true_class] += 1
+                
+                # Add prediction with filename placeholder
+                predictions_list.append([f"image_{i}", pred_class])
+                
                 results.append({
                     "true_class": true_class,
                     "predicted_class": pred_class,
-                    "Prediction Confidence": confidences[i].item()
+                    "Prediction Confidence": confidences[i].item(),
+                    "Prediction Probability": confidences[i].item()
                 })
     acc = accuracy_score(all_labels, all_preds)
     avg_confidences = {cls: (sum(vals)/len(vals) if vals else 0.0) for cls, vals in class_confidences.items()}
+    
+    # Add summary statistics to results
+    summary = {
+        "accuracy": acc,
+        "avg_confidences": avg_confidences,
+        "class_counts": class_counts,
+        "class_correct": class_correct,
+        "class_incorrect": class_incorrect,
+        "predictions": predictions_list
+    }
+    
     print(f"DEBUG acc = {acc} , avg_confidences = {avg_confidences}, class_counts: {class_counts}")
-    return results, avg_confidences, class_counts, acc
+    print(f"DEBUG class_correct = {class_correct}, class_incorrect = {class_incorrect}")
+    return results, avg_confidences, class_counts, acc, summary
 
 
 def plot_loss_figure(total_loss_history, align_loss_history, cls_loss_history, epochs,

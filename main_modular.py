@@ -1,3 +1,4 @@
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -55,13 +56,14 @@ from dotenv import load_dotenv
 from ConfigSingleton import ConfigSingleton
 import random
 import numpy as np
+from itertools import combinations
 
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 from utils import (
     get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
-    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader
+    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers 
 )
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 if(DEVICE =='cuda'):
@@ -97,10 +99,10 @@ def worker_init_fn(worker_id):
 set_seed(RANDOM_STATE)
 
 def get_activation(layer_name, activation_store=None):
+    store = activation if activation_store is None else activation_store
+
     def hook(model, input, output):
-        if activation_store is not None:
-            activation_store[layer_name] = output
-        activation[layer_name] = output
+        store[layer_name] = output
         output_shape[layer_name] = output.shape
         # Only print once per layer to avoid duplicate outputs
         if layer_name not in printed_layers:
@@ -181,15 +183,15 @@ def _compute_accuracy_metric(model, validation_loader, target_idx_list):
         target_idx_list: List of target class indices
         
     Returns:
-        tuple: (accuracy, precision, recall, f1_score, average_confidence)
+        tuple: (accuracy, precision, recall, f1_score, average_confidence, class_results)
     """
     try:
         # Compute accuracy metrics
-        accuracy, precision, recall, f1_score = evaluate_accuracy(model, validation_loader)
+        accuracy, precision, recall, f1_score, class_results = evaluate_accuracy(model, validation_loader)
         
         # Compute average confidence
         average_confidence = compute_avg_confidence(model, validation_loader, target_idx_list)
-        return accuracy, precision, recall, f1_score, average_confidence
+        return accuracy, precision, recall, f1_score, average_confidence, class_results
         
     except Exception as e:
         LOGGING.error(f"Error during metrics computation: {e}")
@@ -253,7 +255,7 @@ def _process_cav(model, layer_name, concept_loader_list, random_loader, class_da
                 
     return cav_results
 RECALIBRATE_TARGET_CLASS = [1,0,0]
-def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_loader, target_class, LAMBDA_ALIGNS, random_state=132):
+def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_loader, target_class, LAMBDA_ALIGNS, model_save_name, random_state=132):
     """
     Recalibrate model weights for a specific target class across multiple layers simultaneously.
     
@@ -265,8 +267,10 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
         training_loader: DataLoader for training
         target_class: Target class index to recalibrate
         LAMBDA_ALIGNS: List of alignment weights to try
+        model_save_name: Name to save the recalibrated model
         random_state: Random seed
     """
+    run_metrics = []
     try:
         for LAMBDA_ALIGN in LAMBDA_ALIGNS:
             # Reset random seeds before each training iteration for consistency
@@ -282,9 +286,11 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
             
             # Register forward hooks for all layers
             activation_dict = {}
+            hook_handles = []
             try:
                 for layer_name in layer_names:
-                    model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name, activation_dict))
+                    handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name, activation_dict))
+                    hook_handles.append(handle)
             except Exception as e:
                 LOGGING.error(f"Exception while registering forward hooks: {e}")
                 print(f"Exception while registering forward hooks: {e}")
@@ -335,7 +341,7 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
                             cls_loss = nn.CrossEntropyLoss()(outputs, labels)
                         
                         # Alignment loss across all layers
-                        align_loss = 0.0
+                        align_loss = torch.tensor(0.0, device=DEVICE)
                         target_mask = (labels == target_class)
                         non_target_mask = (labels != target_class)
                         if target_mask.any():
@@ -348,17 +354,6 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
                                     align_loss += (1 - torch.mean(cosine_sim))  # Minimize alignment penalty
                                     correct_loss_epoch += (1 - torch.mean(cosine_sim)).item()
                         
-                        if non_target_mask.any():
-                            pass
-                            if(0):
-                                # For non-target classes: penalize alignment with target CAV
-                                for layer_name in layer_names:
-                                    if layer_name in activation_dict:
-                                        f_l = activation_dict[layer_name].view(imgs.size(0), -1)
-                                        cav = cav_dict[layer_name].unsqueeze(0)
-                                        cosine_sim = F.cosine_similarity(f_l[non_target_mask], cav, dim=1)
-                                        align_loss += torch.mean(cosine_sim)  # Maximize to penalize false classification
-                                        incorrect_loss_epoch += torch.mean(cosine_sim).item()
                         
                         # Combined loss
                         loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
@@ -368,7 +363,7 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
                         
                         total_loss_epoch += loss.item()
                         cls_loss_epoch += cls_loss.item()
-                        align_loss_epoch += align_loss.item() if isinstance(align_loss, torch.Tensor) else align_loss
+                        align_loss_epoch += align_loss.item()
                         batch_count += 1
                     
                     # Record average loss per epoch
@@ -385,7 +380,7 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
                               f"Align Loss: {loss_history['align'][-1]:.4f}")
                 
                 # Validation metrics
-                acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
+                acc_after, precision_after, recall_after, f1_after, avg_conf_after, class_results_after = _compute_accuracy_metric(model_trained, validation_loader, [target_class])
                 
                 LOGGING.info(f"Accuracy After: {acc_after:.4f}, Precision: {precision_after:.4f}, "
                            f"Recall: {recall_after:.4f}, F1: {f1_after:.4f}")
@@ -398,38 +393,77 @@ def recalibrate_model(model, layer_names, cav_dict, validation_loader, training_
                     "Layers": str(layer_names),
                     "Lambda Alignment": LAMBDA_ALIGN,
                     "Lambda Classification": LAMBDA_CLS,
-                    "Accuracy": round(acc_after, 3),
-                    "Precision": round(precision_after, 3),
-                    "Recall": round(recall_after, 3),
-                    "F1 Score": round(f1_after, 3),
+                    "Accuracy": round(float(acc_after), 3),
+                    "Precision": round(float(precision_after), 3),
+                    "Recall": round(float(recall_after), 3),
+                    "F1 Score": round(float(f1_after), 3)
                 }
-                
-                # Save loss plots
-                layers_str = "_".join(layer_names)
-                classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
-                alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
-                total_loss_file = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
-                
-                plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
-                               classificationloss_filename, alignmentloss_filename, total_loss_file)
+                if isinstance(avg_conf_after, dict):
+                    stats.update(avg_conf_after)
+                if isinstance(class_results_after, dict):
+                    stats.update(class_results_after)
+                    
+                save_plots = config.SAVE_PLOTS if hasattr(config, 'SAVE_PLOTS') else False
+                if(save_plots == True):
+                    # Save loss plots
+                    layers_str = "_".join(layer_names)
+                    classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
+                    alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
+                    total_loss_file = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pdf")
+                    
+                    plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
+                                classificationloss_filename, alignmentloss_filename, total_loss_file)
                 
                 # Save statistics
                 statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}_class{target_class}.csv")
                 save_statistics(stats, statistic_filename)
                 
-                # Save model
-                modelsave_filename = os.path.join(RESULTS_PATH, f"model_{BASE_MODEL}_class{target_class}_{layers_str}_{LAMBDA_ALIGN}.pth")
-                torch.save(model_trained.state_dict(), modelsave_filename)
+                metrics_dict = {
+                    "Target Class": target_class,
+                    "Layers": str(layer_names),
+                    "Layer Count": len(layer_names),
+                    "Lambda Alignment": LAMBDA_ALIGN,
+                    "Lambda Classification": LAMBDA_CLS,
+                    "Accuracy": round(float(acc_after), 6),
+                    "Precision": round(float(precision_after), 6),
+                    "Recall": round(float(recall_after), 6),
+                    "F1 Score": round(float(f1_after), 6)
+                }
                 
+                if isinstance(avg_conf_after, dict):
+                    for key, value in avg_conf_after.items():
+                        metrics_dict[key] = round(float(value), 6) if isinstance(value, (int, float)) else value
+                if isinstance(class_results_after, dict):
+                    for class_id, class_metrics in class_results_after.items():
+                        metrics_dict[f"class{class_id}_correct"] = class_metrics.get("correct")
+                        metrics_dict[f"class{class_id}_total"] = class_metrics.get("total")
+                run_metrics.append(metrics_dict)
+                for h in hook_handles:
+                    h.remove()
+                hook_handles.clear()
+
+                # Save model with incrementing suffix and layer information
+                modelsave_filename = os.path.join(RESULTS_PATH, model_save_name)
+                torch.save(model_trained, modelsave_filename)
                 LOGGING.info(f"Training completed for class {target_class}, Lambda Align: {LAMBDA_ALIGN}")
-                
             except Exception as e:
                 LOGGING.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
                 print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
+            finally: 
+                # Ensure hooks are removed after training
+                for h in hook_handles:
+                    try:
+                        h.remove()
+                    except Exception as e:
+                        LOGGING.error(f"Error during hook removal: {e}")
+                        print(f"Error during hook removal: {e}")
+                hook_handles.clear()
     
     except Exception as e:
         LOGGING.error(f"Error during model recalibration: {e}")
         print(f"Error during model recalibration: {e}")
+    print(f"Recalibration completed for class {target_class}. Metrics: {run_metrics}")
+    return run_metrics
 
 
 def main(random_state=132):
@@ -445,7 +479,7 @@ def main(random_state=132):
                 print(f"TCAV Score before training for layer {layer}: {tcav_before}")
                 LOGGING.info(f"TCAV Score before training for layer {layer}: {tcav_before}")
         #Compute and log accuracy and average confidence for the base model before training
-        acc_before, precision_before, recall_before, f1_before, avg_conf_before = _compute_accuracy_metric(MODEL, validation_loader, TARGET_IDX_LIST)
+        acc_before, precision_before, recall_before, f1_before, avg_conf_before, class_results_before = _compute_accuracy_metric(MODEL, validation_loader, TARGET_IDX_LIST)
         LOGGING.info(f"Accuracy Before: {acc_before:.4f}")
         LOGGING.info(f"Precision Before: {precision_before:.4f}")
         LOGGING.info(f"Recall Before: {recall_before:.4f}")
@@ -457,11 +491,47 @@ def main(random_state=132):
         print(f"F1 Score Before: {f1_before:.4f}")
         print(f"Average Confidence Before: {avg_conf_before}")
         
+        # Save all metrics to text file
+        accuracy_results_filename = os.path.join(RESULTS_PATH, "accuracy_results_before.txt")
+        with open(accuracy_results_filename, 'w') as f:
+            f.write("Accuracy Metrics Before Training\n")
+            f.write("=" * 50 + "\n")
+            f.write(f"Accuracy: {acc_before:.4f}\n")
+            f.write(f"Precision: {precision_before:.4f}\n")
+            f.write(f"Recall: {recall_before:.4f}\n")
+            f.write(f"F1 Score: {f1_before:.4f}\n")
+            f.write(f"Average Confidence: {avg_conf_before}\n")
+            f.write(f"Class-wise Results:\n")
+            for class_name, results in class_results_before.items():
+                f.write(f"  {class_name}: Correct: {results['correct']}, Total: {results['total']}\n")
+        LOGGING.info(f"Metrics saved to: {accuracy_results_filename}")
+        print(f"Metrics saved to: {accuracy_results_filename}")
+        
     except Exception as e:
         LOGGING.error(f"Error during initial CAV and TCAV computation: {e}")
         print(f"Error during initial CAV and TCAV computation: {e}")
     # Run recalibration only for classes flagged with 1 in RECALIBRATE_TARGET_CLASS
-    
+    available_layers = [layer for layer in LAYER_NAMES if layer in cav_results_before]
+    layer_combinations = []
+    for group_size in (1, 2, 3):
+        if len(available_layers) >= group_size:
+            layer_combinations.extend(combinations(available_layers, group_size))
+    if not layer_combinations:
+        LOGGING.warning("Insufficient layers for nC2/nC3 recalibration. Need at least 1, 2 valid layers.")
+        print("Insufficient layers for nC2/nC3 recalibration. Need at least 1, 2 valid layers.")
+        return
+
+    # Create a dictionary with indexed layer combinations and save to text file
+    combo_index_dict = {idx + 1: "|".join(list(combo)) for idx, combo in enumerate(layer_combinations)}
+    combo_index_filename = os.path.join(RESULTS_PATH, f"layer_combinations_index_{BASE_MODEL}.txt")
+    with open(combo_index_filename, 'w') as f:
+        f.write(str(combo_index_dict))
+    LOGGING.info(f"Layer combinations index saved to: {combo_index_filename}")
+    print(f"Layer combinations index saved to: {combo_index_filename}")
+
+    combo_accuracy_filename = os.path.join(RESULTS_PATH, f"recalibration_layer_combo_accuracy_{BASE_MODEL}.csv")
+    all_combo_results = []
+
     for class_idx, target_class in enumerate(TARGET_IDX_LIST):
         #In case the target index is out of bounds, default to 0 (no recalibration) exaple
         # if the target_indx = [0..10] and the RECALIBRATE_TARGET_CLASS = [1,0,0] then the target_class = 3 onwards will be out of bounds and will default to 0
@@ -472,14 +542,64 @@ def main(random_state=132):
             print(f"Skipping recalibration for class index {class_idx} (flag={flag})")
             continue
         target_class = TARGET_IDX_LIST[class_idx]
-        cav_dict = {
-            layer: cav_results_before[layer]['cav_vectors'][class_idx]
-            for layer in LAYER_NAMES
-            if layer in cav_results_before
-        }
         LOGGING.info(f"Starting recalibration for class index {class_idx} (target_class={target_class})")
         print(f"Starting recalibration for class index {class_idx} (target_class={target_class})")
-        recalibrate_model(MODEL, LAYER_NAMES, cav_dict, validation_loader, dataset_loader, target_class, LAMBDA_ALIGNS)
+        class_combo_results = []
+        for combo_idx, combo_layers in enumerate(layer_combinations):
+            combo_layer_list = list(combo_layers)
+            cav_dict = {
+                layer: cav_results_before[layer]['cav_vectors'][class_idx]
+                for layer in combo_layer_list
+            }
+            
+            combo_results = recalibrate_model(
+                MODEL,
+                combo_layer_list,
+                cav_dict,
+                validation_loader,
+                dataset_loader,
+                target_class,
+                LAMBDA_ALIGNS,
+                model_save_name=f"model{target_class}_combo_{str(combo_idx)}.pth"
+            )
+            for run_result in combo_results:
+                run_result["Class Index"] = class_idx
+                run_result["Target Class"] = target_class
+                run_result["Combination"] = "|".join(combo_layer_list)
+                
+                save_statistics(run_result, combo_accuracy_filename)
+            class_combo_results.extend(combo_results)
+            all_combo_results.extend(combo_results)
+
+        if class_combo_results:
+            best_class_result = max(class_combo_results, key=lambda result: result["Accuracy"])
+            LOGGING.info(
+                f"Best combination for class index {class_idx} (target_class={target_class}): "
+                f"{best_class_result['Layers']} | lambda_align={best_class_result['Lambda Alignment']} | "
+                f"accuracy={best_class_result['Accuracy']:.6f}"
+            )
+            print(
+                f"Best combination for class index {class_idx} (target_class={target_class}): "
+                f"{best_class_result['Layers']} | lambda_align={best_class_result['Lambda Alignment']} | "
+                f"accuracy={best_class_result['Accuracy']:.6f}"
+            )
+
+    if all_combo_results:
+        best_overall_result = max(all_combo_results, key=lambda result: result["Accuracy"])
+        LOGGING.info(
+            f"Best overall combination: class={best_overall_result['Target Class']} | "
+            f"layers={best_overall_result['Layers']} | "
+            f"lambda_align={best_overall_result['Lambda Alignment']} | "
+            f"accuracy={best_overall_result['Accuracy']:.6f}"
+        )
+        print(
+            f"Best overall combination: class={best_overall_result['Target Class']} | "
+            f"layers={best_overall_result['Layers']} | "
+            f"lambda_align={best_overall_result['Lambda Alignment']} | "
+            f"accuracy={best_overall_result['Accuracy']:.6f}"
+        )
+        LOGGING.info(f"Per-run combination accuracies saved at: {combo_accuracy_filename}")
+        print(f"Per-run combination accuracies saved at: {combo_accuracy_filename}")
 
 if __name__ == "__main__":
     # Argument parser to override the model name and model path
@@ -609,5 +729,3 @@ if __name__ == "__main__":
         LOGGING.error(f"Error during data preparation: {e}")
     main()
     LOGGING.info("Script execution finished.")
-
-
