@@ -22,21 +22,39 @@ logging.basicConfig(
 
 # Define the device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = 'cpu'
 logging.info(f"Using device: {device}")
 
 # Load the pre-trained model
-def load_model(base_model_path):
+def load_model(base_model_path, recalib_model=None):
     """
     Load the model state dictionary from the specified path.
     """
     print(base_model_path)
     try:
       model = torch.load(base_model_path,map_location=device)
+      if isinstance(model, dict):
+        model = torch.load(base_model_path,map_location=device, weights_only=False)
       model.eval()
     except Exception:
       model = torch.load(base_model_path,map_location=device, weights_only=False)
       if(device == 'cpu'):
         model.eval()
+    
+    if(recalib_model):
+        recalib_loaded = torch.load(recalib_model, map_location=device)
+        if isinstance(recalib_loaded, dict):
+            recalib_loaded = torch.load(recalib_model, map_location=device, weights_only=False)
+        
+        # If recalib_loaded is a model, extract state_dict; otherwise use it directly
+        if isinstance(recalib_loaded, dict):
+            recalib_state_dict = recalib_loaded
+        else:
+            recalib_state_dict = recalib_loaded.state_dict()
+        
+        model.load_state_dict(recalib_state_dict)
+        model.eval() 
+    
     return model
 
 # Define the inference function
@@ -182,6 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("--image_folder", type=str, required=True, help="Path to the folder containing images")
     parser.add_argument("--dest_dir", type=str, required=True, help="Path to the destination directory to save results")
     parser.add_argument("--output_excel", type=str, required=True, help="Path to save the output Excel file")
+    parser.add_argument("--recalibrated_model_path", type=str, required=False, help="Comma-separated list of paths to recalibrated model files")
     args = parser.parse_args()
     
     base_model_path = args.base_model_path 
@@ -204,11 +223,34 @@ if __name__ == "__main__":
     logging.info(f"Image folder: {image_folder}")
     logging.info(f"Output Excel file: {output_excel}")
 
-    # Load the model
+    # Load the base model
     model = load_model(base_model_path)
     
-    # Perform predictions
+    # Perform predictions with base model
     results, y_true, y_pred = predict_from_directory(image_folder, model, class_names)
+    
+    # Add base model predictions to results
+    df = pd.DataFrame(results)
+    df.rename(columns={"predicted_class": "predicted_class_before"}, inplace=True)
+    df.rename(columns={"Prediction Confidence": "Confidence_before"}, inplace=True)
+    df.rename(columns={"Class0_Prob": "Class0_Prob_before", "Class1_Prob": "Class1_Prob_before", "Class2_Prob": "Class2_Prob_before"}, inplace=True)
+    
+    # If recalibrated models provided, compute predictions for each
+    if args.recalibrated_model_path:
+        recalibrated_paths = [p.strip() for p in args.recalibrated_model_path.split(",")]
+        
+        for idx, recal_model_path in enumerate(recalibrated_paths):
+            logging.info(f"Processing recalibrated model {idx}: {recal_model_path}")
+            recal_model = load_model(base_model_path, recal_model_path)
+            recal_results, _, recal_y_pred = predict_from_directory(image_folder, recal_model, class_names)
+            
+            # Add recalibrated model predictions to dataframe
+            for i, result in enumerate(recal_results):
+                df.loc[i, f"predicted_class_recal_{idx}"] = result["predicted_class"]
+                df.loc[i, f"Confidence_recal_{idx}"] = result["Prediction Confidence"]
+                df.loc[i, f"Class0_Prob_recal_{idx}"] = result["Class0_Prob"]
+                df.loc[i, f"Class1_Prob_recal_{idx}"] = result["Class1_Prob"]
+                df.loc[i, f"Class2_Prob_recal_{idx}"] = result["Class2_Prob"]
     
     # Get unique classes from predictions
     unique_classes = sorted(list(set(y_true + y_pred)))
@@ -219,8 +261,6 @@ if __name__ == "__main__":
     cm_data = pd.DataFrame(cm)
 
     # Save results to an Excel file
-    df = pd.DataFrame(results)
-    df = pd.concat([df, cm_data], ignore_index=True)
     df.to_excel(output_excel, index=False)
     # Also save results to CSV
     output_csv = output_excel.replace('.xlsx', '.csv')

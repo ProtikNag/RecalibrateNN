@@ -20,7 +20,7 @@ for model in resnet50 mobilenet_v3_small mobilenet_v3_large inception_v3 vgg16; 
                 ;;
         esac
         
-        python simple_sample_cav.py --model-path "/mnt/sdd/basics/balanced_training/$model/$model.pth" --layer-name "$layer" --concept-folder "/mnt/sdc/concepts/concepts_links/concept_150/$animal/coat" --random-folder "/mnt/sdc/concepts/concepts_links/concept_150/random" --base-model "$model" --sample-size 30 --batch-size 10 --seed 141
-        mv concept_data_check_${model}.csv /home/srikanth/study1/RecalibrateNN/samplesize_exp/concept_data_check_${model}_${animal}coat.csv
+        python simple_random_sampling_cav.py --model-path "/mnt/sdd/basics/balanced_training/$model/$model.pth" --layer-name "$layer" --concept-folder "/mnt/sdc/concepts/concepts_links/concept_150/$animal/coat" --random-folder "/mnt/sdc/concepts/concepts_links/concept_150/random" --base-model "$model" --sample-size 30 --batch-size 10 --seed 141
+        mv concept_data_check_${model}.csv /home/srikanth/study1/RecalibrateNN/samplesize_exp2/concept_data_check_${model}_${animal}coat.csv
     done
 done

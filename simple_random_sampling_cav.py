@@ -160,7 +160,7 @@ def build_sampled_cav_list(
         else:
             current_conceptlist = sample_with_replacement(concept_paths, sample_size, rng)
             current_random_list = sample_with_replacement(random_paths, sample_size, rng)
-        #current_conceptlist = sample_without_replacement(concept_paths, 130, rng)
+        current_conceptlist = sample_without_replacement(concept_paths, 130, rng)
 
         cav = compute_cav_for_sample(
             model=model,

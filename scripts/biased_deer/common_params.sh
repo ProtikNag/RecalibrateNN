@@ -5,7 +5,7 @@ export PATH=../../../:${PATH}
 
 ### All parameters over written here
 MODELS_ARRAY=("vgg16" "resnet50" "inception_v3" "mobilenet_v3_small" "mobilenet_v3_large") 
-BASE_MODEL_DIR="/mnt/sdd/biased_models"
+BASE_MODEL_DIR="/mnt/sdd/biased_models/base_model"
 CONFIG_FILE="/home/srikanth/study1/RecalibrateNN/config/biased/config_biased_3classes.yaml"
 # Call the function to display parameters and get confirmation
 BEFORE_AFTER=false
@@ -14,6 +14,7 @@ echo -e "\033[32mRecalibration Before and after Flag:\033[0m $BEFORE_AFTER"
 RECALIBRATED_MODELS_BASE="/mnt/sdd/biased_models/recalib_results"
 RECALIBRATED_RESULTS_LOCATION="/mnt/sdd/biased_models/recalib_results"
 SENSITIVITY_RESULTS_LOCATION="/mnt/sdd/biased_models/sensitivity"
+CAV_RESULTS_LOCATION="/mnt/sdd/biased_models/cav_vectors"
 XAI_RESULTS_LOCATION="/mnt/sdd/biased_models/xai_results"
 
 

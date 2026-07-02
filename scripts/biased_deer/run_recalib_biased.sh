@@ -11,13 +11,17 @@ PYTHON_SCRIPT="../../main.py"
 
 
 print_parameters
-RUN_SPECIFIC_MODEL=false 
+RUN_SPECIFIC_MODEL=true 
 
 #wait_for_user
 
 
 if [ "$RUN_SPECIFIC_MODEL" = true ]; then
-  MODELS_ARRAY=("mobilenet_v3_small")
+  #MODELS_ARRAY=("mobilenet_v3_small")
+  #MODELS_ARRAY=("vgg16")
+  #MODELS_ARRAY=("resnet50")
+  #MODELS_ARRAY=("inception_v3")
+  MODELS_ARRAY=("mobilenet_v3_large")
 fi
 
 
