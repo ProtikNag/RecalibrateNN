@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=../../../:${PATH}
+
+
+source ./common_params.sh
+source ../utility_scripts.sh
+
+PYTHON_SCRIPT="../../main.py"
+
+PYTHON_SCRIPT="../../main_selected_recalib.py"
+RECALIBRATED_RESULTS_LOCATION="/mnt/sdd/biased_models/recalib_selected"
+
+print_parameters
+RUN_SPECIFIC_MODEL=true 
+
+#wait_for_user
+
+
+if [ "$RUN_SPECIFIC_MODEL" = true ]; then
+  #MODELS_ARRAY=("mobilenet_v3_small")
+  #MODELS_ARRAY=("vgg16")
+  MODELS_ARRAY=("resnet50")
+  #MODELS_ARRAY=("inception_v3")
+  #MODELS_ARRAY=("mobilenet_v3_large")
+fi
+
+
+
+###########################################################################################
+for model in "${MODELS_ARRAY[@]}"; do
+    echo "Processing Recalibration for model: ${model}"
+
+COMMAND="python ${PYTHON_SCRIPT} \
+    --model_name ${model} \
+    --model_path ${BASE_MODEL_DIR} \
+    --store_results ${RECALIBRATED_RESULTS_LOCATION} \
+    --config ${CONFIG_FILE}"
+
+    echo -e "\033[32m Command to execute:\033[0m $COMMAND"
+    export model && $COMMAND 
+done
+###########################################################################################
