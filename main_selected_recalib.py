@@ -1,0 +1,478 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on```python
+# Copyright [2025] [Srikanth KS]
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+"""
+/*
+ * Copyright (c) 2025 Srikanth K S. All rights reserved.
+ * Licensed under the APACHE2 License.
+ * Author : Srikanth K S
+ * Version 1.0
+ */
+"""
+"""
+Known bug
+/mnt/data/python_venv/lib/python3.12/site-packages/torch/autograd/graph.py:825: UserWarning: adaptive_avg_pool2d_backward_cuda does not have a deterministic implementation, but you set 'torch.use_deterministic_algorithms(True, warn_only=True)'. You can file an issue at https://github.com/pytorch/pytorch/issues to help us prioritize adding deterministic support for this operation. (Triggered internally at ../aten/src/ATen/Context.cpp:91.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+
+"""
+
+import copy
+import os.path
+import os
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from logger import Logger_Singleton
+from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
+from datetime import datetime
+import argparse
+from dotenv import load_dotenv
+from ConfigSingleton import ConfigSingleton
+import random
+import numpy as np
+
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+RECALIBRATE_SELECTED_CLASS = [1,0,0]
+from utils import (
+    get_num_classes, get_class_folder_dicts, train_cav, evaluate_accuracy, plot_loss_figure, save_statistics,
+    compute_avg_confidence, get_model_weight_path, get_base_model_image_size, get_model_layers, predict_from_loader
+)
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+if(DEVICE =='cuda'):
+  torch.backends.cudnn.deterministic = True
+  torch.backends.cudnn.benchmark = False
+
+
+torch.use_deterministic_algorithms(True, warn_only=True)
+
+
+MODEL = None
+TRAIN_TRANSFORM = None
+VALID_TRANSFORM = None
+LAYER_NAMES = None
+RANDOM_STATE = 132
+activation = {}
+output_shape = {}
+
+def set_seed(seed=RANDOM_STATE):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+def worker_init_fn(worker_id):
+    worker_seed = RANDOM_STATE + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+# Set global seed
+set_seed(RANDOM_STATE)
+
+def get_activation(layer_name):
+    def hook(model, input, output):
+        activation[layer_name] = output
+        output_shape[layer_name] = output.shape
+        # This print has been added for you to visualize if the size is too large then the time taken fror convergence will be large
+        print(f"Verify the output shape : Layername = {layer_name} , output.shape : {output.shape}")
+        #logging.info(f"Verify the output shape : Layername = {layer_name} ,Input.shape : {input[0].shape},  output.shape : {output.shape}")
+    return hook
+
+
+def compute_cav(model, loader_positive, loader_random, layer_name, orthogonal=False):
+    pos_acts, rnd_acts = [], []
+    model.eval()
+    with torch.no_grad():
+        for imgs in loader_positive:
+            imgs = imgs.to(DEVICE)
+            _ = model(imgs)
+            pos_acts.append(activation[layer_name].view(imgs.size(0), -1).cpu().numpy())
+        for imgs in loader_random:
+            imgs = imgs.to(DEVICE)
+            _ = model(imgs)
+            rnd_acts.append(activation[layer_name].view(imgs.size(0), -1).cpu().numpy())
+    pos_acts = np.vstack(pos_acts)
+    rnd_acts = np.vstack(rnd_acts)
+    cav = train_cav(pos_acts, rnd_acts, orthogonal, LINEAR_CLASSIFIER_TYPE)
+    return torch.tensor(cav, dtype=torch.float32, device=DEVICE)
+
+
+def compute_tcav_score(model, layer_name, cav_vector, dataset_loader, target_idx):
+    logging.info(f"Computing TCAV score for layer: {layer_name}, target index: {target_idx}")
+    model.eval()
+    scores = []
+    for imgs in dataset_loader:
+        imgs = imgs.to(DEVICE)
+        with torch.enable_grad():
+            outputs = model(imgs)
+            f_l = activation[layer_name]
+            h_k = outputs[:, target_idx]
+            grad = torch.autograd.grad(h_k.sum(), f_l, retain_graph=True)[0].detach()  # check the documentation for the default values
+            grad_flat = grad.view(grad.size(0), -1)
+            grad_norm = F.normalize(grad_flat, p=2, dim=1)
+            S = (grad_norm * cav_vector).sum(dim=1)
+            scores.append(S > 0)  # additional logging for sensitivity analysis
+    scores = torch.cat(scores)
+    logging.info(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
+    print(f"TCAV score computation completed for layer: {layer_name}, target index: {target_idx}")
+    return scores.float().mean().item()
+
+
+def main(random_state=132):
+    # Set random seeds for reproducibility at the beginning of main function
+    torch.manual_seed(random_state)
+    if(DEVICE == 'cuda'):
+      torch.cuda.manual_seed(random_state)
+      torch.cuda.manual_seed_all(random_state)  # For multi-GPU setups
+    np.random.seed(random_state)
+    random.seed(random_state)
+    
+    if(DEVICE == 'cuda'):
+      # Ensure deterministic behavior (may impact performance)
+      torch.use_deterministic_algorithms(True, warn_only=True)
+
+      torch.backends.cudnn.benchmark = False
+    logging.info("Main function started.")
+    try:
+        for layer_name in LAYER_NAMES:
+            logging.info(f"Processing layer: {layer_name}")
+            try:
+                model_trained = copy.deepcopy(MODEL).to(DEVICE)
+                model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                print("Computing the cav vectors can take a while stand by")
+                try:
+                    cav_vectors = [compute_cav(model_trained, concept_loader, random_loader, layer_name) for concept_loader in concept_loader_list]
+                except Exception as e:
+                    logging.error(f"Error during CAV computation: {e}")
+                    print(f"Error during CAV computation: {e}")
+                    continue
+                print("Computing the tcav scores can take a while stand by")
+                try:
+                    tcav_before = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                                for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                except Exception as e:
+                    logging.error(f"Error during TCAV score computation: {e}")
+                    print(f"Error during TCAV score computation: {e}")
+                    continue
+                print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+                logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
+                try:
+                    acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+                    avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                except Exception as e:
+                    logging.error(f"Error during accuracy evaluation: {e}")
+                    print(f"Error during accuracy evaluation: {e}")
+                print(validation_loader, TARGET_IDX_LIST)
+                try:
+                    results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                except Exception as e:
+                    logging.error(f"Error during legacy prediction: {e}")
+                    print(f"Error during legacy prediction: {e}")
+                logging.info(f"Accuracy Before: {acc_before:.4f}")
+                logging.info(f"Precision Before: {precision_before:.4f}")
+                logging.info(f"Recall Before: {recall_before:.4f}")
+                logging.info(f"F1 Score Before: {f1_before:.4f}")
+                logging.info(f"Average Confidence Before: {avg_conf_before}")
+                logging.info(f"TCAV Score before : {tcav_before}")
+                print(f"Accuracy Before: {acc_before:.4f}, tcav_before: {tcav_before}")
+            except Exception as e:
+                logging.error(f"Error during initial evaluation: {e}")
+                print(f"Error during initial evaluation: {e}")
+                continue
+            try:
+                print(f"List of lambda values for while model will be trained {LAMBDA_ALIGNS}")
+                for LAMBDA_ALIGN in LAMBDA_ALIGNS:
+                    
+                    # Reset random seeds before each training iteration for consistency
+                    torch.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    torch.cuda.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    np.random.seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    random.seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                                    
+                    LAMBDA_CLS = round(1.0 - LAMBDA_ALIGN, 2)
+                    logging.info(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
+                    print(f"Training with Lambda Align: {LAMBDA_ALIGN}, Lambda Classification: {LAMBDA_CLS}")
+                    model_trained = copy.deepcopy(MODEL).to(DEVICE)
+                    try:
+                        model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+                    except Exception as e:
+                        print(f"Obtained exception while registering forward hook for {layer_name}")
+                    try:
+                        model_trained.train()
+                    except Exception as e:
+                        print(f"Obtained exception while calling model train")
+                    try:   
+                        for name, param in model_trained.named_parameters():
+                            param.requires_grad = (layer_name in name)
+                            
+                        model_trained.apply(lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None)
+                    except Exception as e:
+                        print(param.requires_grad)
+                        print(f"Obtained exception while applying forward hooks  line 225")
+                    
+                    # Set random seed for optimizer initialization
+                    torch.manual_seed(random_state + hash(str(LAMBDA_ALIGN)) % 1000)
+                    try:
+                        optimizer = optim.Adam(filter(lambda p: p.requires_grad, model_trained.parameters()), lr=LEARNING_RATE)
+                    except Exception as e:
+                        print(optimizer)
+                        print(f"Obtained exception   line 239")
+                        
+                    loss_history = {"total": [], "cls": [], "align": []}
+                    for epoch in range(EPOCHS):
+                        total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
+                        for imgs, labels in dataset_loader:
+                            imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
+                            optimizer.zero_grad()
+                            if (BASE_MODEL == 'inception_v3'):
+                                outputs, aux_logits = model_trained(imgs)
+                                cls_loss = nn.CrossEntropyLoss()(outputs, labels) + 0.4 * nn.CrossEntropyLoss()(aux_outputs, labels)
+                            else:
+                                outputs = model_trained(imgs)
+                                cls_loss = nn.CrossEntropyLoss()(outputs, labels)
+                            
+                            f_l = activation[layer_name].view(imgs.size(0), -1)
+                            align_loss = 0.0
+                            for i, target_idx in enumerate(TARGET_IDX_LIST):
+                                mask = (labels == target_idx)
+                                
+                                if (RECALIBRATE_SELECTED_CLASS[target_idx] and mask.any()):
+                                    cosine_similarity = F.cosine_similarity(f_l[mask], cav_vectors[i].unsqueeze(0), dim=1)
+                                    align_loss += (1 - torch.mean(torch.abs(cosine_similarity)))
+                                    logging.info(
+                                        f"Epoch {epoch + 1}/{EPOCHS}, "
+                                        f"Minimization parameter: {(1 - torch.mean(torch.abs(cosine_similarity)))}, "
+                                        f"target_idx: {target_idx}"
+                                    )
+                            loss = LAMBDA_ALIGN * align_loss + LAMBDA_CLS * cls_loss
+                            loss.backward()
+                            torch.nn.utils.clip_grad_norm_(model_trained.parameters(), max_norm=7)
+                            optimizer.step()
+                            total_loss_epoch += loss.item()
+                            cls_loss_epoch += cls_loss.item()
+                            align_loss_epoch += align_loss.item()
+                        n_batches = len(dataset_loader)
+                        loss_history["total"].append(total_loss_epoch / n_batches)
+                        loss_history["cls"].append(cls_loss_epoch / n_batches)
+                        loss_history["align"].append(align_loss_epoch / n_batches)
+                        logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
+                        print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
+                    acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
+                    results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                    print("Computing the tcav scores after can take a while stand by")
+                    try:
+                        tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
+                                    for cav, class_loader, idx in zip(cav_vectors, class_dataloaders, TARGET_IDX_LIST)]
+                    except Exception as e:
+                        logging.error(f"Error during TCAV score computation after training: {e}")
+                        print(f"Error during TCAV score computation after training: {e}")
+                        continue
+                    try:
+                        avg_conf_after = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
+                    except Exception as e:
+                        logging.error(f"Error during average confidence computation after training: {e}")
+                        print(f"Error during average confidence computation after training: {e}")
+                        
+                    logging.info(f"Accuracy After: {acc_after:.4f}")
+                    logging.info(f"Precision After: {precision_after:.4f}")
+                    logging.info(f"Recall After: {recall_after:.4f}")
+                    logging.info(f"F1 Score After: {f1_after:.4f}")
+                    logging.info(f"Average Confidence After: {avg_conf_after}")
+                    logging.info(f"TCAV Score after : {tcav_after}")
+                    print(f"Accuracy After: {acc_after:.4f}, tcav_after: {tcav_after}")
+                    stats = {
+                        "Layer Name": layer_name,
+                        "Lambda Classification": LAMBDA_CLS,
+                        "Lambda Alignment": LAMBDA_ALIGN,
+                        "Accuracy Before": round(acc_before, 3),
+                        "Accuracy After": round(acc_after, 3),
+                        "Precision Before": round(precision_before, 3),
+                        "Precision After": round(precision_after, 3),
+                        "Recall Before": round(recall_before, 3),
+                        "Recall After": round(recall_after, 3),
+                        "F1 Before": round(f1_before, 3),
+                        "F1 After": round(f1_after, 3),
+                        "Legacy Accuracy Before": round(acc_legacy_before, 3),
+                        "Legacy Accuracy After": round(acc_legacy_after, 3),
+                        "Class count  Before": class_count_legacy_before[i],
+                        "Class count After": class_count_legacy_after[i]
+                    }
+                    for i, class_name in enumerate(TARGET_CLASS_LIST):
+                        stats[f"TCAV Before ({class_name})"] = round(tcav_before[i], 3)
+                        stats[f"TCAV After ({class_name})"] = round(tcav_after[i], 3)
+                        stats[f"Avg Conf {class_name} Before"] = round(avg_conf_before[i], 3)
+                        stats[f"Avg Conf {class_name} After"] = round(avg_conf_after[i], 3)
+                    classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
+                    plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
+                                    classificationloss_filename, alignmentloss_filename, total_loss)
+                    statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
+                    save_statistics(stats, statistic_filename)
+                    logging.info(f"Training completed for Lambda Align: {LAMBDA_ALIGN}, Layer: {layer_name}")
+                    modelsave_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pth")
+                    torch.save(model_trained.state_dict(), modelsave_filename)
+            except Exception as e:
+                logging.error(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
+                print(f"Error during training with Lambda Align {LAMBDA_ALIGN}: {e}")
+    except Exception as e:
+        logging.error(f"Error in main function: {e}, layer_name :{layer_name}, LAMBDA_ALIGN{LAMBDA_ALIGN} ")
+    logging.info("Main function completed.")
+
+
+
+if __name__ == "__main__":
+    # Argument parser to override the model name and model path
+    parser = argparse.ArgumentParser(description="Override model name and model path")
+    parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
+    parser.add_argument("--model_path", type=str, default=None, help="Specify a model path to override the default path")
+    parser.add_argument("--config_file", type=str, default=None, help="Specify a config file to override the default path")
+    parser.add_argument("--store_results", type=str, default=None, help="Specify a locaiton to store the results")
+    
+    args = parser.parse_args()
+    config_file = args.config_file
+    print(config_file)
+    
+    if config_file is not None:
+        if not os.path.isfile(config_file):
+            raise FileNotFoundError(f"Config file '{config_file}' does not exist.")
+    else:
+        raise FileNotFoundError(f"Config file parameter not provided in the command line")
+    config = ConfigSingleton(config_file)
+    SEED = config.SEED
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    CLASSIFICATION_DATA_BASE_PATH = config.CLASSIFICATION_DATA_BASE_PATH
+    TARGET_CLASS_LIST = config.TARGET_CLASS_LIST
+    RANDOM_FOLDER = config.RANDOM_FOLDER
+    CONCEPT_FOLDER_LIST = config.CONCEPT_FOLDER_LIST
+    LEARNING_RATE = config.LEARNING_RATE
+    EPOCHS = config.EPOCHS
+    BATCH_SIZE = config.BATCH_SIZE
+    NUM_CLASSES = config.NUM_CLASSES
+    LAMBDA_ALIGNS = config.LAMBDA_ALIGNS
+    LINEAR_CLASSIFIER_TYPE = config.LINEAR_CLASSIFIER_TYPE
+    print("Config file loaded successfully.")
+   
+    if(os.getenv('DEBUG')):
+        #args = parser.parse_args(["--org_model_path" , "/home/srikanth/trained_models/pytorch/vgg16/vgg16.pth","--model_name", "vgg16"])
+        args = parser.parse_args(["--model_path" , "/home/srikanth/trained_models/pytorch","--model_name", "mobilenet_v3_small"])
+    # Check if both parameters are provided
+    if not args.model_name or not args.model_path:
+        print("Error: Both --model_name and --model_path must be provided.")
+    else:
+        BASE_MODEL = args.model_name.strip().lower()
+        BASE_MODEL_PATH = args.model_path.strip()
+    # Override the model name if provided
+    if args.model_name:
+        BASE_MODEL = args.model_name.strip().lower()
+        BASE_MODEL = BASE_MODEL.strip().lower()
+        MODEL_PATH = get_model_weight_path(BASE_MODEL, BASE_MODEL_PATH)
+        # Configure logging
+        RESULTS_BASE_PATH = args.store_results
+        if(RESULTS_BASE_PATH == None):
+            RESULTS_BASE_PATH = './results' 
+        RESULTS_PATH = RESULTS_BASE_PATH +'/' + BASE_MODEL + '/'
+        os.makedirs(RESULTS_PATH, exist_ok=True)
+        log_filename = f"{RESULTS_BASE_PATH}/{BASE_MODEL}/audit_trail_{BASE_MODEL}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logging = Logger_Singleton(log_filename)
+        logging.info("Script started.")
+        IMAGE_SIZE = get_base_model_image_size(BASE_MODEL)
+        # load model
+        print(MODEL_PATH, DEVICE)
+        if(DEVICE == 'cpu'):
+            MODEL = torch.load(MODEL_PATH, map_location=DEVICE, weights_only = False)
+        else:
+            MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
+        MODEL.to(DEVICE)        
+        # Get all bottleneck layers
+        LAYER_NAMES = get_model_layers(MODEL)
+        logging.info(f"Layer names present in this model are {LAYER_NAMES}")
+        LAYER_NAMES = get_model_layers(MODEL)[2:]
+        logging.info(f"Layer names trained now in this model are {LAYER_NAMES}")
+        print(f"Layer names trained now in this model are {LAYER_NAMES}")
+        if(config.OVERRIDE_RECALIB):
+            #
+            if(BASE_MODEL == 'vgg16'):
+                #Get the layers
+                LAYER_NAMES = config.VGG_RECALIB
+            if(BASE_MODEL == 'resnet50'):
+                LAYER_NAMES = config.RESNET50_RECALIB
+            if(BASE_MODEL == 'inception_v3'):
+                LAYER_NAMES = config.INCEPTION_V3_RECALIB
+            if(BASE_MODEL == 'mobilenet_v3_small'):
+                LAYER_NAMES = config.MOBILENET_V3_SMALL_RECALIB
+            if(BASE_MODEL == 'mobilenet_v3_large'):
+                LAYER_NAMES = config.MOBILENET_V3_LARGE_RECALIB
+            logging.info(f"Layer names Override the following layers {LAYER_NAMES} were considered in model {BASE_MODEL}")
+        NUM_CLASSES = get_num_classes(CLASSIFICATION_DATA_BASE_PATH)
+        
+    # Transformations
+    TRAIN_TRANSFORM = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    VALID_TRANSFORM = transforms.Compose([
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    logging.info(f"Model overridden with: {args.model_name}")
+    logging.info(f"Model path: {BASE_MODEL_PATH}")
+    logging.info(f"Hyperparameters - Learning Rate: {LEARNING_RATE}, Epochs: {EPOCHS}, Batch Size: {BATCH_SIZE}, Device: {DEVICE}")
+    logging.info(f"Target Classes: {TARGET_CLASS_LIST}, Lambda Aligns: {LAMBDA_ALIGNS}")
+    try:
+        print("Calling methods get_class_folder_dicts")
+        print("Classification base path ", CLASSIFICATION_DATA_BASE_PATH)
+        train_folders, valid_folders, class_names = get_class_folder_dicts(CLASSIFICATION_DATA_BASE_PATH)
+        print("Train folders , valid folders and class name ", train_folders, valid_folders, class_names)
+        TARGET_IDX_LIST = [class_names.index(cls) for cls in TARGET_CLASS_LIST]
+        print("Loading train datasets stand by")
+        train_dataset = MultiClassImageDataset(train_folders, transform=TRAIN_TRANSFORM)
+        generator = torch.Generator()
+        generator.manual_seed(RANDOM_STATE)    
+        dataset_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, 
+	                            shuffle=True, generator=generator,
+	                            worker_init_fn=worker_init_fn)
+        print("Loading val datasets stand by")
+        val_dataset = MultiClassImageDataset(valid_folders, transform=VALID_TRANSFORM)
+        validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        class_dataloaders = [DataLoader(SingleClassDataLoader(os.path.join(CLASSIFICATION_DATA_BASE_PATH, "train/" + class_name  ),
+                                                              transform=VALID_TRANSFORM), batch_size=BATCH_SIZE) for class_name in TARGET_CLASS_LIST]
+        print("Loading concept datasets stand by")
+        concept_loader_list = [DataLoader(SingleClassDataLoader(path, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True) for path in CONCEPT_FOLDER_LIST]
+        print("Loading random datasets stand by")
+        random_loader = DataLoader(SingleClassDataLoader(RANDOM_FOLDER, transform=VALID_TRANSFORM), batch_size=BATCH_SIZE, shuffle=True)
+        logging.info("Data preparation completed successfully.")
+    except Exception as e:
+        logging.error(f"Error during data preparation: {e}")
+    main()
+    logging.info("Script execution finished.")

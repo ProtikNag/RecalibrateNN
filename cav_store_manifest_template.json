@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "_comment": "CAV Store manifest. Edit concept aliases and layer_groups as needed.",
+  "concepts": {
+    "deer_bias": {
+      "alias": "deer",
+      "data_path": "/path/to/concepts/deer_bias",
+      "description": "Deer bias concept images"
+    },
+    "horse": {
+      "alias": "horse",
+      "data_path": "/path/to/concepts/horse",
+      "description": "Horse concept images"
+    },
+    "zebra": {
+      "alias": "zebra",
+      "data_path": "/path/to/concepts/zebra",
+      "description": "Zebra concept images"
+    }
+  },
+  "models": {
+    "vgg16": {
+      "alias": "VGG-16",
+      "weight_path": "",
+      "computed_layers": []
+    },
+    "resnet50": {
+      "alias": "ResNet-50",
+      "weight_path": "",
+      "computed_layers": []
+    },
+    "inception_v3": {
+      "alias": "Inception-v3",
+      "weight_path": "",
+      "computed_layers": []
+    },
+    "mobilenet_v3_small": {
+      "alias": "MobileNet-v3-Small",
+      "weight_path": "",
+      "computed_layers": []
+    },
+    "mobilenet_v3_large": {
+      "alias": "MobileNet-v3-Large",
+      "weight_path": "",
+      "computed_layers": []
+    }
+  },
+  "layer_groups": {
+    "vgg16_mid_features": {
+      "model": "vgg16",
+      "layers": [
+        "features.11",
+        "features.13"
+      ],
+      "description": "VGG16 mid-level conv layers for recalibration"
+    },
+    "vgg16_deep_features": {
+      "model": "vgg16",
+      "layers": [
+        "features.20",
+        "features.22",
+        "features.24"
+      ],
+      "description": "VGG16 deeper conv layers for recalibration"
+    }
+  }
+}
