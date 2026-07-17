@@ -29,6 +29,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+import pandas as pd
+
 from logger import Logger_Singleton
 from custom_dataloader import MultiClassImageDataset
 from ConfigSingleton import ConfigSingleton
@@ -291,6 +293,232 @@ def _save_before_metrics(
     logging.info(f"Before-metrics saved: {out_path}")
     print(f"Before-metrics saved: {out_path}")
 
+
+# ---------------------------------------------------------------------------
+# After-recalibration metrics computation and Excel summary
+# ---------------------------------------------------------------------------
+
+def _compute_after_metrics(
+    best_models_per_class: dict,
+    registry: CAVRegistry,
+    model_name: str,
+    concept_name_map: dict,
+    validation_loader,
+    target_idx_list: list,
+    results_path: str,
+    logging,
+) -> tuple:
+    """
+    Load best model for each target class, compute accuracy and TCAV scores.
+    
+    best_models_per_class: {target_class: {best_model_path, metrics}}
+    
+    Returns: (after_metrics_dict, after_tcav_dict)
+    """
+    after_metrics = {}
+    after_tcav = {}
+    
+    for target_class in target_idx_list:
+        if target_class not in best_models_per_class:
+            logging.warning(f"No best model found for class {target_class}")
+            continue
+        
+        model_info = best_models_per_class[target_class]
+        best_model_path = model_info.get("path")
+        
+        if not os.path.isfile(best_model_path):
+            logging.warning(f"Best model file not found: {best_model_path}")
+            continue
+        
+        logging.info(f"Loading best model for class {target_class}: {best_model_path}")
+        print(f"Loading best model for class {target_class}...")
+        
+        try:
+            if DEVICE == "cpu":
+                best_model = torch.load(best_model_path, map_location=DEVICE, weights_only=False)
+            else:
+                best_model = torch.load(best_model_path, map_location=DEVICE)
+            best_model.to(DEVICE)
+            best_model.eval()
+            
+            # Compute metrics
+            acc, prec, rec, f1, conf, class_res = _compute_metrics(
+                best_model, validation_loader, [target_class], logging
+            )
+            after_metrics[target_class] = {
+                "accuracy": round(float(acc), 6),
+                "precision": round(float(prec), 6),
+                "recall": round(float(rec), 6),
+                "f1": round(float(f1), 6),
+            }
+            logging.info(
+                f"After � class {target_class}: acc={acc:.4f} prec={prec:.4f} rec={rec:.4f} f1={f1:.4f}"
+            )
+            
+            # Compute TCAV scores for this class
+            concept_name = concept_name_map.get(target_class)
+            if concept_name:
+                try:
+                    cavs = _load_target_cavs(
+                        registry, model_name, model_info.get("layers", []),
+                        concept_name, logging
+                    )
+                    if cavs:
+                        tcav_scores = _compute_tcav_scores(
+                            best_model, cavs, validation_loader, target_class, logging
+                        )
+                        after_tcav[target_class] = tcav_scores
+                    del cavs
+                except Exception as exc:
+                    logging.warning(f"TCAV after-metrics failed class {target_class}: {exc}")
+            
+            # Free model to prevent CUDA OOM
+            del best_model
+            if DEVICE == "cuda":
+                torch.cuda.empty_cache()
+        
+        except Exception as exc:
+            logging.error(f"Failed to compute after-metrics for class {target_class}: {exc}")
+            print(f"Error: {exc}")
+    
+    return after_metrics, after_tcav
+
+
+def _create_summary_excel(
+    before_metrics: dict,
+    before_tcav: dict,
+    after_metrics: dict,
+    after_tcav: dict,
+    target_idx_list: list,
+    target_class_names: list,
+    concept_names: dict,
+    results_path: str,
+    model_name: str,
+    logging,
+):
+    """
+    Create an Excel summary with before/after metrics and TCAV scores.
+    
+    before_metrics: {target_class: {accuracy, precision, recall, f1}}
+    before_tcav: {target_class: {layer_name: score}}
+    after_metrics: {target_class: {accuracy, precision, recall, f1}}
+    after_tcav: {target_class: {layer_name: score}}
+    target_class_names: human-readable class names
+    concept_names: {target_class: concept_name}
+    """
+    summary_data = []
+    
+    for idx, target_class in enumerate(target_idx_list):
+        class_name = target_class_names[idx] if idx < len(target_class_names) else f"class_{target_class}"
+        concept_name = concept_names.get(target_class, "unknown")
+        
+        before_acc = before_metrics.get(target_class, {}).get("accuracy", "N/A")
+        before_prec = before_metrics.get(target_class, {}).get("precision", "N/A")
+        before_rec = before_metrics.get(target_class, {}).get("recall", "N/A")
+        before_f1 = before_metrics.get(target_class, {}).get("f1", "N/A")
+        
+        after_acc = after_metrics.get(target_class, {}).get("accuracy", "N/A")
+        after_prec = after_metrics.get(target_class, {}).get("precision", "N/A")
+        after_rec = after_metrics.get(target_class, {}).get("recall", "N/A")
+        after_f1 = after_metrics.get(target_class, {}).get("f1", "N/A")
+        
+        # Average TCAV before
+        before_tcav_vals = before_tcav.get(target_class, {}).values()
+        avg_tcav_before = (
+            round(sum(before_tcav_vals) / len(before_tcav_vals), 6)
+            if before_tcav_vals
+            else "N/A"
+        )
+        
+        # Average TCAV after
+        after_tcav_vals = after_tcav.get(target_class, {}).values()
+        avg_tcav_after = (
+            round(sum(after_tcav_vals) / len(after_tcav_vals), 6)
+            if after_tcav_vals
+            else "N/A"
+        )
+        
+        # Accuracy improvement
+        acc_improvement = "N/A"
+        if isinstance(before_acc, (int, float)) and isinstance(after_acc, (int, float)):
+            acc_improvement = round(after_acc - before_acc, 6)
+        
+        summary_data.append({
+            "Class Index": target_class,
+            "Class Name": class_name,
+            "Concept": concept_name,
+            "Before Accuracy": before_acc,
+            "After Accuracy": after_acc,
+            "Accuracy Improvement": acc_improvement,
+            "Before Precision": before_prec,
+            "After Precision": after_prec,
+            "Before Recall": before_rec,
+            "After Recall": after_rec,
+            "Before F1": before_f1,
+            "After F1": after_f1,
+            "Avg TCAV Before": avg_tcav_before,
+            "Avg TCAV After": avg_tcav_after,
+        })
+    
+    # Create DataFrame and save to Excel
+    df = pd.DataFrame(summary_data)
+    excel_path = os.path.join(results_path, f"recalibration_summary_{model_name}.xlsx")
+    
+    try:
+        # Use pandas ExcelWriter for more control
+        with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+            df.to_excel(writer, sheet_name="Summary", index=False)
+            
+            # Add formatting (optional, requires openpyxl)
+            try:
+                from openpyxl.styles import PatternFill, Font, Alignment
+                workbook = writer.book
+                worksheet = writer.sheets["Summary"]
+                
+                # Header formatting
+                header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+                header_font = Font(bold=True, color="FFFFFF")
+                
+                for cell in worksheet[1]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                # Auto-adjust column widths
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except Exception:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+            except Exception as fmt_exc:
+                logging.warning(f"Could not apply Excel formatting: {fmt_exc}")
+        
+        logging.info(f"Summary Excel saved: {excel_path}")
+        print(f"Summary Excel saved: {excel_path}")
+    except ImportError:
+        logging.error("openpyxl not installed. Installing...")
+        os.system("pip install openpyxl")
+        # Retry
+        try:
+            with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+                df.to_excel(writer, sheet_name="Summary", index=False)
+            logging.info(f"Summary Excel saved: {excel_path}")
+            print(f"Summary Excel saved: {excel_path}")
+        except Exception as exc:
+            logging.error(f"Failed to save Excel: {exc}")
+            # Fallback: save as CSV
+            csv_path = excel_path.replace(".xlsx", ".csv")
+            df.to_csv(csv_path, index=False)
+            logging.info(f"Fallback: saved as CSV: {csv_path}")
+            print(f"Fallback: saved as CSV: {csv_path}")
+
+
 # ---------------------------------------------------------------------------
 # Single lambda training pass — one deep copy, explicit CUDA cleanup
 # ---------------------------------------------------------------------------
@@ -507,7 +735,7 @@ def _recalibrate_one_class(
     results_path: str,
     save_plots: bool,
     logging,
-) -> list:
+) -> tuple:
     logging.info(
         f"class={target_class} concept={concept_name} combo={layer_combo}"
     )
@@ -519,7 +747,7 @@ def _recalibrate_one_class(
             f"No CAVs for class={target_class} concept={concept_name} "
             f"layers={layer_combo} — skipping."
         )
-        return []
+        return [], layer_combo
 
     run_metrics = []
     for lambda_idx, lambda_align in enumerate(lambda_aligns):
@@ -555,7 +783,8 @@ def _recalibrate_one_class(
     if DEVICE == "cuda":
         torch.cuda.empty_cache()
 
-    return run_metrics
+    # Return both metrics and best model info
+    return run_metrics, layer_combo
 
 
 # ---------------------------------------------------------------------------
@@ -609,6 +838,7 @@ def main(
     training_loader,
     validation_loader,
     target_idx_list: list,
+    target_class_names: list,
     lambda_aligns: list,
     recalibrate_flags: list,
     epochs: int,
@@ -620,7 +850,43 @@ def main(
 ):
     set_seed(RANDOM_STATE)
     logging.info("Recalibration started.")
+    best_models_per_class = {}  # Track best model per class: {target_class: {path, layers, metrics}}
 
+    # Capture before metrics for later summary
+    before_metrics = {}
+    before_tcav = {}
+    
+    # Compute before metrics
+    acc, prec, rec, f1, conf, class_res = _compute_metrics(
+        base_model, validation_loader, target_idx_list, logging
+    )
+    for target_idx in target_idx_list:
+        before_metrics[target_idx] = {
+            "accuracy": round(float(acc), 6),
+            "precision": round(float(prec), 6),
+            "recall": round(float(rec), 6),
+            "f1": round(float(f1), 6),
+        }
+    
+    # Compute TCAV scores before recalibration
+    for target_idx in target_idx_list:
+        concept_name = concept_name_map.get(target_idx)
+        if concept_name is None:
+            continue
+        try:
+            cavs = _load_target_cavs(registry, base_model_name, layer_names, concept_name, logging)
+            if cavs:
+                before_tcav[target_idx] = _compute_tcav_scores(
+                    base_model, cavs, validation_loader, target_idx, logging
+                )
+            del cavs
+        except Exception as exc:
+            logging.warning(f"TCAV before-metrics failed target={target_idx}: {exc}")
+    
+    if DEVICE == "cuda":
+        torch.cuda.empty_cache()
+    
+    # Save before metrics to text file
     _save_before_metrics(
         base_model, layer_names, registry, base_model_name,
         concept_name_map, validation_loader, target_idx_list,
@@ -679,7 +945,7 @@ def main(
                 f"{combo_layers}"
             )
 
-            combo_results = _recalibrate_one_class(
+            combo_results, combo_layers_returned = _recalibrate_one_class(
                 base_model=base_model,
                 base_model_name=base_model_name,
                 layer_combo=combo_layers,
@@ -700,6 +966,22 @@ def main(
             for r in combo_results:
                 r["Class Index"] = class_idx
                 save_statistics(r, combo_csv)
+                
+                # Track best model for this class
+                current_acc = r.get("Accuracy", 0.0)
+                if target_class not in best_models_per_class or current_acc > best_models_per_class[target_class].get("accuracy", 0.0):
+                    model_file = os.path.join(
+                        results_path,
+                        f"model_cls{target_class}_combo{combo_idx}_lambda{r['Lambda Alignment']}.pth"
+                    )
+                    if os.path.isfile(model_file):
+                        best_models_per_class[target_class] = {
+                            "path": model_file,
+                            "layers": combo_layers_returned,
+                            "accuracy": current_acc,
+                            "lambda": r["Lambda Alignment"],
+                            "combination": r.get("Combination", ""),
+                        }
 
             class_results.extend(combo_results)
             all_results.extend(combo_results)
@@ -726,6 +1008,26 @@ def main(
         logging.info(msg)
         print(msg)
 
+    # Compute after-recalibration metrics using best models
+    logging.info("Computing post-recalibration metrics...")
+    print("\n" + "="*60)
+    print("Computing post-recalibration metrics...")
+    print("="*60)
+    
+    after_metrics, after_tcav = _compute_after_metrics(
+        best_models_per_class, registry, base_model_name,
+        concept_name_map, validation_loader, target_idx_list,
+        results_path, logging,
+    )
+    
+    # Create summary Excel
+    logging.info("Creating summary Excel file...")
+    _create_summary_excel(
+        before_metrics, before_tcav, after_metrics, after_tcav,
+        target_idx_list, target_class_names, concept_name_map,
+        results_path, base_model_name, logging,
+    )
+    
     logging.info("Recalibration complete.")
 
 
@@ -882,6 +1184,7 @@ if __name__ == "__main__":
         training_loader=TRAINING_LOADER,
         validation_loader=VALIDATION_LOADER,
         target_idx_list=TARGET_IDX_LIST,
+        target_class_names=class_names,
         lambda_aligns=LAMBDA_ALIGNS_LIST,
         recalibrate_flags=RECALIBRATE_FLAGS,
         epochs=config.EPOCHS,
