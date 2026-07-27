@@ -22,26 +22,28 @@
 """
 CAV Registry - Load, query, and group CAV vectors for targeted recalibration.
 
-Directory layout:
+Directory layout (one joblib file per model/concept/layer):
     <cav_store_root>/
-        manifest.json
-        <model_name>/
-            <layer_name>.joblib        # one file per layer
-            ...
+        manifest.json                     # global bookkeeping (models, concepts, layer_groups)
+        <model_name>_manifest.json         # per-model manifest (see schema below)
+        <model_name>/                      # e.g. "vgg16"
+            <concept_name_1>/
+                <layer_name_1>.joblib
+                <layer_name_2>.joblib
+            <concept_name_2>/
+                <layer_name_1>.joblib
+                ...
         ...
 
-Each .joblib file schema (schema_version "1.0"):
+Each <layer_name>.joblib file schema (schema_version "2.0") holds a SINGLE
+concept's CAV for a single layer:
     {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "model": str,
+        "concept": str,
         "layer_name": str,
-        "concepts": {
-            "<concept_name>": {
-                "cav_vector": torch.Tensor,   # shape (activation_dim,)
-                "alias": str
-            },
-            ...
-        },
+        "cav_vector": torch.Tensor,   # shape (activation_dim,)
+        "alias": str,
         "metadata": {
             "created_at": str,
             "linear_classifier_type": str,
@@ -49,13 +51,38 @@ Each .joblib file schema (schema_version "1.0"):
         }
     }
 
-manifest.json schema:
+<model_name>_manifest.json schema (created/updated automatically whenever a
+CAV is saved for that model):
+    {
+        "schema_version": "1.0",
+        "model_name": str,
+        "model_weight_path": str,          # complete path to the model weights used
+        "created_at": str,
+        "updated_at": str,
+        "concepts": {
+            "<concept_name>": {
+                "concept_name": str,
+                "alias": str,
+                "data_path": str,          # complete path where this concept's CAVs are stored
+                "model_weight_path": str,  # complete path to the model used to capture the CAV
+                "source_images_path": str, # (optional) folder of images used to compute the CAV
+                "random_folder": str,      # path to the random/negative folder paired with this concept
+                "class_name": str,         # (optional) originating class, for multiconcept runs
+                "layers": [str, ...],
+                "created_at": str
+            },
+            ...
+        }
+    }
+
+manifest.json schema (kept for backward compatibility, layer-group bookkeeping):
     {
         "schema_version": "1.0",
         "concepts": {
             "<concept_name>": {
                 "alias": str,
                 "data_path": str,
+                "random_folder": str,      # path to the random/negative folder paired with this concept
                 "description": str
             }
         },
@@ -84,6 +111,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 SCHEMA_VERSION = "1.0"
+# Schema version for the per-concept/per-layer joblib payloads.
+LAYER_FILE_SCHEMA_VERSION = "2.0"
 
 
 class CAVRegistry:
@@ -101,7 +130,9 @@ class CAVRegistry:
     def __init__(self, cav_store_root: str):
         self.cav_store_root = os.path.abspath(cav_store_root)
         self.manifest_path = os.path.join(self.cav_store_root, "manifest.json")
-        self._cache: Dict[Tuple[str, str], dict] = {}
+        # Cache is keyed by (model, concept, layer) since each joblib file now
+        # holds a single concept's CAV for a single layer.
+        self._cache: Dict[Tuple[str, str, str], dict] = {}
         self._load_manifest()
 
     # ------------------------------------------------------------------
@@ -145,32 +176,42 @@ class CAVRegistry:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _layer_file(self, model: str, layer: str) -> str:
-        safe_layer = layer.replace(os.sep, "_")
-        return os.path.join(self.cav_store_root, model, f"{safe_layer}.joblib")
+    @staticmethod
+    def _safe_name(name: str) -> str:
+        """Sanitize a concept/layer name for use as a folder/file name."""
+        return str(name).replace(os.sep, "_").replace("/", "_")
 
-    def _load_layer(self, model: str, layer: str) -> dict:
-        key = (model, layer)
+    def _concept_dir(self, model: str, concept: str) -> str:
+        return os.path.join(self.cav_store_root, model, self._safe_name(concept))
+
+    def _layer_file(self, model: str, concept: str, layer: str) -> str:
+        safe_layer = self._safe_name(layer)
+        return os.path.join(self._concept_dir(model, concept), f"{safe_layer}.joblib")
+
+    def _load_concept_layer(self, model: str, concept: str, layer: str) -> dict:
+        """Load the single-concept payload stored at <model>/<concept>/<layer>.joblib."""
+        key = (model, concept, layer)
         if key not in self._cache:
-            path = self._layer_file(model, layer)
+            path = self._layer_file(model, concept, layer)
             if not os.path.isfile(path):
                 raise FileNotFoundError(
-                    f"CAV file not found  model='{model}', layer='{layer}': {path}"
+                    f"CAV file not found  model='{model}', concept='{concept}', "
+                    f"layer='{layer}': {path}"
                 )
             self._cache[key] = joblib.load(path)
         return self._cache[key]
 
-    def _resolve_concept_key(self, concept_or_alias: str, layer_data: dict) -> str:
-        concepts = layer_data.get("concepts", {})
+    def _resolve_concept_name(self, concept_or_alias: str) -> str:
+        """Resolve a concept name/alias to its canonical name using the global manifest."""
+        concepts = self._manifest.get("concepts", {})
         if concept_or_alias in concepts:
             return concept_or_alias
         for name, info in concepts.items():
             if info.get("alias") == concept_or_alias:
                 return name
-        raise KeyError(
-            f"Concept '{concept_or_alias}' not found. "
-            f"Available: {list(concepts.keys())}"
-        )
+        # Fall back to using the value as-is (e.g. concept registered only in a
+        # per-model manifest, or manifest.json not yet populated).
+        return concept_or_alias
 
     # ------------------------------------------------------------------
     # Core query API
@@ -181,14 +222,27 @@ class CAVRegistry:
         Return the CAV vector (torch.Tensor) for a specific model/layer/concept.
         `concept` may be the canonical name or its alias.
         """
-        data = self._load_layer(model, layer)
-        key = self._resolve_concept_key(concept, data)
-        return data["concepts"][key]["cav_vector"]
+        concept_name = self._resolve_concept_name(concept)
+        data = self._load_concept_layer(model, concept_name, layer)
+        return data["cav_vector"]
 
     def get_layer_cavs(self, model: str, layer: str) -> Dict[str, torch.Tensor]:
         """Return {concept_name: cav_tensor} for every concept in a layer."""
-        data = self._load_layer(model, layer)
-        return {name: info["cav_vector"] for name, info in data["concepts"].items()}
+        model_dir = os.path.join(self.cav_store_root, model)
+        if not os.path.isdir(model_dir):
+            raise FileNotFoundError(
+                f"No CAV data found for model='{model}' at {model_dir}"
+            )
+        result = {}
+        for entry in os.listdir(model_dir):
+            concept_dir = os.path.join(model_dir, entry)
+            if not os.path.isdir(concept_dir):
+                continue
+            layer_path = self._layer_file(model, entry, layer)
+            if os.path.isfile(layer_path):
+                data = self._load_concept_layer(model, entry, layer)
+                result[data.get("concept", entry)] = data["cav_vector"]
+        return result
 
     def get_group_cavs(
         self, group_name: str
@@ -215,13 +269,18 @@ class CAVRegistry:
         in a named group.  Useful for recalibration loops.
         """
         group_cavs = self.get_group_cavs(group_name)
+        concept_name = self._resolve_concept_name(concept)
         result = {}
         for layer, concept_map in group_cavs.items():
-            data = self._load_layer(
-                self._manifest["layer_groups"][group_name]["model"], layer
-            )
-            key = self._resolve_concept_key(concept, data)
-            result[layer] = concept_map[key]
+            key = concept_name if concept_name in concept_map else None
+            if key is None:
+                # Fall back to matching by alias in case folder name != canonical name.
+                for name in concept_map:
+                    if name == concept or self.get_concept_alias(name) == concept:
+                        key = name
+                        break
+            if key is not None:
+                result[layer] = concept_map[key]
         return result
 
     # ------------------------------------------------------------------
@@ -257,7 +316,7 @@ class CAVRegistry:
         return self._manifest["concepts"][concept_name].get("alias", concept_name)
 
     # ------------------------------------------------------------------
-    # Extensibility — add concepts / groups without re-running compute
+    # Extensibility ï¿½ add concepts / groups without re-running compute
     # ------------------------------------------------------------------
 
     def add_concept(
@@ -266,12 +325,14 @@ class CAVRegistry:
         alias: str,
         data_path: str,
         description: str = "",
+        random_folder: str = "",
         save: bool = True,
     ):
         """Register a new concept in the manifest (does not compute CAVs)."""
         self._manifest.setdefault("concepts", {})[name] = {
             "alias": alias,
             "data_path": data_path,
+            "random_folder": random_folder,
             "description": description,
         }
         if save:
@@ -308,6 +369,7 @@ class CAVRegistry:
     def invalidate_cache(
         self,
         model: Optional[str] = None,
+        concept: Optional[str] = None,
         layer: Optional[str] = None,
     ):
         if model is None:
@@ -315,14 +377,208 @@ class CAVRegistry:
         else:
             to_remove = [
                 k for k in self._cache
-                if k[0] == model and (layer is None or k[1] == layer)
+                if k[0] == model
+                and (concept is None or k[1] == concept)
+                and (layer is None or k[2] == layer)
             ]
             for k in to_remove:
                 del self._cache[k]
 
     # ------------------------------------------------------------------
+    # Per-model manifest ("<model_name>_manifest.json")
+    # ------------------------------------------------------------------
+
+    def _model_manifest_path(self, model: str) -> str:
+        return os.path.join(self.cav_store_root, f"{model}_manifest.json")
+
+    def _load_model_manifest_file(self, model: str) -> dict:
+        path = self._model_manifest_path(model)
+        if os.path.isfile(path):
+            with open(path, "r") as fh:
+                return json.load(fh)
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "model_name": model,
+            "model_weight_path": "",
+            "created_at": datetime.now().isoformat(),
+            "concepts": {},
+        }
+
+    def _save_model_manifest_file(self, model: str, data: dict):
+        os.makedirs(self.cav_store_root, exist_ok=True)
+        with open(self._model_manifest_path(model), "w") as fh:
+            json.dump(data, fh, indent=2)
+
+    def get_model_manifest(self, model: str) -> dict:
+        """Return the parsed contents of <cav_store_root>/<model>_manifest.json."""
+        return self._load_model_manifest_file(model)
+
+    def _update_model_manifest_entry(
+        self,
+        model: str,
+        concept: str,
+        layer: str,
+        data_path: str,
+        model_weight_path: str = "",
+        alias: str = "",
+        source_images_path: str = "",
+        class_name: str = "",
+        random_folder: str = "",
+    ):
+        """
+        Create/update the required minimum fields for one concept inside
+        <cav_store_root>/<model>_manifest.json:
+            model_name, concept_name, data_path, model_weight_path, random_folder
+        """
+        manifest = self._load_model_manifest_file(model)
+        manifest["model_name"] = model
+        if model_weight_path:
+            manifest["model_weight_path"] = model_weight_path
+        manifest["updated_at"] = datetime.now().isoformat()
+
+        concepts = manifest.setdefault("concepts", {})
+        entry = concepts.setdefault(concept, {
+            "concept_name": concept,
+            "alias": alias or concept,
+            "data_path": data_path,
+            "model_weight_path": model_weight_path,
+            "source_images_path": source_images_path,
+            "random_folder": random_folder,
+            "class_name": class_name,
+            "layers": [],
+            "created_at": datetime.now().isoformat(),
+        })
+        entry["concept_name"] = concept
+        entry["data_path"] = data_path
+        if alias:
+            entry["alias"] = alias
+        if model_weight_path:
+            entry["model_weight_path"] = model_weight_path
+        if source_images_path:
+            entry["source_images_path"] = source_images_path
+        if random_folder:
+            entry["random_folder"] = random_folder
+        if class_name:
+            entry["class_name"] = class_name
+        if layer not in entry.setdefault("layers", []):
+            entry["layers"].append(layer)
+
+        self._save_model_manifest_file(model, manifest)
+
+    # ------------------------------------------------------------------
     # Persistence helpers used by main_store_cav.py
     # ------------------------------------------------------------------
+
+    def save_concept_layer_cav(
+        self,
+        model: str,
+        concept: str,
+        layer: str,
+        cav_vector: torch.Tensor,
+        alias: str = "",
+        model_weight_path: str = "",
+        linear_classifier_type: str = "",
+        random_folder: str = "",
+        source_images_path: str = "",
+        class_name: str = "",
+    ) -> str:
+        """
+        Persist a single concept's CAV for a single layer at:
+            <cav_store_root>/<model>/<concept>/<layer>.joblib
+        and update <cav_store_root>/<model>_manifest.json.
+
+        Parameters
+        ----------
+        model               : Model name, e.g. "vgg16".
+        concept             : Concept name, e.g. "coat" or "deer__coat".
+        layer               : Layer name, e.g. "features.11".
+        cav_vector          : torch.Tensor CAV vector for this concept/layer.
+        alias               : Friendly display name for the concept.
+        model_weight_path   : Complete path to the model weights used to capture the CAV.
+        linear_classifier_type : Classifier used (LinearSVC, LogisticRegression, SGDClassifier).
+        random_folder       : Path to the random-concept folder used during training.
+        source_images_path  : (optional) folder of concept images used to compute the CAV.
+        class_name          : (optional) originating class name (multiconcept runs).
+
+        Returns
+        -------
+        str : absolute path of the saved joblib file.
+
+        Example (interactive Python prompt)
+        ------------------------------------
+        >>> import torch
+        >>> from cav_registry import CAVRegistry
+        >>> registry = CAVRegistry("./cav_store")
+        >>> registry.save_concept_layer_cav(
+        ...     model="vgg16",
+        ...     concept="deer__coat",
+        ...     layer="features.11",
+        ...     cav_vector=torch.randn(512),
+        ...     alias="coat",
+        ...     model_weight_path="C:/models/vgg16/vgg16.pt",
+        ...     linear_classifier_type="SGDClassifier",
+        ...     random_folder="C:/data/random",
+        ...     source_images_path="C:/data/concepts/deer/coat",
+        ...     class_name="deer",
+        ... )
+        """
+        payload = {
+            "schema_version": LAYER_FILE_SCHEMA_VERSION,
+            "model": model,
+            "concept": concept,
+            "layer_name": layer,
+            "cav_vector": cav_vector,
+            "alias": alias or concept,
+            "metadata": {
+                "created_at": datetime.now().isoformat(),
+                "linear_classifier_type": linear_classifier_type,
+                "random_folder": random_folder,
+            },
+        }
+        dest = self._layer_file(model, concept, layer)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        joblib.dump(payload, dest)
+
+        # Update the global manifest.json bookkeeping (models / concepts / layer_groups).
+        models_entry = self._manifest.setdefault("models", {}).setdefault(model, {
+            "alias": model,
+            "weight_path": model_weight_path,
+            "computed_layers": [],
+        })
+        if model_weight_path:
+            models_entry["weight_path"] = model_weight_path
+        if layer not in models_entry.get("computed_layers", []):
+            models_entry.setdefault("computed_layers", []).append(layer)
+
+        if concept not in self._manifest.get("concepts", {}):
+            self._manifest.setdefault("concepts", {})[concept] = {
+                "alias": alias or concept,
+                "data_path": source_images_path or os.path.dirname(dest),
+                "random_folder": random_folder,
+                "description": f"class={class_name}" if class_name else "",
+            }
+        else:
+            # Keep the recorded random_folder current even if the concept entry
+            # already existed (e.g. from an earlier layer of the same concept).
+            if random_folder:
+                self._manifest["concepts"][concept]["random_folder"] = random_folder
+        self._save_manifest()
+
+        # Update the required per-model manifest ("<model>_manifest.json").
+        self._update_model_manifest_entry(
+            model=model,
+            concept=concept,
+            layer=layer,
+            data_path=os.path.dirname(dest),
+            model_weight_path=model_weight_path,
+            alias=alias or concept,
+            source_images_path=source_images_path,
+            class_name=class_name,
+            random_folder=random_folder,
+        )
+
+        self.invalidate_cache(model, concept, layer)
+        return dest
 
     def save_layer_cav(
         self,
@@ -332,63 +588,54 @@ class CAVRegistry:
         concept_aliases: Dict[str, str],
         linear_classifier_type: str = "",
         random_folder: str = "",
-    ) -> str:
+        concept_random_folders: Optional[Dict[str, str]] = None,
+        model_weight_path: str = "",
+        concept_data_paths: Optional[Dict[str, str]] = None,
+        concept_class_names: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, str]:
         """
-        Persist a layer's CAV data and update the manifest.
+        Backward-compatible convenience wrapper around save_concept_layer_cav().
+        Persists one CAV file per concept under:
+            <cav_store_root>/<model>/<concept>/<layer>.joblib
 
         Parameters
         ----------
-        model : str
-            Model name, e.g. "vgg16".
-        layer : str
-            Layer name, e.g. "features.11".
-        concept_cavs : dict
-            {concept_name: cav_tensor}
-        concept_aliases : dict
-            {concept_name: alias_string}
-        linear_classifier_type : str
-            Classifier used (LinearSVC, LogisticRegression,SGDClassifier ).
-        random_folder : str
-            Path to the random-concept folder used during training.
+        model               : Model name, e.g. "vgg16".
+        layer               : Layer name, e.g. "features.11".
+        concept_cavs        : {concept_name: cav_tensor}
+        concept_aliases     : {concept_name: alias_string}
+        linear_classifier_type : Classifier used (LinearSVC, LogisticRegression, SGDClassifier).
+        random_folder       : Path to the random-concept folder used during training. Used as a
+                              fallback for any concept not present in `concept_random_folders`.
+        concept_random_folders : (optional) {concept_name: random_folder_path}. Lets each concept
+                              be paired with its own random folder (e.g. one random folder per
+                              multiconcept target_folder). Takes precedence over `random_folder`.
+        model_weight_path   : Complete path to the model weights used to capture the CAV.
+        concept_data_paths  : (optional) {concept_name: source_images_path}
+        concept_class_names : (optional) {concept_name: class_name}
 
         Returns
         -------
-        str : absolute path of the saved file.
+        dict : {concept_name: absolute_path_of_saved_file}
         """
-        payload = {
-            "schema_version": SCHEMA_VERSION,
-            "model": model,
-            "layer_name": layer,
-            "concepts": {
-                name: {
-                    "cav_vector": tensor,
-                    "alias": concept_aliases.get(name, name),
-                }
-                for name, tensor in concept_cavs.items()
-            },
-            "metadata": {
-                "created_at": datetime.now().isoformat(),
-                "linear_classifier_type": linear_classifier_type,
-                "random_folder": random_folder,
-            },
-        }
-        dest = self._layer_file(model, layer)
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        joblib.dump(payload, dest)
-
-        # Update manifest
-        models_entry = self._manifest.setdefault("models", {}).setdefault(model, {
-            "alias": model,
-            "weight_path": "",
-            "computed_layers": [],
-        })
-        if layer not in models_entry.get("computed_layers", []):
-            models_entry.setdefault("computed_layers", []).append(layer)
-
-        self._save_manifest()
-        # Invalidate stale cache entry
-        self.invalidate_cache(model, layer)
-        return dest
+        concept_data_paths = concept_data_paths or {}
+        concept_class_names = concept_class_names or {}
+        concept_random_folders = concept_random_folders or {}
+        saved_paths = {}
+        for name, tensor in concept_cavs.items():
+            saved_paths[name] = self.save_concept_layer_cav(
+                model=model,
+                concept=name,
+                layer=layer,
+                cav_vector=tensor,
+                alias=concept_aliases.get(name, name),
+                model_weight_path=model_weight_path,
+                linear_classifier_type=linear_classifier_type,
+                random_folder=concept_random_folders.get(name, random_folder),
+                source_images_path=concept_data_paths.get(name, ""),
+                class_name=concept_class_names.get(name, ""),
+            )
+        return saved_paths
 
     def update_model_meta(
         self,
@@ -409,3 +656,4 @@ class CAVRegistry:
             entry["weight_path"] = weight_path
         if save:
             self._save_manifest()
+

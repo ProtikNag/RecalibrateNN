@@ -89,6 +89,8 @@ class ConfigSingleton:
         self._verify_all_paths(self.config)
         self._instance._override_recalibration(self.config)
         self._instance._read_xai_image_path(self.config)
+        self._instance._read_multiconcept_variables(self.config)
+        self._instance._read_recalibration_weights_variables(self.config)
 
         
     def _override_recalibration(self, config):
@@ -129,6 +131,151 @@ class ConfigSingleton:
                     valid_images.append(j)
             self.XAI_IMAGE_PATH.append(valid_images)
 
+    def _read_multiconcept_variables(self, config):
+        """
+        Read multiconcept variables from configuration.
+
+        Each class now defines a `random_folders` list positioned 1:1 against
+        its `target_folders` list, e.g.:
+            class0:
+              target_folders:
+                - "concept_150/deer/coat"
+                - "concept_150/deer/background"
+              random_folders:
+                - "random"
+                - "random"
+        The actual random folder used for `target_folders[i]` is
+        `random_folder_base_path/random_folders[i]`.
+        """
+        if 'multiconcept' in config:
+            multiconcept_config = config['multiconcept']
+            self.MULTICONCEPT_BASE_PATH = multiconcept_config.get('base_path', '')
+            self.MULTICONCEPT_RANDOM_FOLDER_BASE_PATH = multiconcept_config.get('random_folder_base_path', '')
+            # Legacy schema fallback: a single global random_folder for the whole multiconcept section.
+            self.MULTICONCEPT_RANDOM_FOLDER = multiconcept_config.get('random_folder', '')
+
+            # Parse class-based target folders together with their per-folder random folders
+            self.MULTICONCEPT_CLASS_CONCEPTS = {}
+            self.MULTICONCEPT_CLASS_RANDOM_FOLDERS = {}
+            class_idx = 0
+            while f'class{class_idx}' in multiconcept_config:
+                class_key = f'class{class_idx}'
+                class_config = multiconcept_config[class_key]
+                target_folders = class_config.get('target_folders', [])
+                random_folders = class_config.get('random_folders', [])
+
+                if random_folders and len(random_folders) != len(target_folders):
+                    raise ValueError(
+                        f"'{class_key}' has {len(target_folders)} target_folders but "
+                        f"{len(random_folders)} random_folders; each target folder must "
+                        f"have exactly one corresponding random folder (1:1 by position)."
+                    )
+
+                self.MULTICONCEPT_CLASS_CONCEPTS[class_idx] = target_folders
+                self.MULTICONCEPT_CLASS_RANDOM_FOLDERS[class_idx] = random_folders
+                class_idx += 1
+
+            self.MULTICONCEPT_ENABLED = len(self.MULTICONCEPT_CLASS_CONCEPTS) > 0
+            self.MULTICONCEPT_NUM_CONCEPTS = class_idx
+        else:
+            self.MULTICONCEPT_BASE_PATH = ''
+            self.MULTICONCEPT_RANDOM_FOLDER_BASE_PATH = ''
+            self.MULTICONCEPT_RANDOM_FOLDER = ''
+            self.MULTICONCEPT_CLASS_CONCEPTS = {}
+            self.MULTICONCEPT_CLASS_RANDOM_FOLDERS = {}
+            self.MULTICONCEPT_ENABLED = False
+            self.MULTICONCEPT_NUM_CONCEPTS = 0
+        return True
+
+    def get_multiconcept_random_folder_path(self, class_idx: int, position_idx: int) -> str:
+        """
+        Resolve the absolute random-folder path that corresponds to
+        MULTICONCEPT_CLASS_CONCEPTS[class_idx][position_idx], using
+        random_folder_base_path + the per-position random folder name.
+        Falls back to the legacy single MULTICONCEPT_RANDOM_FOLDER if the
+        per-position random folder is not defined.
+        """
+        random_folders = self.MULTICONCEPT_CLASS_RANDOM_FOLDERS.get(class_idx, [])
+        if position_idx < len(random_folders):
+            return os.path.join(self.MULTICONCEPT_RANDOM_FOLDER_BASE_PATH, random_folders[position_idx])
+        return self.MULTICONCEPT_RANDOM_FOLDER
+
+    def _read_recalibration_weights_variables(self, config):
+        """
+        Read per-class and per-concept recalibration weights used to combine
+        multiple concept-alignment losses during targeted recalibration.
+
+        Expected YAML schema (mirrors the multiconcept class0/class1/... style):
+            recalibration_weights:
+              class0:
+                class_weight: 1.0
+                concept_weights:
+                  deer_coat: 0.4
+                  deer_background: 0.2
+                  deer_face: 0.2
+                  deer_legs: 0.2
+              class1:
+                class_weight: 1.0
+                concept_weights:
+                  horse_coat: 0.25
+                  ...
+
+        Populates:
+            RECALIB_CLASS_WEIGHT       : {class_idx: float}
+            RECALIB_CONCEPT_WEIGHTS    : {class_idx: {concept_name: float}}
+            RECALIB_WEIGHTS_ENABLED    : bool
+        Missing sections/keys fall back to sane defaults (class_weight=1.0,
+        equal weight across whatever concepts are actually used at runtime).
+        """
+        self.RECALIB_CLASS_WEIGHT = {}
+        self.RECALIB_CONCEPT_WEIGHTS = {}
+
+        if 'recalibration_weights' in config:
+            weights_config = config['recalibration_weights']
+            class_idx = 0
+            while f'class{class_idx}' in weights_config:
+                class_key = f'class{class_idx}'
+                class_config = weights_config[class_key] or {}
+                self.RECALIB_CLASS_WEIGHT[class_idx] = float(
+                    class_config.get('class_weight', 1.0)
+                )
+                self.RECALIB_CONCEPT_WEIGHTS[class_idx] = {
+                    concept_name: float(weight)
+                    for concept_name, weight in (class_config.get('concept_weights', {}) or {}).items()
+                }
+                class_idx += 1
+            self.RECALIB_WEIGHTS_ENABLED = class_idx > 0
+        else:
+            self.RECALIB_WEIGHTS_ENABLED = False
+        return True
+
+    def get_class_weight(self, class_idx: int) -> float:
+        """Return the configured class-level recalibration weight (default 1.0)."""
+        return self.RECALIB_CLASS_WEIGHT.get(class_idx, 1.0)
+
+    def get_concept_weights(self, class_idx: int, concept_names: list) -> dict:
+        """
+        Return {concept_name: weight} for the given class, restricted to
+        `concept_names` actually available at runtime. Any concept missing
+        from the config is given an equal share of the remaining weight
+        (defaulting to equal weights across all concepts when none are
+        configured for this class).
+        """
+        configured = dict(self.RECALIB_CONCEPT_WEIGHTS.get(class_idx, {}))
+        resolved = {}
+        unspecified = []
+        remaining_weight = 1.0
+        for name in concept_names:
+            if name in configured:
+                resolved[name] = configured[name]
+                remaining_weight -= configured[name]
+            else:
+                unspecified.append(name)
+        if unspecified:
+            share = max(remaining_weight, 0.0) / len(unspecified)
+            for name in unspecified:
+                resolved[name] = share
+        return resolved
 
     def _verify_all_paths(self, config):
         # Catch if the links are missing and raise an exception in case its not found
@@ -231,6 +378,19 @@ if __name__ == '__main__':
             notfound = 1
     print(config.RANDOM_FOLDER)
     
+    # Print multiclass variables if enabled
+    if config.MULTICONCEPT_ENABLED:
+        print(f"Multiconcept is enabled with {config.MULTICONCEPT_NUM_CONCEPTS} classes")
+        print(f"Multiconcept base path: {config.MULTICONCEPT_BASE_PATH}")
+        print(f"Multiconcept random folder base path: {config.MULTICONCEPT_RANDOM_FOLDER_BASE_PATH}")
+        for class_idx, concepts in config.MULTICONCEPT_CLASS_CONCEPTS.items():
+            print(f"  Class {class_idx} concepts: {concepts}")
+            for position_idx, concept in enumerate(concepts):
+                resolved_random = config.get_multiconcept_random_folder_path(class_idx, position_idx)
+                print(f"    {concept}  ->  random_folder: {resolved_random}")
+    else:
+        print("Multiconcept is not enabled.")
+        
     results = config._verify_files_links(config.RANDOM_FOLDER)
     if(results == -1):
         print("Folder not found ",random_folder)

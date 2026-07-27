@@ -1,0 +1,292 @@
+# This is a full-line comment describing the entire file.
+
+# Path to the legacy dataset
+misc:
+   seed: 131
+
+classification:
+  data_base_path: "/home/balanced_dataset/" # Path to the classification dataset base directory.
+  target_class_list:
+    - 'deer'
+    - 'horse'
+    - 'zebra'
+
+
+  linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
+  lambda_aligns: [0.4, 0.5, 0.6, 0.7, 0.8 ]
+
+# --- CONCEPT CONFIGURATIONS ---
+# This section defines the paths for various concepts.
+
+concept:
+  base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
+  target_folders:
+    - "deer/coat"
+    - "horse/coat"
+    - "zebra/coat"
+  random_folder: "/mnt/sdc/concepts/concepts_links/concept_150/random"
+
+multiconcept:
+  base_path: "/mnt/sdc/concepts/concepts_links"
+  random_folder_base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
+  class0:
+    target_folders:
+      - "concept_150/deer/coat"
+      - "concept_150/deer/background"
+      - "concept_150/deer/face"
+      - "concept_150/deer/legs"
+    random_folders:
+      - "random"
+      - "random"
+      - "random"
+      - "random"
+
+  class1:
+    target_folders:
+      - "concept_150/horse/coat"
+      - "concept_150/horse/background"
+      - "concept_150/horse/face"
+      - "concept_150/horse/legs"
+    random_folders:
+      - "random"
+      - "random"
+      - "random"
+      - "random"
+
+  class2:
+    target_folders:
+      - "concept_150/zebra/coat"
+      - "concept_150/zebra/background"
+      - "concept_150/zebra/face"
+      - "concept_150/zebra/legs"
+    random_folders:
+      - "random"
+      - "random"
+      - "random"
+      - "random"
+
+#concept:
+#  base_path: '/home/concept'
+#  target_folders:
+#    - 'deer/coat'
+#    - 'horse/horse_skin'
+#    - 'zebra/stripes'
+    
+#  random_folder: '/home/concept/random'
+
+# --- RECALIBRATION WEIGHTS ---
+# Configurable per-class and per-concept weights used by
+# main_recalib_custom_by_loading_cav.py to perform a targeted, weighted
+# multi-concept recalibration. Concept names below must match the
+# "concept_name" keys recorded in the per-model manifest
+# (e.g. <model_name>_manifest.json produced by main_store_cav.py).
+#
+# class_weight     : overall scaling applied to the class's combined
+#                    alignment loss (defaults to 1.0 if omitted).
+# concept_weights  : relative weight of each concept's alignment loss for
+#                    that class. Any concept from the manifest not listed
+#                    here automatically receives an equal share of the
+#                    remaining weight (so weights always sum to 1.0).
+recalibration_weights:
+  class0:
+    class_weight: 1.0
+    concept_weights:
+      deer_coat: 0.4
+      deer_background: 0.2
+      deer_face: 0.2
+      deer_legs: 0.2
+
+  class1:
+    class_weight: 1.0
+    concept_weights:
+      horse_coat: 0.4
+      horse_background: 0.2
+      horse_face: 0.2
+      horse_legs: 0.2
+
+  class2:
+    class_weight: 1.0
+    concept_weights:
+      zebra_coat: 0.4
+      zebra_background: 0.2
+      zebra_face: 0.2
+      zebra_legs: 0.2
+
+hyperparameters:
+  learning_rate: 1e-03
+  epochs: 30
+  batch_size: 64
+  
+# --- MODEL CONFIGURATIONS ---
+# This section specifies model-specific settings, including layers to train.  
+recalibration:
+  override_retraining: true
+  layers_to_train:
+    vgg16:
+      - 'features.17'
+      - 'features.21'
+      - 'features.24'
+
+    inception_v3:
+      - 'Mixed_6e.branch1x1.conv'
+      - 'Mixed_6e.branch1x1'
+      - 'Mixed_6e.branch7x7_1.conv'
+      - 'Mixed_6e.branch7x7_2.conv'
+      - 'Mixed_6e.branch7x7_3.conv'
+      - 'Mixed_6e.branch7x7dbl_1.conv'
+      - 'Mixed_7b.branch1x1.conv'
+      - 'Mixed_7b.branch3x3_1.conv'
+      - 'Mixed_7b.branch3x3_2a.conv'
+      - 'Mixed_7b.branch3x3_2b.conv'
+      - 'Mixed_7b.branch3x3dbl_3a'
+      - 'Mixed_7b.branch_pool.conv'
+      
+
+    resnet50:
+      #- 'layer4.0.conv1'
+      #- 'layer4.0.conv2'
+      #- 'layer4.0.conv3'
+      #- 'layer4.0.downsample.0'
+      #- 'layer4.1.conv1'
+      #- 'layer4.1.conv2'
+      #- 'layer4.1.conv3'
+      - 'layer4.2.conv1'
+      #- 'layer4.2.conv2'
+      #- 'layer4.2.conv3'
+      
+      
+
+    mobilnet_v3_small:
+      - 'features.10.block.0.0'
+      - 'features.10.block.0.1'
+      - 'features.10.block.0.2'
+      - 'features.10.block.1.0'
+      - 'features.10.block.1.1'
+      - 'features.10.block.1.2'
+      - 'features.10.block.2.avgpool'
+      - 'features.10.block.2.fc1'
+      - 'features.10.block.2.activation'
+      - 'features.10.block.2.fc2'
+      - 'features.10.block.2.scale_activation'
+      - 'features.10.block.2' 
+      - 'features.10.block.3.0'
+      - 'features.10.block.3.1'
+      - 'features.10' 
+      - 'features.11.block.0.0'
+      - 'features.11.block.0.1'
+      - 'features.11.block.0.2'
+      - 'features.11.block.1.0'
+      - 'features.11.block.1.1'
+      - 'features.11.block.1.2'
+      - 'features.11.block.2.avgpool'
+      - 'features.11.block.2.fc1'
+      - 'features.11.block.2.activation'
+      - 'features.11.block.2.fc2'
+      - 'features.11.block.2.scale_activation'
+      - 'features.11.block.2'
+      - 'features.11.block.3.0'
+      - 'features.11.block.3.1'
+      - 'features.11' 
+      - 'features.12.0'
+      - 'features.12.1'
+      - 'features.12.2'
+
+    mobilenet_v3_large:
+      #- 'features.11.block.2.fc1'
+      #- 'features.11.block.2.fc2'
+      #- 'features.12.block.2.fc1'
+      #- 'features.12.block.2.fc2'
+      - 'features.13.block.2.fc1'
+      - 'features.13.block.2.fc2'
+      #- 'features.14.block.2.fc1'
+      #- 'features.14.block.2.fc2'
+      #- 'features.15.block.2.fc1'
+      #- 'features.15.block.2.fc2'
+      #- 'features.16.0'
+      #- 'features.9.block.2.0'
+    
+  lambda_aligns_recalib: [0.4,0.5, 0.6, 0.7, 0.8]
+  #lambda_aligns_recalib: [0.5]
+# --- END OF CONFIGURATIONS ---
+
+# Note all the XAI images can be captured here for before after comparison
+#find "$(pwd)" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.bmp" -o -iname "*.gif" -o -iname "*.tif" -o -iname "*.tiff" \) | head -n 20
+xai_before_after:
+  grad_cam: true
+  integrated_gradients: true
+  lime: false
+  num_classes: 3
+  class_images:
+    class0:
+      - '/home/datasets/train/deer/deb4e8d7c9.jpg'
+      - '/home/datasets/train/deer/61860dd81c.jpg'
+      - '/home/datasets/train/deer/3028e909d9.jpg'
+      - '/home/datasets/train/deer/54ad7f6e17.jpg'
+      - '/home/datasets/train/deer/4d03862792.jpg'
+      - '/home/datasets/train/deer/f47f34dd0c.jpg'
+      - '/home/datasets/train/deer/a72c338713.jpg'
+      - '/home/datasets/train/deer/2d6f0e6c80.jpg'
+      - '/home/datasets/train/deer/ca61ab1b1f.jpg'
+      - '/home/datasets/train/deer/2637fbf170.jpg'
+      - '/home/datasets/train/deer/9afe2488bf.jpg'
+      - '/home/datasets/train/deer/09818957b7.jpg'
+      - '/home/datasets/train/deer/7cd5dab486.jpg'
+      - '/home/datasets/train/deer/a1a47404e7.jpg'
+      - '/home/datasets/train/deer/804d8063d6.jpg'
+      - '/home/datasets/train/deer/image_24.jpg'
+      - '/home/datasets/train/deer/image_76.jpg'
+      - '/home/datasets/train/deer/a794f45187.jpg'
+      - '/home/datasets/train/deer/818c7331ca.jpg'
+      - '/home/datasets/train/deer/f54b6f43cd.jpg'
+      #Best
+      - '/home/datasets/train/deer/image_77.jpg'
+      - '/home/datasets/train/deer/00fdcaa6df.jpg'
+      - '/home/datasets/valid/deer/00fdcaa6df.jpg'
+    class1:
+      - '/home/datasets/train/horse/horse12-7.png'
+      - '/home/datasets/train/horse/06_095.png'
+      - '/home/datasets/train/horse/01_020.png'
+      - '/home/datasets/train/horse/07_053.png'
+      - '/home/datasets/train/horse/horse16-6.png'
+      - '/home/datasets/train/horse/02_101.png'
+      - '/home/datasets/train/horse/01_080.png'
+      - '/home/datasets/train/horse/horse19-8.png'
+      - '/home/datasets/train/horse/01_117.png'
+      - '/home/datasets/train/horse/02_024.png'
+      - '/home/datasets/train/horse/horse44-2.png'
+      - '/home/datasets/train/horse/06_028.png'
+      - '/home/datasets/train/horse/02_077.png'
+      - '/home/datasets/train/horse/05_026.png'
+      - '/home/datasets/train/horse/01_027.png'
+      - '/home/datasets/train/horse/04_023.png'
+      - '/home/datasets/train/horse/horse09-6.png'
+      - '/home/datasets/train/horse/01_076.png'
+      - '/home/datasets/train/horse/02_047.png'
+      - '/home/datasets/train/horse/02_087.png'
+      #best
+      - '/home/datasets/train/horse/03_089.png'
+      #best
+      - '/home/datasets/valid/horse/horse50-9.png'
+
+    class2:
+      - '/home/datasets/train/zebra/n02391049_2585.jpg'
+      - '/home/datasets/train/zebra/n02391049_3326.jpg'
+      - '/home/datasets/train/zebra/378.jpg'
+      - '/home/datasets/train/zebra/n02391049_37.jpg'
+      - '/home/datasets/train/zebra/n02391049_834.jpg'
+      - '/home/datasets/train/zebra/n02391049_10209.jpg'
+      - '/home/datasets/train/zebra/142.jpg'
+      - '/home/datasets/train/zebra/331.jpg'
+      - '/home/datasets/train/zebra/n02391049_4445.jpg'
+      - '/home/datasets/train/zebra/317.jpg'
+      - '/home/datasets/train/zebra/n02391049_2407.jpg'
+      - '/home/datasets/train/zebra/n02391049_251.jpg'
+      - '/home/datasets/train/zebra/n02391049_5503.jpg'
+      - '/home/datasets/train/zebra/n02391049_2229.jpg'
+      - '/home/datasets/train/zebra/image_136.jpeg'
+      - '/home/datasets/train/zebra/061.jpg'
+      - '/home/datasets/train/zebra/n02391049_7466.jpg'
+      - '/home/datasets/train/zebra/n02391049_6385.jpg'
+      - '/home/datasets/train/zebra/n02391049_9051.jpg'
+      - '/home/datasets/train/zebra/n02391049_2704.jpg'
+      

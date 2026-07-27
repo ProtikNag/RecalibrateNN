@@ -40,7 +40,8 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from dotenv import load_dotenv
-
+import sys
+sys.path.append("../")
 from logger import Logger_Singleton
 from custom_dataloader import SingleClassDataLoader, MultiClassImageDataset
 from ConfigSingleton import ConfigSingleton
