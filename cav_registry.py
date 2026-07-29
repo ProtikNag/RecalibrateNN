@@ -315,6 +315,40 @@ class CAVRegistry:
     def get_concept_alias(self, concept_name: str) -> str:
         return self._manifest["concepts"][concept_name].get("alias", concept_name)
 
+    def has_concept_layer_cav(self, model: str, concept: str, layer: str) -> bool:
+        """
+        Return True if a CAV file already exists on disk for this
+        model/concept/layer combination, without loading or caching it.
+
+        Used by callers (e.g. main_store_cav.py) to decide whether a concept
+        needs to be (re)computed or can be skipped during an incremental
+        update run.
+        """
+        concept_name = self._resolve_concept_name(concept)
+        return os.path.isfile(self._layer_file(model, concept_name, layer))
+
+    def get_concepts_with_cav(
+        self, model: str, layer: Optional[str] = None
+    ) -> List[str]:
+        """
+        Return the concept names that already have at least one CAV stored
+        for `model` (optionally restricted to a single `layer`).
+        """
+        model_dir = os.path.join(self.cav_store_root, model)
+        if not os.path.isdir(model_dir):
+            return []
+        found = []
+        for entry in os.listdir(model_dir):
+            concept_dir = os.path.join(model_dir, entry)
+            if not os.path.isdir(concept_dir):
+                continue
+            if layer is None:
+                if any(fn.endswith(".joblib") for fn in os.listdir(concept_dir)):
+                    found.append(entry)
+            elif os.path.isfile(self._layer_file(model, entry, layer)):
+                found.append(entry)
+        return found
+
     # ------------------------------------------------------------------
     # Extensibility � add concepts / groups without re-running compute
     # ------------------------------------------------------------------

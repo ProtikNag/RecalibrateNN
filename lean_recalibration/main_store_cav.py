@@ -215,6 +215,58 @@ def _concept_aliases(concept_names, registry: CAVRegistry) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Incremental-update helper: figure out which concepts are actually "new"
+# ---------------------------------------------------------------------------
+
+def get_concepts_to_update(
+    registry: CAVRegistry,
+    model_name: str,
+    concept_names: list,
+    layer_names: list,
+    rebuild_cav: bool = False,
+) -> list:
+    """
+    Decide which concepts (as read/derived from the config file) actually
+    need their CAV (re)computed for `model_name`.
+
+    - rebuild_cav=True   : every concept is returned  a full rebuild will
+      recompute and overwrite all CAVs from scratch, regardless of what is
+      already stored.
+    - rebuild_cav=False (default) : only concepts missing a stored CAV for
+      at least one of `layer_names` are returned. A concept that already has
+      every requested layer computed is considered up to date and is
+      skipped, so re-running the script after adding a new concept to the
+      config only builds CAVs for that new concept.
+
+    Example (interactive Python prompt)
+    ------------------------------------
+    >>> from lean_recalibration.main_store_cav import get_concepts_to_update
+    >>> from cav_registry import CAVRegistry
+    >>> registry = CAVRegistry("./cav_store")
+    >>> get_concepts_to_update(
+    ...     registry, "vgg16", ["deer_coat", "horse_coat"],
+    ...     ["features.11", "features.13"],
+    ... )
+
+    Returns
+    -------
+    list : subset (order-preserving) of `concept_names` that need work.
+    """
+    if rebuild_cav:
+        return list(concept_names)
+
+    to_update = []
+    for concept_name in concept_names:
+        missing_layer = any(
+            not registry.has_concept_layer_cav(model_name, concept_name, layer_name)
+            for layer_name in layer_names
+        )
+        if missing_layer:
+            to_update.append(concept_name)
+    return to_update
+
+
+# ---------------------------------------------------------------------------
 # Core loop: compute + store CAVs for all layers of one model
 # ---------------------------------------------------------------------------
 
@@ -233,6 +285,7 @@ def process_model(
     concept_class_names: dict = None,
     concept_random_loaders: dict = None,
     concept_random_folders: dict = None,
+    rebuild_cav: bool = False,
 ):
     """
     For every layer, compute a CAV per concept, then persist each concept's
@@ -261,6 +314,11 @@ def process_model(
                           multiconcept target_folder). Takes precedence over `random_loader`.
     concept_random_folders : (optional) {concept_name: random_folder_path}, recorded in the
                           manifest per concept. Takes precedence over `random_folder`.
+    rebuild_cav         : If True, recompute and overwrite every concept/layer CAV
+                          unconditionally. If False (default), skip any
+                          concept/layer combination whose CAV is already stored,
+                          so only newly-added concepts (or concepts missing a
+                          newly-requested layer) are computed.
 
     Example (interactive Python prompt)
     ------------------------------------
@@ -286,7 +344,10 @@ def process_model(
     concept_random_loaders = concept_random_loaders or {}
     concept_random_folders = concept_random_folders or {}
     aliases = _concept_aliases(concept_names, registry)
-    logging.info(f"Processing model={model_name}, layers={layer_names}")
+    logging.info(
+        f"Processing model={model_name}, layers={layer_names}, "
+        f"rebuild_cav={rebuild_cav}"
+    )
 
     for layer_name in layer_names:
         logging.info(f"  Layer: {layer_name}")
@@ -299,6 +360,14 @@ def process_model(
             print(f"Computing CAVs for layer={layer_name}  this may take a while ")
             concept_cavs = {}
             for concept_name, concept_loader in zip(concept_names, concept_loaders):
+                if not rebuild_cav and registry.has_concept_layer_cav(
+                    model_name, concept_name, layer_name
+                ):
+                    logging.info(
+                        f"    Skipping concept={concept_name} (CAV already stored "
+                        f"for layer={layer_name}; use --rebuild_cav to force)."
+                    )
+                    continue
                 try:
                     loader_random = concept_random_loaders.get(concept_name, random_loader)
                     cav_tensor = compute_cav(
@@ -316,7 +385,10 @@ def process_model(
                     print(f"    CAV computation failed concept={concept_name}: {exc}")
 
             if not concept_cavs:
-                logging.warning(f"  No CAVs produced for layer={layer_name}, skipping.")
+                logging.info(
+                    f"  Nothing new to save for layer={layer_name} "
+                    "(all concepts already up to date)."
+                )
                 continue
 
             saved_paths = registry.save_layer_cav(
@@ -479,6 +551,18 @@ if __name__ == "__main__":
     action="store_true",
     help="Display example usage of command line arguments.",
     )
+    parser.add_argument(
+        "--rebuild_cav",
+        action="store_true",
+        default=False,
+        help=(
+            "Completely rebuild CAVs from scratch for every concept in the "
+            "config file, overwriting anything already in the CAV store. "
+            "Default is False: only the concepts that are new (i.e. not yet "
+            "present in the CAV store for a given model/layer) are computed "
+            "and stored; concepts that already have a CAV are left untouched."
+        ),
+    )
     
     args = parser.parse_args()
     if args.info:
@@ -488,6 +572,7 @@ if __name__ == "__main__":
       print("  python main_store_cav.py --config_file config.yaml --model_name vgg16,resnet50 --model_path ./models --cav_store ./cav_store --skip_layers 3")
       print("  python main_store_cav.py --config_file config.yaml --store_multiconcept_cav")
       print("  python main_store_cav.py --config_file config.yaml --model_name vgg16 --model_path ./models --cav_store ./my_cavs --skip_layers 2")
+      print("  python main_store_cav.py --config_file config.yaml --model_name vgg16 --rebuild_cav   # force full rebuild")
       print(" Working example ")
       print(" python main_store_cav.py  --model_name vgg16 --model_path /home/srikanth/trained_models/pytorch/legacy --config_file ../config/multiclass/legacy/config_legacy_3classes.yaml --cav_store ./ --store_multiconcept_cav")
   
@@ -521,6 +606,15 @@ if __name__ == "__main__":
     CONCEPT_NAMES = [os.path.basename(p.rstrip("/\\")) for p in CONCEPT_FOLDER_LIST]
 
     BASE_MODEL_PATH = args.model_path or "./model_weights"
+
+    if args.rebuild_cav:
+        print("--rebuild_cav is set: ALL concepts will be recomputed from scratch.")
+    else:
+        print(
+            "--rebuild_cav not set: only concepts newly added to the config "
+            "(or missing a requested layer) will be computed; existing CAVs "
+            "are left untouched."
+        )
 
     # ------------------------------------------------------------------
     # Concept planning
@@ -738,7 +832,47 @@ if __name__ == "__main__":
         logging.info(f"Layers to process ({len(layer_names)}): {layer_names}")
         print(f"Layers to process: {layer_names}")
 
-        concept_loaders = build_concept_loaders(transform, concept_paths)
+        # Decide which concepts actually need work: with --rebuild_cav every
+        # concept is recomputed; otherwise only concepts missing a CAV for
+        # this model (new concepts, or concepts missing a newly-added layer)
+        # are processed.
+        concept_names_to_process = get_concepts_to_update(
+            registry=registry,
+            model_name=model_name,
+            concept_names=concept_names,
+            layer_names=layer_names,
+            rebuild_cav=args.rebuild_cav,
+        )
+        up_to_date_concepts = [
+            c for c in concept_names if c not in concept_names_to_process
+        ]
+        if up_to_date_concepts:
+            logging.info(
+                f"Concepts already up to date for model={model_name} "
+                f"(skipped): {up_to_date_concepts}"
+            )
+            print(f"  Already up to date (skipped): {up_to_date_concepts}")
+
+        if not concept_names_to_process:
+            msg = (
+                f"No new/changed concepts to build for model={model_name}. "
+                "Use --rebuild_cav to force a full rebuild."
+            )
+            logging.info(msg)
+            print(f"  {msg}")
+            load_and_verify(registry, model_name, layer_names, logging)
+            print_model_manifest(cav_store_root, model_name, logging)
+            logging.info(f"=== Done: {model_name} ===")
+            continue
+
+        print(f"  Concepts to build: {concept_names_to_process}")
+
+        # Build loaders only for the concepts that actually need (re)computing.
+        concept_path_by_name = dict(zip(concept_names, concept_paths))
+        concept_paths_to_process = [
+            concept_path_by_name[c] for c in concept_names_to_process
+        ]
+        concept_loaders = build_concept_loaders(transform, concept_paths_to_process)
         random_loader = build_random_loader(transform, random_folder_to_use)
 
         # Build one DataLoader per unique random folder path (avoids rebuilding
@@ -746,14 +880,19 @@ if __name__ == "__main__":
         # then map each concept to its own random loader.
         concept_random_loaders = None
         if concept_random_folders:
-            unique_random_folders = set(concept_random_folders.values())
+            relevant_random_folders = {
+                concept_random_folders[c]
+                for c in concept_names_to_process
+                if c in concept_random_folders
+            }
             random_loader_cache = {
                 path: build_random_loader(transform, path)
-                for path in unique_random_folders
+                for path in relevant_random_folders
             }
             concept_random_loaders = {
                 concept_name: random_loader_cache[path]
                 for concept_name, path in concept_random_folders.items()
+                if concept_name in concept_names_to_process
             }
 
         process_model(
@@ -761,7 +900,7 @@ if __name__ == "__main__":
             model_name=model_name,
             layer_names=layer_names,
             concept_loaders=concept_loaders,
-            concept_names=concept_names,
+            concept_names=concept_names_to_process,
             random_loader=random_loader,
             registry=registry,
             logging=logging,
@@ -771,6 +910,7 @@ if __name__ == "__main__":
             concept_class_names=concept_class_names,
             concept_random_loaders=concept_random_loaders,
             concept_random_folders=concept_random_folders,
+            rebuild_cav=args.rebuild_cav,
         )
 
         load_and_verify(registry, model_name, layer_names, logging)
