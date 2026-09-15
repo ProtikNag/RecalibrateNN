@@ -9,6 +9,9 @@ import logging
 import seaborn as sns
 import ast
 import torchvision.transforms as transforms
+import sys
+sys.path.append('/home/srikanth/study1/scratchpad_model/model_training/pytorch')
+from model_training_lss import LSSModel, FeatureTransformation
 
 # Configure logging
 logging.basicConfig(
@@ -25,6 +28,22 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = 'cpu'
 logging.info(f"Using device: {device}")
 
+def load_lss_model(recalib_model):
+    main_module = sys.modules.get("__main__")
+    model = None
+    if main_module is not None:
+        for cls in (LSSModel, FeatureTransformation):
+            if not hasattr(main_module, cls.__name__):
+                setattr(main_module, cls.__name__, cls)
+            try:
+                model = torch.load(recalib_model, map_location=device, weights_only=False )
+            except TypeError:  # Compatibility with older PyTorch versions.
+                model = torch.load(recalib_model, map_location=device)
+    return model
+
+            
+
+    
 # Load the pre-trained model
 def load_model(base_model_path, recalib_model=None):
     """
@@ -201,11 +220,17 @@ if __name__ == "__main__":
     parser.add_argument("--dest_dir", type=str, required=True, help="Path to the destination directory to save results")
     parser.add_argument("--output_excel", type=str, required=True, help="Path to save the output Excel file")
     parser.add_argument("--recalibrated_model_path", type=str, required=False, help="Comma-separated list of paths to recalibrated model files")
+    parser.add_argument("--state_of_art_method", type=str, required=False, help="Specify the state-of-the-art method to use")
+    
     args = parser.parse_args()
     
     base_model_path = args.base_model_path 
     image_folder = args.image_folder
     dest_dir = args.dest_dir
+    if(args.state_of_art_method is not None):
+        state_of_art_method = args.state_of_art_method
+    else:
+        state_of_art_method = None
 
     output_excel = os.path.join(dest_dir,args.output_excel)
 
@@ -241,7 +266,11 @@ if __name__ == "__main__":
         
         for idx, recal_model_path in enumerate(recalibrated_paths):
             logging.info(f"Processing recalibrated model {idx}: {recal_model_path}")
-            recal_model = load_model(base_model_path, recal_model_path)
+            if(state_of_art_method):
+                recal_model = load_lss_model(recal_model_path)
+            else:
+                recal_model = load_model(base_model_path, recal_model_path)
+                
             recal_results, _, recal_y_pred = predict_from_directory(image_folder, recal_model, class_names)
             
             # Add recalibrated model predictions to dataframe

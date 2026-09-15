@@ -8,6 +8,8 @@ model_weights/
 results/
 cav/
 ./scripts/results/
+./lean_recalibration/results
+./lean_recalibration/unit_test/results
 temp_scripts/
 xai_images/
 consolidated_results/
