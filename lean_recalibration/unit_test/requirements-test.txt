@@ -1,0 +1,15 @@
+# Python dependencies needed to RUN this test suite.
+#
+# These are a subset of the main project's requirements.txt: the four target scripts
+# already depend on torch/torchvision/pandas/openpyxl/PyYAML/scikit-learn/matplotlib/Pillow,
+# and this test suite adds only `pytest` on top. Versions shown are the ones this suite was
+# verified against; newer compatible versions are expected to work too.
+pytest==9.1.1
+PyYAML==6.0.2
+openpyxl==3.1.5
+pandas==2.2.3
+Pillow==10.2.0
+scikit-learn==1.5.2
+matplotlib==3.8.0
+torch==2.5.1
+torchvision==0.20.1

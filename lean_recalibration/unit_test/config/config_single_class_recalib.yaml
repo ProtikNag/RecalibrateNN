@@ -1,0 +1,41 @@
+misc:
+  seed: 1234
+classification:
+  data_base_path: /home/srikanth/study1/RecalibrateNN/lean_recalibration/unit_test/data/classification/single
+  target_class_list:
+  - cat
+  - dog
+  linear_classifier_type: SGDClassifier
+  lambda_aligns:
+  - 0.0
+  - 0.5
+concept:
+  base_path: /home/srikanth/study1/RecalibrateNN/lean_recalibration/unit_test/data/concepts/single
+  target_folders:
+  - stripes
+  random_folder: /home/srikanth/study1/RecalibrateNN/lean_recalibration/unit_test/data/concepts/single/random
+hyperparameters:
+  learning_rate: 0.001
+  epochs: 1
+  batch_size: 2
+recalibration:
+  override_retraining: true
+  layers_to_train:
+    vgg16:
+    - features.6
+    resnet50:
+    - layer1
+    inception_v3:
+    - Mixed_5b
+    mobilnet_v3_small:
+    - features.1
+    mobilenet_v3_large:
+    - features.1
+  lambda_aligns_recalib:
+  - 0.5
+xai_before_after:
+  integrated_gradients: false
+  grad_cam: false
+  lime: false
+  num_classes: 0
+  class_images: {}
