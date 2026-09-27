@@ -274,6 +274,70 @@ class GradCAM:
         heatmap /= torch.max(heatmap)
 
         return heatmap.cpu().numpy()
+
+class LSSGradCAM(GradCAM):
+    """GradCAM for LSSModel: forces the input to require grad since the backbone is frozen."""
+
+    def __call__(self, input_tensor, target_class=None):
+        self.model.eval()
+        input_tensor = input_tensor.clone().requires_grad_(True)
+        output = self.model(input_tensor)
+
+        if target_class is None:
+            target_class = output.argmax(dim=1).item()
+
+        self.model.zero_grad()
+        one_hot_output = torch.zeros_like(output)
+        one_hot_output[0][target_class] = 1
+        output.backward(gradient=one_hot_output, retain_graph=True)
+
+        pooled_gradients = torch.mean(self.gradients, dim=[0, 2, 3])
+        for i in range(self.activations.shape[1]):
+            self.activations[:, i, :, :] *= pooled_gradients[i]
+
+        heatmap = torch.sum(self.activations, dim=1).squeeze()
+        heatmap = nn.functional.relu(heatmap)
+        heatmap /= torch.max(heatmap)
+        return heatmap.cpu().numpy()
+
+
+def find_last_conv_layer_in_backbone(model):
+    """LSSModel has no head conv layers, so search its backbone submodule specifically."""
+    backbone = getattr(model, "backbone", model)
+    return find_last_conv_layer_pytorch(backbone)
+
+
+def xai_gradcam_explainer_lss(MODEL_NAME, model, images, num_classes, save_dir, title_prefix=""):
+    """GradCAM explainer for LSS models, using LSSGradCAM and the backbone's last conv layer."""
+    target_layer = find_last_conv_layer_in_backbone(model)[1]
+    show_fig = False
+    grad_cam = LSSGradCAM(model, target_layer)
+
+    for i in range(num_classes):
+        os.makedirs(save_dir + f'/{i}', exist_ok=True)
+    for i in range(num_classes):
+        image_array = get_image_array(MODEL_NAME, images[i])
+        for img_idx in range(len(image_array)):
+            try:
+                original_image = Image.open(images[i][img_idx])
+                image = image_array[img_idx].unsqueeze(0)
+                heatmap = grad_cam(image, target_class=i)
+                cam_image = show_cam_on_image(original_image, heatmap)
+                if show_fig:
+                    plt.figure()
+                    plt.imshow(cam_image)
+                fig, ax = plt.subplots()
+                ax.imshow(cam_image)
+                ax.axis('off')
+                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'), format='png', bbox_inches='tight')
+                fig.savefig(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.pdf'), format='pdf', bbox_inches='tight')
+                plt.close(fig)
+                print(os.path.join(save_dir, str(i), f'gradcam_{img_idx}.png'))
+            except Exception as e:
+                print(f"Error processing image {images[i][img_idx]}: {e}")
+                continue
+    print(f"LSS GradCAM results saved in {save_dir}")
+    return
     
 def xai_gradcam_explainer(MODEL_NAME, model, images, num_classes,save_dir, title_prefix =""):
     """Function to explain the model predictions using GradCAM.  """

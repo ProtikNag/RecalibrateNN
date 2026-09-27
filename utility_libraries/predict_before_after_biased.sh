@@ -5,17 +5,17 @@
 IMAGE_FOLDER="/home/biased_dataset/baseline_data/deer/biased_data/biased_valid_dataset/valid"
 CLASS_NAMES="deer_neverseen,horse,zebra"
 DESTINATION_DIR="/mnt/sdd/biased_models/biased_prediction/before_after"
-BASE_MODEL_PATH="/mnt/sdd/biased_models/base_model/"
+BASE_MODEL_PATH="/mnt/sdd/biased_models/base_model"
 
 # Array of models
 #MODELS=("vgg16" "inception_v3" "resnet50" "mobilenet_v3_small" "mobilenet_v3_large")
 #MODELS=("vgg16")
-#MODELS=("inception_v3")
+MODELS=("inception_v3")
 #MODELS=("resnet50") 
 #MODELS=("mobilenet_v3_small")
-MODELS=("mobilenet_v3_large")
+#MODELS=("mobilenet_v3_large")
 # Recalibrated models (comma-separated)
-: << 'COMMENT'
+
 RECALIBRATED_MODELS="\
 /mnt/sdd/biased_models/recalib_selected/vgg16/model0_combo_0.pth,\
 /mnt/sdd/biased_models/recalib_selected/vgg16/model0_combo_1.pth,\
@@ -59,7 +59,6 @@ RECALIBRATED_MODELS="\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_small/model0_combo_15.pth,\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_small/model0_combo_20.pth,\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_small/model0_combo_21.pth "
-COMMENT
 
 RECALIBRATED_MODELS="\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_large/model0_combo_0.pth,\
@@ -74,6 +73,18 @@ RECALIBRATED_MODELS="\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_large/model0_combo_15.pth,\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_large/model0_combo_20.pth,\
 /mnt/sdd/biased_models/recalib_selected/mobilenet_v3_large/model0_combo_21.pth "
+
+RECALIBRATED_MODELS="\
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_1.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_2.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_3.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_4.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_5.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_6.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_7.pth, \
+/mnt/sdd/biased_models/recalib_selected/inception_v3/model0_combo_8.pth \
+"
+
 
 # Process model
 model="${MODELS[0]}"

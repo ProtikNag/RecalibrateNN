@@ -70,8 +70,10 @@ from model_training_lss import LSSModel, FeatureTransformation
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 from ConfigSingleton import ConfigSingleton
-from xai_methods import (xai_integrated_gradients, find_last_conv_layer_pytorch, xai_gradcam_explainer, xai_lime_explainer)
-
+from xai_methods import (
+    xai_integrated_gradients, find_last_conv_layer_pytorch,
+    xai_gradcam_explainer, xai_gradcam_explainer_lss, xai_lime_explainer,
+)
 XAI_Integrated_gradients = False
 XAI_GradCAM              = True
 XAI_Lime                 = False
@@ -145,6 +147,7 @@ if __name__ == '__main__':
     parser.add_argument("--config_file", type=str, default=None, help="Configuration file")
     parser.add_argument("--save_dir", type=str, default=None, help="Specify a save directory to save the results")
     parser.add_argument("--before_after", action='store_true',default=False, help="Flag to execute for modified model post recalib")
+    parser.add_argument("--override_xai", type=str, default=None, help="soecify xai method overrided from config file use either gradcam or integrated_gradient")
     
 
     parser.add_argument(
@@ -191,6 +194,19 @@ if __name__ == '__main__':
     XAI_Integrated_gradients = config.INTEGRATED_GRADIENT
     XAI_GradCAM              = config.GRADCAM
     XAI_Lime                 = config.LIME
+    
+    if(args.override_xai is not None):
+        XAI_Integrated_gradients = False
+        XAI_GradCAM = False
+        if(args.override_xai == "gradcam"):
+            XAI_GradCAM = True
+        elif(args.override_xai == "integrated_gradients"):
+                XAI_Integrated_gradients = True
+        else:
+            raise("incorrect override selected use either integrated_gradients or gradcam")
+            
+    
+    
     #IMAGES                   = config.XAI_IMAGE_PATH
     num_classes              = config.XAI_NUMCLASSES
     save_dir                 = args.save_dir.strip()
@@ -246,43 +262,30 @@ if __name__ == '__main__':
             save_dir_after = os.path.join(save_dir,'gradcam',  'after')
             if(args.method == 'lss'):
               model_modified = load_lss_model(MODIFIED_MODEL_PATH)
+              xai_gradcam_explainer_lss(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
             else:
               model_modified = torch.load(MODIFIED_MODEL_PATH, map_location=DEVICE)
-
-            xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
-    exit()
-
+              xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
     
-    ################################################################################################################
-    ############# GRAD CAM Implementation ##########################################################
-    if(XAI_GradCAM == True):
-        model = get_model(BASE_MODEL_PATH)
-        save_dir_before = os.path.join(save_dir, 'gradcam', 'before')
-        xai_gradcam_explainer(MODEL_NAME, model,IMAGES, num_classes, save_dir_before, title_prefix ="before")
-        save_dir_after = os.path.join(save_dir,'gradcam',  'after')
-        print(save_dir_before, save_dir_after)
-        if(before_after):
-            model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-            xai_gradcam_explainer(MODEL_NAME, model_modified,IMAGES, num_classes, save_dir_after, title_prefix ="after")
+
     ################################################################################################################
     ################################################################################################################
     ############# Integrated Gradients ##########################################################
-    
-    if(XAI_Integrated_gradients == True):
-            
-        print(BASE_MODEL_PATH)
-        try:
-          model = get_model(BASE_MODEL_PATH)
-        except Exception as e:
-          print(e)
-          exit()
-        save_dir_before = os.path.join(save_dir, 'integrated_gradient','before')
-        xai_integrated_gradients(MODEL_NAME, model, num_classes, IMAGES, n_steps=200, save_dir = save_dir_before, title_prefix = "before")
-        if(before_after):
-            model_modified = get_model(BASE_MODEL_PATH, MODIFIED_MODEL_PATH)
-            save_dir_after = os.path.join(save_dir,'integrated_gradient','after')
-            xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES, n_steps=200, save_dir = save_dir_after, title_prefix = "after")
 
+    if(XAI_Integrated_gradients == True):
+        if(before_after):
+            save_dir_after = os.path.join(save_dir, 'integrated_gradient', 'after')
+            # captum forces requires_grad on its own interpolated inputs, so no LSS-specific IG variant is needed
+            if(args.method == 'lss'):
+                model_modified = load_lss_model(MODIFIED_MODEL_PATH)
+            else:
+                model_modified = torch.load(MODIFIED_MODEL_PATH, map_location=DEVICE)
+        xai_integrated_gradients(MODEL_NAME, model_modified, num_classes, IMAGES,
+                                 n_steps=200, save_dir=save_dir_after, title_prefix="after")              
+    
+    exit()
+    
+    
     ############# Lime Implementation ##########################################################
     if(XAI_Lime == True):
         model = get_model(BASE_MODEL_PATH)
