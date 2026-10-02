@@ -37,6 +37,32 @@ Known bug
 
 """
 
+# Hyperparameters and training settings used in this script (copyable reference):
+# |---------------------------------------------------------------------------------------------|
+# | Name                         | Value / source                                               |
+# |------------------------------|--------------------------------------------------------------|
+# | Random seed                  | RANDOM_STATE=132; main default=132; config.SEED              |
+# | Per-lambda seed              | random_state + hash(str(LAMBDA_ALIGN)) % 1000                |
+# | Device                       | CUDA when available, otherwise CPU                           |
+# | Epochs                       | EPOCHS (config)                                              |
+# | Batch size                   | BATCH_SIZE (config)                                          |
+# | Learning rate                | LEARNING_RATE (config)                                       |
+# | Optimizer                    | Adam (PyTorch defaults except configured learning rate)      |
+# | Alignment weight             | Each value in LAMBDA_ALIGNS (config)                         |
+# | Classification weight        | round(1.0 - LAMBDA_ALIGN, 2)                                 |
+# | CAV classifier               | LINEAR_CLASSIFIER_TYPE (config)                              |
+# | Classification loss          | CrossEntropyLoss (PyTorch defaults)                          |
+# | Gradient clipping            | max_norm=7                                                   |
+# | Early stopping               | Patience=5 epochs; minimum validation-loss delta=1e-4        |
+# | Trainable parameters         | Names containing the current layer_name                      |
+# | Batch normalization/dropout  | Kept in eval mode during fine-tuning                         |
+# | Train data loader            | shuffle=True; generator seed=RANDOM_STATE                    |
+# | Validation data loader       | shuffle=False                                                |
+# | Input image size             | IMAGE_SIZE x IMAGE_SIZE (derived from model)                 |
+# | Input normalization          | mean=[0.485, 0.456, 0.406]; std=[0.229, 0.224, 0.225]        |
+# | Determinism                  | deterministic algorithms warn_only=True; cuDNN deterministic |
+# |---------------------------------------------------------------------------------------------|
+
 import copy
 import os.path
 import os
