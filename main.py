@@ -77,6 +77,8 @@ TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
 LAYER_NAMES = None
 RANDOM_STATE = 132
+EARLY_STOPPING_PATIENCE = 5
+EARLY_STOPPING_MIN_DELTA = 1e-4
 activation = {}
 output_shape = {}
 
@@ -183,14 +185,14 @@ def main(random_state=132):
                 print(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 logging.info(f"TCAV Score before : {tcav_before} for layer {layer_name}")
                 try:
-                    acc_before, precision_before, recall_before, f1_before = evaluate_accuracy(model_trained, validation_loader)
+                    acc_before, precision_before, recall_before, f1_before, class_results = evaluate_accuracy(model_trained, validation_loader)
                     avg_conf_before = compute_avg_confidence(model_trained, validation_loader, TARGET_IDX_LIST)
                 except Exception as e:
                     logging.error(f"Error during accuracy evaluation: {e}")
                     print(f"Error during accuracy evaluation: {e}")
                 print(validation_loader, TARGET_IDX_LIST)
                 try:
-                    results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+                    results_legacy, avg_confidences_legacy, class_count_legacy_before, acc_legacy_before, summary = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                 except Exception as e:
                     logging.error(f"Error during legacy prediction: {e}")
                     print(f"Error during legacy prediction: {e}")
@@ -245,6 +247,9 @@ def main(random_state=132):
                         print(f"Obtained exception   line 239")
                         
                     loss_history = {"total": [], "cls": [], "align": []}
+                    best_validation_loss = float("inf")
+                    best_model_state = None
+                    epochs_without_improvement = 0
                     for epoch in range(EPOCHS):
                         total_loss_epoch = cls_loss_epoch = align_loss_epoch = 0.0
                         for imgs, labels in dataset_loader:
@@ -280,8 +285,45 @@ def main(random_state=132):
                         loss_history["align"].append(align_loss_epoch / n_batches)
                         logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
                         print(f"Epoch {epoch + 1}/{EPOCHS} - Loss: {loss_history['total'][-1]:.4f}")
-                    acc_after, precision_after, recall_after, f1_after = evaluate_accuracy(model_trained, validation_loader)
-                    results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
+
+                        model_trained.eval()
+                        validation_loss = 0.0
+                        validation_batches = 0
+                        with torch.no_grad():
+                            for val_imgs, val_labels in validation_loader:
+                                val_imgs = val_imgs.to(DEVICE)
+                                val_labels = val_labels.to(DEVICE)
+                                val_outputs = model_trained(val_imgs)
+                                if isinstance(val_outputs, tuple):
+                                    val_outputs = val_outputs[0]
+                                validation_loss += nn.CrossEntropyLoss()(val_outputs, val_labels).item()
+                                validation_batches += 1
+                        validation_loss /= max(validation_batches, 1)
+                        logging.info(f"Epoch {epoch + 1}/{EPOCHS} - Validation loss: {validation_loss:.4f}")
+
+                        if validation_loss < best_validation_loss - EARLY_STOPPING_MIN_DELTA:
+                            best_validation_loss = validation_loss
+                            best_model_state = copy.deepcopy(model_trained.state_dict())
+                            epochs_without_improvement = 0
+                        else:
+                            epochs_without_improvement += 1
+                            if epochs_without_improvement >= EARLY_STOPPING_PATIENCE:
+                                logging.info(
+                                    f"Early stopping after epoch {epoch + 1}: validation loss did not improve "
+                                    f"for {EARLY_STOPPING_PATIENCE} epochs."
+                                )
+                                print(f"Early stopping after epoch {epoch + 1}.")
+                                break
+
+                        model_trained.train()
+                        model_trained.apply(
+                            lambda m: m.eval() if isinstance(m, (nn.BatchNorm2d, nn.BatchNorm1d, nn.Dropout)) else None
+                        )
+
+                    if best_model_state is not None:
+                        model_trained.load_state_dict(best_model_state)
+                    acc_after, precision_after, recall_after, f1_after, class_results = evaluate_accuracy(model_trained, validation_loader)
+                    results_legacy_after, avg_confidences_legacy_after, class_count_legacy_after, acc_legacy_after, summary = predict_from_loader(validation_loader, model_trained, TARGET_IDX_LIST)
                     print("Computing the tcav scores after can take a while stand by")
                     try:
                         tcav_after = [compute_tcav_score(model_trained, layer_name, cav, class_loader, idx)
@@ -328,7 +370,7 @@ def main(random_state=132):
                     classificationloss_filename = os.path.join(RESULTS_PATH, f"loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                     alignmentloss_filename = os.path.join(RESULTS_PATH, f"alignment_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
                     total_loss = os.path.join(RESULTS_PATH, f"total_loss_{BASE_MODEL}_{layer_name}_{LAMBDA_ALIGN}.pdf")
-                    plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], EPOCHS,
+                    plot_loss_figure(loss_history["total"], loss_history["align"], loss_history["cls"], len(loss_history["total"]),
                                     classificationloss_filename, alignmentloss_filename, total_loss)
                     statistic_filename = os.path.join(RESULTS_PATH, f"statistics_{BASE_MODEL}.csv")
                     save_statistics(stats, statistic_filename)

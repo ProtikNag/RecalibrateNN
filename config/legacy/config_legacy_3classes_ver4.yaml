@@ -5,15 +5,15 @@ misc:
    seed: 131
 
 classification:
-  data_base_path: "/home/biased_dataset/baseline_data/deer/biased_data/biased_dataset/" # Path to the classification dataset base directory.
+  data_base_path: "/home/balanced_dataset/" # Path to the classification dataset base directory.
   target_class_list:
-    - 'deer_bias'
+    - 'deer'
     - 'horse'
     - 'zebra'
 
 
   linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
-  lambda_aligns: [0.4, 0.5, 0.6, 0.7, 0.8 ]
+  lambda_aligns: [0.0, 0.4, 0.5, 0.6, 0.7, 0.8 ]
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
@@ -26,44 +26,6 @@ concept:
     - "zebra/coat"
   random_folder: "/mnt/sdc/concepts/concepts_links/concept_150/random"
 
-multiconcept:
-  base_path: "/mnt/sdc/concepts/concepts_links"
-  random_folder_base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
-  class0:
-    target_folders:
-      - "concept_150/deer/coat"
-      - "concept_150/deer/background"
-      - "concept_150/deer/face"
-      - "concept_150/deer/legs"
-    random_folders:
-      - "random"
-      - "random"
-      - "random"
-      - "random"
-
-  class1:
-    target_folders:
-      - "concept_150/horse/coat"
-      - "concept_150/horse/background"
-      - "concept_150/horse/face"
-      - "concept_150/horse/legs"
-    random_folders:
-      - "random"
-      - "random"
-      - "random"
-      - "random"
-
-  class2:
-    target_folders:
-      - "concept_150/zebra/coat"
-      - "concept_150/zebra/background"
-      - "concept_150/zebra/face"
-      - "concept_150/zebra/legs"
-    random_folders:
-      - "random"
-      - "random"
-      - "random"
-      - "random"
 
 #concept:
 #  base_path: '/home/concept'
@@ -73,44 +35,6 @@ multiconcept:
 #    - 'zebra/stripes'
     
 #  random_folder: '/home/concept/random'
-
-# --- RECALIBRATION WEIGHTS ---
-# Configurable per-class and per-concept weights used by
-# main_recalib_custom_by_loading_cav.py to perform a targeted, weighted
-# multi-concept recalibration. Concept names below must match the
-# "concept_name" keys recorded in the per-model manifest
-# (e.g. <model_name>_manifest.json produced by main_store_cav.py).
-#
-# class_weight     : overall scaling applied to the class's combined
-#                    alignment loss (defaults to 1.0 if omitted).
-# concept_weights  : relative weight of each concept's alignment loss for
-#                    that class. Any concept from the manifest not listed
-#                    here automatically receives an equal share of the
-#                    remaining weight (so weights always sum to 1.0).
-recalibration_weights:
-  class0:
-    class_weight: 1.0
-    concept_weights:
-      deer_coat: 0.4
-      deer_background: 0.2
-      deer_face: 0.2
-      deer_legs: 0.2
-
-  class1:
-    class_weight: 1.0
-    concept_weights:
-      horse_coat: 0.4
-      horse_background: 0.2
-      horse_face: 0.2
-      horse_legs: 0.2
-
-  class2:
-    class_weight: 1.0
-    concept_weights:
-      zebra_coat: 0.4
-      zebra_background: 0.2
-      zebra_face: 0.2
-      zebra_legs: 0.2
 
 hyperparameters:
   learning_rate: 1e-03
@@ -123,23 +47,13 @@ recalibration:
   override_retraining: true
   layers_to_train:
     vgg16:
-      - 'features.17'
-      - 'features.21'
-      - 'features.24'
+      - 'features.9'
+      - 'features.10'
+      - 'features.12'
+      - 'features.14'
 
     inception_v3:
-      - 'Mixed_6e.branch1x1.conv'
-      - 'Mixed_6e.branch1x1'
-      - 'Mixed_6e.branch7x7_1.conv'
-      - 'Mixed_6e.branch7x7_2.conv'
-      - 'Mixed_6e.branch7x7_3.conv'
-      - 'Mixed_6e.branch7x7dbl_1.conv'
-      - 'Mixed_7b.branch1x1.conv'
-      - 'Mixed_7b.branch3x3_1.conv'
-      - 'Mixed_7b.branch3x3_2a.conv'
-      - 'Mixed_7b.branch3x3_2b.conv'
-      - 'Mixed_7b.branch3x3dbl_3a'
-      - 'Mixed_7b.branch_pool.conv'
+      - 'Mixed_6b.branch7x7dbl_1.conv'
       
 
     resnet50:
@@ -205,7 +119,7 @@ recalibration:
       #- 'features.16.0'
       #- 'features.9.block.2.0'
     
-  lambda_aligns_recalib: [0.4,0.5, 0.6, 0.7, 0.8]
+  lambda_aligns_recalib: [0.0,0.4,0.5, 0.6, 0.7, 0.8]
   #lambda_aligns_recalib: [0.5]
 # --- END OF CONFIGURATIONS ---
 
