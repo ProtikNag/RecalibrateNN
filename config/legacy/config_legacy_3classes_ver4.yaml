@@ -47,7 +47,6 @@ recalibration:
   override_retraining: true
   layers_to_train:
     vgg16:
-      - 'features.9'
       - 'features.10'
       - 'features.12'
       - 'features.14'
