@@ -17,7 +17,7 @@ RUN_SPECIFIC_MODEL=true
 
 
 if [ "$RUN_SPECIFIC_MODEL" = true ]; then
-  MODELS_ARRAY=("vgg16" "inception_v3")
+  MODELS_ARRAY=("vgg16")
 fi
 
 

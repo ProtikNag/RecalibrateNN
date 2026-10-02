@@ -44,13 +44,13 @@ Known bug
 # | Random seed                  | RANDOM_STATE=132; main default=132; config.SEED              |
 # | Per-lambda seed              | random_state + hash(str(LAMBDA_ALIGN)) % 1000                |
 # | Device                       | CUDA when available, otherwise CPU                           |
-# | Epochs                       | EPOCHS (config)                                              |
-# | Batch size                   | BATCH_SIZE (config)                                          |
-# | Learning rate                | LEARNING_RATE (config)                                       |
+# | Epochs                       | EPOCHS:30 (config)                                           |
+# | Batch size                   | BATCH_SIZE:64 (config)                                       |
+# | Learning rate                | LEARNING_RATE:1e-3 (config)                                  |
 # | Optimizer                    | Adam (PyTorch defaults except configured learning rate)      |
 # | Alignment weight             | Each value in LAMBDA_ALIGNS (config)                         |
 # | Classification weight        | round(1.0 - LAMBDA_ALIGN, 2)                                 |
-# | CAV classifier               | LINEAR_CLASSIFIER_TYPE (config)                              |
+# | CAV classifier               | LINEAR_CLASSIFIER_TYPE:SGDClassifier (config)                |
 # | Classification loss          | CrossEntropyLoss (PyTorch defaults)                          |
 # | Gradient clipping            | max_norm=7                                                   |
 # | Early stopping               | Patience=5 epochs; minimum validation-loss delta=1e-4        |
