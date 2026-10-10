@@ -9,9 +9,9 @@ source ../utility_scripts.sh
 PYTHON_SCRIPT="../../main.py"
 CONFIG_FILE="../../config/legacy/config_legacy_3classes_ver4.yaml"
 #export RECALIBRATED_RESULTS_LOCATION='/mnt/sdh/basics/recalib'
-export RECALIBRATED_RESULTS_LOCATION='/mnt/sdc/try3'
+export RECALIBRATED_RESULTS_LOCATION='/mnt/sdc/try3/randomseed_12345'
 print_parameters
-RUN_SPECIFIC_MODEL=true 
+RUN_SPECIFIC_MODEL=true
 
 #wait_for_user
 

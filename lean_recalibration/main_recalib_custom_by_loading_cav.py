@@ -690,6 +690,10 @@ def _run_one_lambda(
         loss_history = {"total": [], "cls": [], "align": []}
         model_trained.train()
 
+        early_stopping_patience = 5
+        best_epoch_loss = float("inf")
+        patience_counter = 0
+
         for epoch in range(epochs):
             total_l = cls_l_sum = align_l_sum = 0.0
             n_batches = 0
@@ -771,6 +775,19 @@ def _run_one_lambda(
                 )
                 logging.info(msg)
                 print(msg)
+
+                epoch_loss = total_l / n_batches
+                if epoch_loss < best_epoch_loss:
+                    best_epoch_loss = epoch_loss
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+                    if patience_counter >= early_stopping_patience:
+                        logging.info(
+                            f"Early stopping after {early_stopping_patience} "
+                            f"epochs without improvement."
+                        )
+                        break
 
         acc, prec, rec, f1, conf, class_res = _compute_metrics(
             model_trained, validation_loader, [target_class], logging
@@ -1277,6 +1294,7 @@ def _resolve_layer_combos(
     use_groups: bool,
     registry: CAVRegistry,
     model_name: str,
+    max_combo_size: int = 3,
 ) -> list:
     if use_groups:
         groups = registry.list_groups()
@@ -1298,7 +1316,7 @@ def _resolve_layer_combos(
         )
 
     combos = []
-    for size in (1, 2, 3):
+    for size in range(1, max_combo_size + 1):
         if len(layer_names) >= size:
             combos.extend(
                 [list(c) for c in combinations(layer_names, size)]
@@ -1330,6 +1348,7 @@ def main(
     use_groups: bool,
     save_plots: bool,
     logging,
+    max_combo_size: int = 3,
 ):
     """
     class_concepts_map  : {target_idx: [concept_name, ...]} — every concept
@@ -1391,7 +1410,7 @@ def main(
     )
 
     layer_combos = _resolve_layer_combos(
-        layer_names, use_groups, registry, base_model_name
+        layer_names, use_groups, registry, base_model_name, max_combo_size
     )
     if not layer_combos:
         logging.error("No layer combinations available. Aborting.")
@@ -1571,6 +1590,7 @@ def main_multiclass(
     use_groups: bool,
     save_plots: bool,
     logging,
+    max_combo_size: int = 3,
 ):
     """
     class_concepts_map  : {target_idx: [concept_name, ...]}
@@ -1643,7 +1663,7 @@ def main_multiclass(
     )
 
     layer_combos = _resolve_layer_combos(
-        layer_names, use_groups, registry, base_model_name
+        layer_names, use_groups, registry, base_model_name, max_combo_size
     )
     if not layer_combos:
         logging.error("No layer combinations available. Aborting.")
@@ -1772,6 +1792,9 @@ if __name__ == "__main__":
                         help="Base directory for results and logs")
     parser.add_argument("--use_layer_groups", action="store_true",
                         help="Use layer groups from manifest instead of combinations")
+    parser.add_argument("--max_combo_size", type=int, default=3,
+                        help="Maximum size of layer combinations for recalibration")
+
     parser.add_argument(
         "--recalibrate_classes", type=str, default=None,
         help="Comma-separated class indices to recalibrate, e.g. '0,2'. "
@@ -1813,6 +1836,7 @@ if __name__ == "__main__":
 
     BASE_MODEL = args.model_name.strip().lower()
     MODEL_PATH = get_model_weight_path(BASE_MODEL, args.model_path.strip())
+    MAX_COMBO_SIZE = args.max_combo_size
 
     RESULTS_PATH = os.path.join(args.store_results, BASE_MODEL)
     os.makedirs(RESULTS_PATH, exist_ok=True)
@@ -1854,7 +1878,7 @@ if __name__ == "__main__":
         MODEL = torch.load(MODEL_PATH, map_location=DEVICE)
     MODEL.to(DEVICE)
     MODEL.eval()
-
+    LOGGING.info(f"Maximum combination size for recalibration: {MAX_COMBO_SIZE}")
     # Layer names — config override or all layers
     all_layers = get_model_layers(MODEL)
     if config.OVERRIDE_RECALIB:
@@ -2001,6 +2025,7 @@ if __name__ == "__main__":
         use_groups=args.use_layer_groups,
         save_plots=getattr(config, "SAVE_PLOTS", False),
         logging=LOGGING,
+        max_combo_size=MAX_COMBO_SIZE,
     )
 
     LOGGING.info("Script execution finished.")

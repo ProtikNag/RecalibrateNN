@@ -238,9 +238,12 @@ if __name__ == "__main__":
     # If recalibrated models provided, compute predictions for each
     if args.recalibrated_model_directory:
         recalibrated_paths = [os.path.join(args.recalibrated_model_directory, f) for f in os.listdir(args.recalibrated_model_directory) if f.endswith('.pth')]
-        
+        summary_file = open(os.path.join(dest_dir, "recalibration_idx.txt"),"w")
         for idx, recal_model_path in enumerate(recalibrated_paths):
             logging.info(f"Processing recalibrated model {idx}: {recal_model_path}")
+            summary_file.write(recal_model_path)
+            summary_file.write("\n")
+            print("Model loaded ",recal_model_path)
             recal_model = load_model(base_model_path, recal_model_path)
             recal_results, _, recal_y_pred = predict_from_directory(image_folder, recal_model, class_names)
             
@@ -252,21 +255,22 @@ if __name__ == "__main__":
                 df.loc[i, f"Class1_Prob_recal_{idx}"] = result["Class1_Prob"]
                 df.loc[i, f"Class2_Prob_recal_{idx}"] = result["Class2_Prob"]
     
-    # Get unique classes from predictions
-    unique_classes = sorted(list(set(y_true + y_pred)))
-    report = classification_report(y_true, y_pred, labels=unique_classes, output_dict=True)
-    print(report)
-
-    cm = confusion_matrix(y_true, y_pred, labels=unique_classes)
-    cm_data = pd.DataFrame(cm)
-
-    # Save results to an Excel file
-    df.to_excel(output_excel, index=False)
-    # Also save results to CSV
-    output_csv = output_excel.replace('.xlsx', '.csv')
-    df.to_csv(output_csv, index=False)    
-    logging.info(f"Results saved to {output_excel}")
-    
+            # Get unique classes from predictions
+            unique_classes = sorted(list(set(y_true + y_pred)))
+            report = classification_report(y_true, y_pred, labels=unique_classes, output_dict=True)
+            print(report)
+        
+            cm = confusion_matrix(y_true, y_pred, labels=unique_classes)
+            cm_data = pd.DataFrame(cm)
+        
+            # Save results to an Excel file
+            df.to_excel(output_excel, index=False)
+            # Also save results to CSV
+            output_csv = output_excel.replace('.xlsx', '.csv')
+            df.to_csv(output_csv, index=False)    
+            logging.info(f"Results saved to {output_excel}")
+            
+    summary_file.close()
     # Directory where your files are located
     base_dir = '.'
     #target_dir = os.path.join(base_dir, 'predicted')

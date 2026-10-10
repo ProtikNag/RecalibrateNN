@@ -2,7 +2,7 @@
 
 # Path to the legacy dataset
 misc:
-   seed: 131
+   seed: 12345
 
 classification:
   data_base_path: "/home/balanced_dataset/" # Path to the classification dataset base directory.
@@ -13,7 +13,7 @@ classification:
 
 
   linear_classifier_type: 'SGDClassifier' # Specifies the type of linear classifier to use.
-  lambda_aligns: [0.0, 0.4, 0.5, 0.6, 0.7, 0.8 ]
+  lambda_aligns: [0.0, 0.6]
 
 # --- CONCEPT CONFIGURATIONS ---
 # This section defines the paths for various concepts.
@@ -71,15 +71,15 @@ recalibration:
       
 
     mobilnet_v3_small:
-       - 'features.7.6.block.2.fc2' 
-       - 'features.7.block2.fc1'
+       - 'features.6.block.2.fc2' 
+       - 'features.7.block.2.fc1'
 
     mobilenet_v3_large:
       - 'features.11.block.2.fc2'
       - 'features.9.block.1.0'
       - 'features.12.block.2.fc2'
     
-  lambda_aligns_recalib: [0.0,0.4,0.5, 0.6, 0.7, 0.8]
+  lambda_aligns_recalib: [0.0, 0.6]
   #lambda_aligns_recalib: [0.5]
 # --- END OF CONFIGURATIONS ---
 
