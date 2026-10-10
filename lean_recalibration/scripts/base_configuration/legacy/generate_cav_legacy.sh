@@ -18,7 +18,8 @@ for model in "${MODELS[@]}"; do
         --model_name "$model" \
         --model_path "$MODEL_PATH" \
         --config_file "$CONFIG_FILE" \
-        --cav_store "$CAV_STORE"
+        --cav_store "$CAV_STORE" \
+        --store_multiconcept_cav
 
 done
 

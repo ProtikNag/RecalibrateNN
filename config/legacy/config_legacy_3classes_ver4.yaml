@@ -27,6 +27,27 @@ concept:
   random_folder: "/mnt/sdc/concepts/concepts_links/concept_150/random"
 
 
+multiconcept:
+  base_path: "/mnt/sdc/concepts/concepts_links"
+  random_folder_base_path: "/mnt/sdc/concepts/concepts_links/concept_150"
+  class0:
+    target_folders:
+      - "concept_150/deer/coat"
+    random_folders:
+      - "random"
+
+  class1:
+    target_folders:
+      - "concept_150/horse/coat"
+    random_folders:
+      - "random"
+
+  class2:
+    target_folders:
+      - "concept_150/zebra/coat"
+    random_folders:
+      - "random"
+
 #concept:
 #  base_path: '/home/concept'
 #  target_folders:
