@@ -508,7 +508,7 @@ def main():
     parser.add_argument("--recal_model_basepath", type=str, default=None, help="Specify a location of the recalibrated model base path")
     parser.add_argument("--model_name", type=str, default=None, help="Specify a model name to override the default model")
     parser.add_argument("--before_after", action='store_true', help="Default parameter for before after comparison if its true then before after comparison will be done")
-    parser.add_argument("--config", type=str, default=None, help="specify the yaml file ")
+    parser.add_argument("--config_file", type=str, default=None, help="specify the yaml file ")
     parser.add_argument("--store_results", type=str, default=None, help="specify the location where teh results should be stored ")
     parser.add_argument("--load_validation_dataset", action='store_true', help="If passed the validation dataset will be loaded instead (default: False)")
     parser.add_argument("--concept_mode", type=str, default="auto", choices=["auto", "single", "multiclass"],
@@ -516,7 +516,7 @@ def main():
                               "'multiclass' = multiple concepts per class (config 'multiconcept' section). "
                               "'auto' (default) picks 'multiclass' when the YAML config has multiconcept "
                               "enabled, otherwise falls back to 'single'.")
-    parser.add_argument("--manifest", type=str, default=None,
+    parser.add_argument("--manifest_file", type=str, default=None,
                          help="Path to a per-model CAV manifest JSON (e.g. vgg16_manifest.json, produced by "
                               "main_store_cav.py / cav_registry.CAVRegistry). Sensitivity scores are computed "
                               "using CAV vectors loaded from this manifest instead of being trained on the fly; "
@@ -524,7 +524,7 @@ def main():
                               "for that concept with a warning.")
 
     args = parser.parse_args()
-    config_file = args.config
+    config_file = args.config_file
     save_dir = args.store_results
     load_validationdataset = args.load_validation_dataset
     print(config_file)
@@ -535,10 +535,10 @@ def main():
         raise FileNotFoundError(f"Config file parameter not provided in the command line")
     if not save_dir:
         raise ValueError("Please provide a --store_results directory to save the log/CSV/Excel outputs.")
-    manifest_file = args.manifest
+    manifest_file = args.manifest_file
     if not manifest_file:
         raise ValueError(
-            "Please provide a --manifest file (e.g. vgg16_manifest.json, produced by main_store_cav.py) "
+            "Please provide a --manifest_file file (e.g. vgg16_manifest.json, produced by main_store_cav.py) "
             "so precomputed CAV vectors can be loaded - sensitivity scores are no longer computed on the fly."
         )
     if not os.path.isfile(manifest_file):
