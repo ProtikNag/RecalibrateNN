@@ -1,5 +1,8 @@
 import os
 import os.path
+import sys
+import ast
+import pickle
 import json
 import math
 import argparse
@@ -11,6 +14,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from openpyxl.styles import Font, PatternFill, Alignment
 
@@ -19,7 +23,7 @@ from custom_dataloader import SingleClassDataLoader
 
 from ConfigSingleton import ConfigSingleton
 from utils import (
-    get_model_layers, load_model, load_model_statedict,
+    get_model_layers, load_model, 
     load_train_valid_dataset,
 )
 
@@ -29,6 +33,56 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 RANDOM_STATE = 132
+
+def load_model_statedict(model, model_path, trusted_checkpoint=False):
+    """Load a state dict, or extract one from a trusted full-model checkpoint."""
+    try:
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=not trusted_checkpoint)
+    except pickle.UnpicklingError as exc:
+        raise ValueError(
+            "This checkpoint contains pickled objects (e.g. a torchvision VGG), "
+            "not just weights. If you created and trust this file, call "
+            "load_model_statedict(model, path, trusted_checkpoint=True). "
+            "Never enable this for an untrusted checkpoint."
+        ) from exc
+
+    if isinstance(checkpoint, nn.Module):
+        state_dict = checkpoint.state_dict()
+    elif isinstance(checkpoint, dict):
+        state_dict = checkpoint.get('state_dict', checkpoint)
+    else:
+        raise TypeError(f"Unsupported checkpoint type: {type(checkpoint).__name__}")
+    model.load_state_dict(state_dict)
+    return model
+
+
+class _ActivationHookStub:
+    """Placeholder used only to unpickle checkpoints saved with ActivationHook forward hooks attached."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return None
+
+
+def load_model_with_trained_weights(base_model_path, weights_path, device='cpu'):
+    """Load the base model architecture and update it with weights from a trained checkpoint.
+
+    Only use with trusted checkpoints: both files are full pickled models.
+    """
+    # Recalibrated models were saved from a script run as __main__ with ActivationHook registered
+    main_module = sys.modules['__main__']
+    if not hasattr(main_module, 'ActivationHook'):
+        main_module.ActivationHook = _ActivationHookStub
+
+    model = torch.load(base_model_path, map_location='cpu', weights_only=False)
+    model = load_model_statedict(model, weights_path, trusted_checkpoint=True)
+    model.to(device)
+    model.eval()
+    print(f"Loaded base model from {base_model_path} with weights from {weights_path}")
+    return model
+
+
 def set_seed(seed=RANDOM_STATE):
     random.seed(seed)
     np.random.seed(seed)
@@ -68,6 +122,16 @@ def get_model_path(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_p
     print("Base path where the model is located ", base_path)
     return base_path
 
+
+def get_model_path_multiclass(MODEL_NAME, layer_name, lambda_val, recalibrated_model_base_path='./results'):
+    model_filename = f"model_multiclass_{layer_name.strip()}_lambda{lambda_val}.pth"
+    base_path = os.path.join(recalibrated_model_base_path, MODEL_NAME.strip(), model_filename)
+    print("Looking for the recalibrated model at ", base_path)
+    if not os.path.isfile(base_path):
+        print("File not found in the given path ")
+        raise FileNotFoundError(f"The file '{base_path}' was not found.")
+    print("Base path where the model is located ", base_path)
+    return base_path
 
 MODEL = None
 TRAIN_TRANSFORM = None
@@ -796,13 +860,23 @@ def main():
                 print(f"Model trained variable not yet defined  ")
 
             if(before_after == True):
+                if recal_model_basepath is not None:
+                    layer_combinations_file = os.path.join(
+                        recal_model_basepath,MODEL_NAME, f"layer_combinations_{MODEL_NAME}.txt")
+                    with open(layer_combinations_file, 'r') as file:
+                        layer_combinations = ast.literal_eval(file.read())
+                count = 0
                 for lambda_val in lambda_val_list:
                     try:
                         ###########AFTER######################
+                        file_combo_name = f"combo{count}"
                         if(recal_model_basepath != None):
-                            modified_model_path = get_model_path(MODEL_NAME, layer_name, lambda_val, recal_model_basepath)
-                            model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
-                            model_trained = load_model_statedict(model_trained, modified_model_path)
+                            if(concept_mode =='multiclass'):
+                                modified_model_path = get_model_path_multiclass(MODEL_NAME, file_combo_name, lambda_val, recal_model_basepath)
+                            else:
+                                modified_model_path = get_model_path(MODEL_NAME, file_combo_name, lambda_val, recal_model_basepath)
+                            
+                            model_trained = load_model_with_trained_weights(BASE_MODEL_PATH, modified_model_path)
                             hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
                             model_trained.to(device)
                             logger.info(f"[{layer_name}][lambda={lambda_val}] Computing the sensitivity score (after) using manifest CAVs, can take a while stand by")
@@ -839,12 +913,12 @@ def main():
                             except Exception as e:
                                 print(f"Exception obtained while computing sensitivity score {e}")
                                 logger.info(f"[{layer_name}][lambda={lambda_val}] Exception obtained while computing sensitivity score {e}")
-                                continue
+                                #continue
                     except Exception as e:
                         checkpoint(reason=f"{layer_name}/lambda={lambda_val}/exception", rebuild_excel=False)
                         print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
                         logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}: {e}")
-                        continue
+                        #continue
                 try:
                     del model_trained
                 except Exception as e:

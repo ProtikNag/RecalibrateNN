@@ -677,9 +677,6 @@ def _run_one_lambda(
 
         for pname, param in model_trained.named_parameters():
             param.requires_grad = any(ln in pname for ln in layer_names)
-        for module in model_trained.modules():
-            if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.Dropout)):
-                module.eval()
 
         trainable_params = [p for p in model_trained.parameters() if p.requires_grad]
         if not trainable_params:
@@ -688,7 +685,12 @@ def _run_one_lambda(
         optimizer = optim.Adam(trainable_params, lr=lr)
         ce_loss_fn = nn.CrossEntropyLoss()
         loss_history = {"total": [], "cls": [], "align": []}
+
+        # train() must come first; it would otherwise re-enable BN/Dropout training mode
         model_trained.train()
+        for module in model_trained.modules():
+            if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.Dropout)):
+                module.eval()
 
         early_stopping_patience = 5
         best_epoch_loss = float("inf")
@@ -820,7 +822,7 @@ def _run_one_lambda(
                 run_result[f"class{cid}_total"] = cm.get("total")
 
         save_path = os.path.join(results_path, model_save_name)
-        torch.save(model_trained, save_path)
+        torch.save(model_trained.state_dict(), save_path)
         logging.info(f"  Saved model: {save_path}")
 
         if save_plots:
@@ -1006,9 +1008,6 @@ def _run_one_lambda_multiclass(
 
         for pname, param in model_trained.named_parameters():
             param.requires_grad = any(ln in pname for ln in layer_names)
-        for module in model_trained.modules():
-            if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.Dropout)):
-                module.eval()
 
         trainable_params = [p for p in model_trained.parameters() if p.requires_grad]
         if not trainable_params:
@@ -1017,7 +1016,12 @@ def _run_one_lambda_multiclass(
         optimizer = optim.Adam(trainable_params, lr=lr)
         ce_loss_fn = nn.CrossEntropyLoss()
         loss_history = {"total": [], "cls": [], "align": []}
+
+        # train() must come first; it would otherwise re-enable BN/Dropout training mode
         model_trained.train()
+        for module in model_trained.modules():
+            if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.Dropout)):
+                module.eval()
 
         for epoch in range(epochs):
             total_l = cls_l_sum = align_l_sum = 0.0
