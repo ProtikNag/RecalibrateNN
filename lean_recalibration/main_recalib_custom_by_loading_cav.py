@@ -1836,7 +1836,7 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Config file not found: {args.config_file}")
 
     config = ConfigSingleton(args.config_file)
-    set_seed(config.SEED)
+    set_seed(RANDOM_STATE)
 
     BASE_MODEL = args.model_name.strip().lower()
     MODEL_PATH = get_model_weight_path(BASE_MODEL, args.model_path.strip())
