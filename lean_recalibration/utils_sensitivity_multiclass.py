@@ -17,6 +17,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from openpyxl.styles import Font, PatternFill, Alignment
+from scipy.stats import ttest_rel
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 from logger import Logger_Singleton
 from custom_dataloader import SingleClassDataLoader
@@ -98,7 +100,8 @@ set_seed(RANDOM_STATE)
 # This is deliberately wide so that the Excel workbook alone is enough to answer
 # follow-up questions without re-running the (expensive) sensitivity computation.
 EXPORT_COLUMNS = [
-    'model_name', 'concept_name', 'class_name', 'target_class_index', 'stage', 'layer_name',
+    'model_name', 'concept_name', 'class_name', 'target_class_index', 'stage', 'combo_name',
+    'recalibrated_layers', 'layer_name',
     'lambda_align', 'sensitivity_score', 'positive_sensitivity', 'file_path',
     'concept_folder_path', 'random_folder_path', 'model_weight_path', 'cav_source_path',
     'dataset_split', 'concept_mode', 'cav_random_state', 'batch_size', 'linear_classifier_type',
@@ -138,6 +141,23 @@ TRAIN_TRANSFORM = None
 VALID_TRANSFORM = None
 LAYER_NAMES = None
 OVERRIDE_RECALIB = None
+
+
+def load_layer_combinations(layer_combinations_file):
+    """
+    Read layer_combinations_<model>.txt written by main_recalib_custom_by_loading_cav.py,
+    e.g. {1: 'L1|L2', 2: 'L3'}, and return [(combo_name, [layers])] in combo order.
+    Keys are 1-based while saved model files are 0-based (key 1 -> combo0).
+    """
+    if not os.path.isfile(layer_combinations_file):
+        raise FileNotFoundError(f"Layer combinations file '{layer_combinations_file}' was not found.")
+    with open(layer_combinations_file, 'r') as file:
+        combo_index = ast.literal_eval(file.read())
+    scenarios = []
+    for key in sorted(combo_index, key=int):
+        combo_layers = [ln.strip() for ln in str(combo_index[key]).split('|') if ln.strip()]
+        scenarios.append((f"combo{int(key) - 1}", combo_layers))
+    return scenarios
 
 
 activation = {}
@@ -424,13 +444,13 @@ def compute_concept_summary(records_df):
             'min_sensitivity_overall': group['sensitivity_score'].min(),
             'max_sensitivity_overall': group['sensitivity_score'].max(),
             'num_layers_processed': group['layer_name'].nunique(),
+            'num_combos_processed': int(after_group['combo_name'].nunique()) if after_total else 0,
             'num_lambdas_processed': int(after_group['lambda_align'].nunique()) if after_total else 0,
         }
-        for lambda_val in sorted(after_group['lambda_align'].dropna().unique()):
-            lam_group = after_group[after_group['lambda_align'] == lambda_val]
+        for (combo_name, lambda_val), lam_group in after_group.groupby(['combo_name', 'lambda_align'], sort=True):
             lam_total = len(lam_group)
             lam_positive = int((lam_group['sensitivity_score'] > 0).sum())
-            row[f'tcav_score_after_lambda_{lambda_val}'] = lam_positive / lam_total if lam_total else float('nan')
+            row[f'tcav_score_after_{combo_name}_lambda_{lambda_val}'] = lam_positive / lam_total if lam_total else float('nan')
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -442,10 +462,11 @@ def compute_layer_summary(records_df):
     reproduces-the-per-layer-TCAV-you'd-expect breakdown, computed entirely
     from the stored rows (no recomputation against the model needed).
     """
-    group_cols = ['concept_name', 'model_name', 'class_name', 'layer_name', 'stage', 'lambda_align']
+    group_cols = ['concept_name', 'model_name', 'class_name', 'layer_name', 'stage', 'combo_name',
+                  'recalibrated_layers', 'lambda_align']
     rows = []
     for keys, group in records_df.groupby(group_cols, sort=False, dropna=False):
-        concept_name, model_name, class_name, layer_name, stage, lambda_align = keys
+        concept_name, model_name, class_name, layer_name, stage, combo_name, recalibrated_layers, lambda_align = keys
         total_rows = len(group)
         positive_rows = int((group['sensitivity_score'] > 0).sum())
         tcav_score = positive_rows / total_rows if total_rows else float('nan')
@@ -455,6 +476,8 @@ def compute_layer_summary(records_df):
             'class_name': class_name,
             'layer_name': layer_name,
             'stage': stage,
+            'combo_name': combo_name,
+            'recalibrated_layers': recalibrated_layers,
             'lambda_align': lambda_align,
             'model_weight_path': group['model_weight_path'].iloc[0],
             'cav_source_path': group['cav_source_path'].iloc[0],
@@ -468,16 +491,239 @@ def compute_layer_summary(records_df):
         })
     result = pd.DataFrame(rows)
     if not result.empty:
-        result = result.sort_values(['concept_name', 'layer_name', 'stage', 'lambda_align']).reset_index(drop=True)
+        result = result.sort_values(['concept_name', 'layer_name', 'stage', 'combo_name', 'lambda_align'],
+                                    ascending=[True, True, False, True, True]).reset_index(drop=True)
     return result
 
 
-def write_excel_report(records_df, run_info, excel_path):
+def compute_classification_metrics(model, loader, class_names, device, stage, lambda_align, model_weight_path,
+                                   combo_name='base', recalibrated_layers=''):
+    """
+    Evaluate `model` on `loader` and return (overall_row, per_class_rows).
+
+    overall_row    : accuracy + macro precision/recall/F1 (same averaging as utils.evaluate_accuracy)
+    per_class_rows : one row per class with support, correct count, class accuracy, precision, recall, F1
+    """
+    model.eval()
+    all_preds, all_labels = [], []
+    with torch.no_grad():
+        for imgs, labels in loader:
+            outputs = model(imgs.to(device))
+            # Inception-style models may return (logits, aux_logits)
+            if isinstance(outputs, (tuple, list)):
+                outputs = outputs[0]
+            all_preds.extend(torch.argmax(outputs, dim=1).cpu().numpy().tolist())
+            all_labels.extend(labels.cpu().numpy().tolist())
+
+    base = {'stage': stage, 'combo_name': combo_name, 'recalibrated_layers': recalibrated_layers,
+            'lambda_align': lambda_align, 'model_weight_path': model_weight_path}
+    if not all_labels:
+        return {**base, 'num_samples': 0, 'accuracy': float('nan'), 'precision_macro': float('nan'),
+                'recall_macro': float('nan'), 'f1_macro': float('nan')}, []
+
+    all_preds = np.asarray(all_preds)
+    all_labels = np.asarray(all_labels)
+    class_indices = list(range(len(class_names)))
+    precision_m, recall_m, f1_m, _ = precision_recall_fscore_support(
+        all_labels, all_preds, labels=class_indices, average='macro', zero_division=0)
+    overall_row = {
+        **base,
+        'num_samples': int(len(all_labels)),
+        'accuracy': float(accuracy_score(all_labels, all_preds)),
+        'precision_macro': float(precision_m),
+        'recall_macro': float(recall_m),
+        'f1_macro': float(f1_m),
+    }
+
+    precision_c, recall_c, f1_c, support_c = precision_recall_fscore_support(
+        all_labels, all_preds, labels=class_indices, average=None, zero_division=0)
+    per_class_rows = []
+    for idx, class_name in enumerate(class_names):
+        mask = all_labels == idx
+        support = int(support_c[idx])
+        correct = int((all_preds[mask] == idx).sum())
+        per_class_rows.append({
+            **base,
+            'class_name': class_name,
+            'class_index': idx,
+            'support': support,
+            'correct': correct,
+            'class_accuracy': correct / support if support else float('nan'),
+            'precision': float(precision_c[idx]),
+            'recall': float(recall_c[idx]),
+            'f1_score': float(f1_c[idx]),
+        })
+    return overall_row, per_class_rows
+
+
+def _paired_ttest(scores_a, scores_b, alpha):
+    """Pair two {file_path, sensitivity_score} frames on file_path and run ttest_rel(b, a)."""
+    paired = scores_a.merge(scores_b, on='file_path', suffixes=('_a', '_b'))
+    n_pairs = len(paired)
+    vals_a = paired['sensitivity_score_a'].to_numpy(dtype=float)
+    vals_b = paired['sensitivity_score_b'].to_numpy(dtype=float)
+    diff = vals_b - vals_a
+    t_stat = p_value = float('nan')
+    # ttest_rel is undefined for <2 pairs or when every difference is identical
+    if n_pairs >= 2 and np.std(diff) > 0:
+        result = ttest_rel(vals_b, vals_a)
+        t_stat, p_value = float(result.statistic), float(result.pvalue)
+    significant = bool(p_value < alpha) if not np.isnan(p_value) else False
+    if not significant:
+        direction = 'no significant change'
+    else:
+        direction = 'increased' if diff.mean() > 0 else 'decreased'
+    return {
+        'n_pairs': n_pairs,
+        'mean_a': float(vals_a.mean()) if n_pairs else float('nan'),
+        'mean_b': float(vals_b.mean()) if n_pairs else float('nan'),
+        'mean_diff_b_minus_a': float(diff.mean()) if n_pairs else float('nan'),
+        'std_diff': float(diff.std(ddof=1)) if n_pairs >= 2 else float('nan'),
+        't_statistic': t_stat,
+        'p_value': p_value,
+        f'significant_p<{alpha}': significant,
+        'direction': direction,
+    }
+
+
+def compute_paired_ttest(records_df, alpha=0.05):
+    """
+    Paired t-tests (scipy.stats.ttest_rel) of sensitivity scores for every
+    recalibration scenario, one row per (class, concept, combo, layer, comparison):
+
+        before vs lambda=X      - base model vs each recalibrated model of the combo
+        lambda=X vs lambda=Y    - every pair of lambdas within the same combo
+
+    Scores are paired on file_path, so each image is compared against itself.
+    Group A is the reference and group B the comparison; the difference and
+    direction are B relative to A (e.g. 'increased' = B has higher sensitivity).
+    """
+    columns = [
+        'model_name', 'class_name', 'target_class_index', 'concept_name', 'combo_name', 'recalibrated_layers',
+        'layer_name', 'comparison', 'group_a', 'group_b', 'lambda_a', 'lambda_b',
+        'model_weight_path_a', 'model_weight_path_b', 'n_pairs', 'mean_a', 'mean_b', 'mean_diff_b_minus_a',
+        'std_diff', 't_statistic', 'p_value', f'significant_p<{alpha}', 'direction',
+    ]
+    rows = []
+    group_cols = ['model_name', 'class_name', 'target_class_index', 'concept_name', 'layer_name']
+    for keys, group in records_df.groupby(group_cols, sort=False, dropna=False):
+        model_name, class_name, target_class_index, concept_name, layer_name = keys
+        before_group = group[group['stage'] == 'before']
+        before = before_group.drop_duplicates('file_path')[['file_path', 'sensitivity_score']]
+        before_path = before_group['model_weight_path'].iloc[0] if not before_group.empty else ''
+        after_all = group[group['stage'] == 'after']
+        for (combo_name, recalibrated_layers), combo_group in after_all.groupby(
+                ['combo_name', 'recalibrated_layers'], sort=True):
+            # {lambda: (scores, model_weight_path)} for this combo at this layer
+            by_lambda = {
+                lam: (lam_group.drop_duplicates('file_path')[['file_path', 'sensitivity_score']],
+                      lam_group['model_weight_path'].iloc[0])
+                for lam, lam_group in combo_group.groupby('lambda_align', sort=True)
+            }
+            lambdas = sorted(by_lambda)
+            comparisons = []
+            if not before.empty:
+                comparisons += [('before', np.nan, before, before_path, f'lambda={lam}', lam, *by_lambda[lam])
+                                for lam in lambdas]
+            comparisons += [(f'lambda={lam_a}', lam_a, *by_lambda[lam_a], f'lambda={lam_b}', lam_b, *by_lambda[lam_b])
+                            for i, lam_a in enumerate(lambdas) for lam_b in lambdas[i + 1:]]
+            for order, (name_a, lam_a, scores_a, path_a, name_b, lam_b, scores_b, path_b) in enumerate(comparisons):
+                rows.append({
+                    'model_name': model_name,
+                    'class_name': class_name,
+                    'target_class_index': target_class_index,
+                    'concept_name': concept_name,
+                    'combo_name': combo_name,
+                    'recalibrated_layers': recalibrated_layers,
+                    'layer_name': layer_name,
+                    'comparison': f'{name_a} vs {name_b}',
+                    'group_a': name_a,
+                    'group_b': name_b,
+                    'lambda_a': lam_a,
+                    'lambda_b': lam_b,
+                    'model_weight_path_a': path_a,
+                    'model_weight_path_b': path_b,
+                    '_order': order,
+                    **_paired_ttest(scores_a, scores_b, alpha),
+                })
+    result = pd.DataFrame(rows, columns=columns + ['_order'])
+    if not result.empty:
+        result = result.sort_values(
+            ['class_name', 'concept_name', 'combo_name', 'layer_name', '_order']).reset_index(drop=True)
+    return result.drop(columns='_order')
+
+
+ACCURACY_METRIC_COLS = ['accuracy', 'precision_macro', 'recall_macro', 'f1_macro']
+CLASS_METRIC_COLS = ['class_accuracy', 'precision', 'recall', 'f1_score']
+
+
+def _sort_scenarios(df, leading_cols=()):
+    """Order rows as: before first, then each combo/lambda scenario."""
+    df = df.copy()
+    df['_stage_order'] = (df['stage'] != 'before').astype(int)
+    df = df.sort_values(list(leading_cols) + ['_stage_order', 'combo_name', 'lambda_align'], na_position='first')
+    return df.drop(columns='_stage_order').reset_index(drop=True)
+
+
+def build_accuracy_overall(accuracy_df):
+    """One row per model (before + every combo/lambda) with metrics and the change versus before."""
+    if accuracy_df is None or accuracy_df.empty:
+        return pd.DataFrame(columns=['stage', 'combo_name', 'recalibrated_layers', 'lambda_align', 'num_samples']
+                            + ACCURACY_METRIC_COLS + [f'{c}_change_vs_before' for c in ACCURACY_METRIC_COLS]
+                            + ['model_weight_path'])
+    df = _sort_scenarios(accuracy_df)
+    before = df[df['stage'] == 'before']
+    for col in ACCURACY_METRIC_COLS:
+        df[f'{col}_change_vs_before'] = df[col] - before.iloc[0][col] if not before.empty else float('nan')
+    ordered = (['stage', 'combo_name', 'recalibrated_layers', 'lambda_align', 'num_samples'] + ACCURACY_METRIC_COLS
+               + [f'{c}_change_vs_before' for c in ACCURACY_METRIC_COLS] + ['model_weight_path'])
+    return df[ordered]
+
+
+def build_accuracy_by_class(class_accuracy_df):
+    """One row per (class, model) with per-class metrics and the change versus the base model."""
+    ordered = (['class_name', 'class_index', 'stage', 'combo_name', 'recalibrated_layers', 'lambda_align',
+                'support', 'correct'] + CLASS_METRIC_COLS + [f'{c}_change_vs_before' for c in CLASS_METRIC_COLS]
+               + ['model_weight_path'])
+    if class_accuracy_df is None or class_accuracy_df.empty:
+        return pd.DataFrame(columns=ordered)
+    df = _sort_scenarios(class_accuracy_df, leading_cols=['class_index'])
+    before = df[df['stage'] == 'before'].drop_duplicates('class_index').set_index('class_index')
+    for col in CLASS_METRIC_COLS:
+        df[f'{col}_change_vs_before'] = df[col] - df['class_index'].map(before[col])
+    return df[ordered]
+
+
+def add_accuracy_to_summary(summary_df, accuracy_df):
+    """Append before and per-(combo, lambda) accuracy, precision, recall and F1 columns to every Summary row."""
+    if accuracy_df is None or accuracy_df.empty or summary_df.empty:
+        return summary_df
+    extra = {}
+    before = accuracy_df[accuracy_df['stage'] == 'before']
+    if not before.empty:
+        for col in ACCURACY_METRIC_COLS:
+            extra[f'{col}_before'] = before.iloc[0][col]
+    after = accuracy_df[accuracy_df['stage'] == 'after'].sort_values(['combo_name', 'lambda_align'])
+    for _, row in after.drop_duplicates(['combo_name', 'lambda_align']).iterrows():
+        for col in ACCURACY_METRIC_COLS:
+            extra[f'{col}_after_{row["combo_name"]}_lambda_{row["lambda_align"]}'] = row[col]
+    summary_df = summary_df.copy()
+    for col, value in extra.items():
+        summary_df[col] = value
+    return summary_df
+
+
+def write_excel_report(records_df, run_info, excel_path, accuracy_df=None, class_accuracy_df=None):
     """
     (Re)build the full Excel workbook from scratch:
         Run_Info          - key/value dump of every run parameter
-        Summary           - one row per concept, TCAV score + stats
-        Summary_By_Layer  - one row per concept/layer/stage/lambda, TCAV score + stats
+        Summary           - one row per concept, TCAV score + stats, plus model
+                            accuracy/precision/recall/F1 before and after each combo/lambda
+        Summary_By_Layer  - one row per concept/layer/stage/combo/lambda, TCAV score + stats
+        Accuracy_Overall  - one row per model (before + each combo/lambda) with metrics and change vs before
+        Accuracy_By_Class - per-class accuracy/precision/recall/F1 for every model evaluated
+        TTest_<class>     - one sheet per class: paired t-tests of sensitivity per concept/combo/layer,
+                            before vs each lambda, and every lambda vs lambda pair
         <concept sheets>  - full row-level detail, one sheet per concept
                             (split into _p1/_p2/... parts if a concept would
                             otherwise exceed Excel's per-sheet row limit)
@@ -496,7 +742,11 @@ def write_excel_report(records_df, run_info, excel_path):
     # Resolve every sheet name up front (reserving the fixed sheet names first)
     # so Summary/Summary_By_Layer can reference the exact per-concept sheet
     # name(s), and so sheets can be written in final reading order in one pass.
-    used_sheet_names = {"run_info", "summary", "summary_by_layer"}
+    used_sheet_names = {"run_info", "summary", "summary_by_layer", "accuracy_overall", "accuracy_by_class"}
+    # One paired t-test sheet per class, reserved before the concept sheets so its name stays stable
+    class_names_in_order = list(dict.fromkeys(records_df['class_name'].tolist()))
+    ttest_sheet_names = {cls: _sanitize_sheet_name(f"TTest_{_safe_name(cls)}", used_sheet_names)
+                         for cls in class_names_in_order}
     concept_sheet_names = {}
     for concept_name in concept_names_in_order:
         total_rows = int(concept_row_counts[concept_name])
@@ -510,7 +760,11 @@ def write_excel_report(records_df, run_info, excel_path):
     summary_df = compute_concept_summary(records_df)
     summary_df.insert(1, 'excel_sheet_names', summary_df['concept_name'].map(
         lambda c: ", ".join(concept_sheet_names.get(c, []))))
+    summary_df = add_accuracy_to_summary(summary_df, accuracy_df)
     layer_summary_df = compute_layer_summary(records_df)
+    ttest_df = compute_paired_ttest(records_df)
+    accuracy_overall_df = build_accuracy_overall(accuracy_df)
+    class_accuracy_df = build_accuracy_by_class(class_accuracy_df)
     # Stringify every value: run_info deliberately mixes bools/ints/floats/strings
     # in one column, and writing that mix straight to Excel triggers a pandas/
     # openpyxl round-trip bug where some ints get silently reinterpreted as bools
@@ -528,9 +782,22 @@ def write_excel_report(records_df, run_info, excel_path):
         layer_summary_df.to_excel(writer, sheet_name="Summary_By_Layer", index=False)
         _style_worksheet(writer.sheets["Summary_By_Layer"])
 
+        accuracy_overall_df.to_excel(writer, sheet_name="Accuracy_Overall", index=False)
+        _style_worksheet(writer.sheets["Accuracy_Overall"])
+
+        class_accuracy_df.to_excel(writer, sheet_name="Accuracy_By_Class", index=False)
+        _style_worksheet(writer.sheets["Accuracy_By_Class"])
+
+        for class_name in class_names_in_order:
+            sheet_name = ttest_sheet_names[class_name]
+            class_ttest_df = ttest_df[ttest_df['class_name'] == class_name].reset_index(drop=True)
+            class_ttest_df.to_excel(writer, sheet_name=sheet_name, index=False)
+            _style_worksheet(writer.sheets[sheet_name])
+
         for concept_name in concept_names_in_order:
             concept_df = records_df[records_df['concept_name'] == concept_name]
-            concept_df = concept_df.sort_values(['layer_name', 'stage', 'lambda_align', 'file_path'])
+            concept_df = concept_df.sort_values(['layer_name', 'stage', 'combo_name', 'lambda_align', 'file_path'],
+                                                ascending=[True, False, True, True, True])
             concept_df = concept_df[EXPORT_COLUMNS].reset_index(drop=True)
             names = concept_sheet_names[concept_name]
             for part_idx, sheet_name in enumerate(names):
@@ -710,6 +977,24 @@ def main():
     # sensitivity-score row be matched back to the exact image file that produced it.
     concept_file_lists = {spec['concept_name']: get_singleclass_filelist(spec['class_dataloader']) for spec in concept_specs}
 
+    # Every recalibration scenario = one combo of layers from layer_combinations_<model>.txt x every lambda
+    recalibration_scenarios = []
+    if before_after:
+        if recal_model_basepath is None:
+            msg = "--before_after was set without --recal_model_basepath; only the 'before' stage will be computed."
+            print(f"WARNING: {msg}")
+            logger.warning(msg)
+        else:
+            layer_combinations_file = os.path.join(
+                recal_model_basepath, MODEL_NAME, f"layer_combinations_{MODEL_NAME}.txt")
+            recalibration_scenarios = load_layer_combinations(layer_combinations_file)
+            logger.info(f"Recalibration combos from {layer_combinations_file}: {recalibration_scenarios}")
+            print(f"Recalibration combos: {recalibration_scenarios}")
+    # 'before' sensitivity is needed at every layer that any combo recalibrated
+    before_layers = list(layers)
+    for _, combo_layers in recalibration_scenarios:
+        before_layers.extend(ln for ln in combo_layers if ln not in before_layers)
+
     run_info = {
         "model_name": MODEL_NAME,
         "org_model_path": os.path.abspath(BASE_MODEL_PATH),
@@ -735,22 +1020,46 @@ def main():
         "log_file": os.path.abspath(log_filename),
         "csv_backup_file": os.path.abspath(csv_filename),
         "excel_report_file": os.path.abspath(excel_filename),
-        "layers_to_process": ", ".join(layers),
-        "num_layers_to_process": len(layers),
+        "layers_to_process": ", ".join(before_layers),
+        "num_layers_to_process": len(before_layers),
+        "recalibration_combos": "; ".join(f"{name}: {'|'.join(cl)}" for name, cl in recalibration_scenarios),
+        "num_recalibration_scenarios": len(recalibration_scenarios) * len(lambda_val_list),
     }
 
     records = defaultdict(list)
     flushed_count = 0
+    accuracy_rows = []
+    class_accuracy_rows = []
+    evaluated_model_paths = set()
+
+    def record_model_metrics(model, stage, lambda_align, combo_name, recalibrated_layers, model_weight_path):
+        """Evaluate a model on the validation set once per weight file and store the metrics."""
+        model_weight_path = os.path.abspath(model_weight_path)
+        if model_weight_path in evaluated_model_paths:
+            return
+        overall_row, per_class_rows = compute_classification_metrics(
+            model, val_loader, class_names, device, stage, lambda_align, model_weight_path,
+            combo_name=combo_name, recalibrated_layers=recalibrated_layers)
+        accuracy_rows.append(overall_row)
+        class_accuracy_rows.extend(per_class_rows)
+        evaluated_model_paths.add(model_weight_path)
+        msg = (f"[{stage}][{combo_name}][lambda={lambda_align}] accuracy={overall_row['accuracy']:.4f} "
+               f"precision={overall_row['precision_macro']:.4f} recall={overall_row['recall_macro']:.4f} "
+               f"f1={overall_row['f1_macro']:.4f} ({model_weight_path})")
+        print(msg)
+        logger.info(msg)
 
     def append_records(concept_name, class_name, target_class_index, stage, layer_name, lambda_align,
                         sensitivity_scores, file_paths, concept_folder_path, random_folder_path, model_weight_path,
-                        cav_source_path):
+                        cav_source_path, combo_name, recalibrated_layers):
         n = len(sensitivity_scores)
         records['model_name'].extend([MODEL_NAME] * n)
         records['concept_name'].extend([concept_name] * n)
         records['class_name'].extend([class_name] * n)
         records['target_class_index'].extend([target_class_index] * n)
         records['stage'].extend([stage] * n)
+        records['combo_name'].extend([combo_name] * n)
+        records['recalibrated_layers'].extend([recalibrated_layers] * n)
         records['layer_name'].extend([layer_name] * n)
         records['lambda_align'].extend([lambda_align] * n)
         records['sensitivity_score'].extend([float(s) for s in sensitivity_scores])
@@ -781,57 +1090,63 @@ def main():
         try:
             if records['model_name']:
                 records_df = pd.DataFrame(records)
-                write_excel_report(records_df, run_info, excel_filename)
+                write_excel_report(records_df, run_info, excel_filename,
+                                   accuracy_df=pd.DataFrame(accuracy_rows),
+                                   class_accuracy_df=pd.DataFrame(class_accuracy_rows))
                 print(f"Excel report rebuilt ({reason}): {excel_filename}")
                 logger.info(f"Excel report rebuilt ({reason}): {excel_filename}")
         except Exception as e:
             print(f"Warning: failed to rebuild Excel report ({reason}): {e}")
             logger.info(f"Failed to rebuild Excel report ({reason}): {e}")
 
-    for layer_name in layers:
-        try:
-            # Resolve every concept's CAV vector for this layer from the manifest
-            # up front (CAVs are precomputed/fixed - they don't change between
-            # 'before' and each recalibrated 'after' stage, so this is done once
-            # per layer instead of being retrained per stage/lambda as before).
-            cav_lookup = {}  # concept_name -> (cav_tensor, cav_source_path)
-            for spec in concept_specs:
-                cav_tensor, cav_source_path, reason = get_cav_from_manifest(
-                    manifest_data, spec['concept_name'], layer_name, device)
-                if cav_tensor is None:
-                    msg = (f"Sensitivity score for layer '{layer_name}' (concept "
-                           f"'{spec['concept_name']}') was not processed due to non-availability "
-                           f"of cav in the manifest ({reason}).")
-                    print(f"WARNING: {msg}")
-                    logger.warning(msg)
-                    continue
-                cav_lookup[spec['concept_name']] = (cav_tensor, cav_source_path)
+    cav_cache = {}
 
-            active_specs = [spec for spec in concept_specs if spec['concept_name'] in cav_lookup]
-            if not active_specs:
-                msg = f"[{layer_name}] No CAVs available in manifest for any concept - skipping this layer entirely."
+    def get_layer_cavs(layer_name):
+        """Resolve every concept's precomputed CAV for a layer once: ({concept: (cav, source)}, active_specs)."""
+        if layer_name in cav_cache:
+            return cav_cache[layer_name]
+        cav_lookup = {}
+        for spec in concept_specs:
+            cav_tensor, cav_source_path, reason = get_cav_from_manifest(
+                manifest_data, spec['concept_name'], layer_name, device)
+            if cav_tensor is None:
+                msg = (f"Sensitivity score for layer '{layer_name}' (concept "
+                       f"'{spec['concept_name']}') was not processed due to non-availability "
+                       f"of cav in the manifest ({reason}).")
                 print(f"WARNING: {msg}")
                 logger.warning(msg)
                 continue
+            cav_lookup[spec['concept_name']] = (cav_tensor, cav_source_path)
+        active_specs = [spec for spec in concept_specs if spec['concept_name'] in cav_lookup]
+        cav_cache[layer_name] = (cav_lookup, active_specs)
+        return cav_cache[layer_name]
 
-            ############## BEFORE Do it once #################################
-            model_trained = load_model(MODEL_NAME, BASE_MODEL_PATH)
-            model_trained.to(device)
-            hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-            logger.info(f"[{layer_name}] Computing the sensitivity score (before) using manifest CAVs, can take a while stand by")
+    def compute_and_record_sensitivity(model, layer_name, stage, lambda_align, combo_name, recalibrated_layers,
+                                       model_weight_path):
+        """Compute per-image sensitivity at one layer for every concept and append the rows."""
+        cav_lookup, active_specs = get_layer_cavs(layer_name)
+        tag = f"[{layer_name}]" if stage == 'before' else f"[{combo_name}][{layer_name}][lambda={lambda_align}]"
+        if not active_specs:
+            msg = f"{tag} No CAVs available in manifest for any concept - skipping this layer."
+            print(f"WARNING: {msg}")
+            logger.warning(msg)
+            return
+        hook_handle = model.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
+        try:
+            logger.info(f"{tag} Computing the sensitivity score ({stage}) using manifest CAVs, can take a while stand by")
             sensitivity_scores = [
-                util_compute_sensitivity_score(model_trained, layer_name, cav_lookup[spec['concept_name']][0],
-                                                spec['class_dataloader'], spec['target_class_index'], activation)
+                util_compute_sensitivity_score(model, layer_name, cav_lookup[spec['concept_name']][0],
+                                               spec['class_dataloader'], spec['target_class_index'], activation)
                 for spec in active_specs
             ]
-            tcav_before_legacy = util_compute_tcav_score_from_sensitivity(sensitivity_scores)
-            logger.info(f"[{layer_name}] legacy mean-sensitivity 'tcav' (before) per concept is {tcav_before_legacy}")
+            tcav_legacy = util_compute_tcav_score_from_sensitivity(sensitivity_scores)
+            logger.info(f"{tag} legacy mean-sensitivity 'tcav' ({stage}) per concept is {tcav_legacy}")
             sensitivity_scores = [cpudata.detach().cpu().numpy() for cpudata in sensitivity_scores]
 
             for spec, scores in zip(active_specs, sensitivity_scores):
                 file_paths = concept_file_lists[spec['concept_name']]
                 if len(file_paths) != len(scores):
-                    msg = (f"[{layer_name}] concept '{spec['concept_name']}': file-list length "
+                    msg = (f"{tag} concept '{spec['concept_name']}': file-list length "
                            f"({len(file_paths)}) != sensitivity-score length ({len(scores)}); "
                            f"truncating to the shorter of the two.")
                     print("WARNING " + msg)
@@ -839,97 +1154,88 @@ def main():
                 n = min(len(file_paths), len(scores))
                 positive_fraction = float(np.mean(scores[:n] > 0)) if n else float('nan')
                 mean_score = float(np.mean(scores[:n])) if n else float('nan')
-                print(f"[{layer_name}] BEFORE concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score:.4f}, positive_fraction={positive_fraction:.4f}")
-                logger.info(f"[{layer_name}] BEFORE concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score}, positive_fraction={positive_fraction}")
+                print(f"{tag} {stage.upper()} concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score:.4f}, positive_fraction={positive_fraction:.4f}")
+                logger.info(f"{tag} {stage.upper()} concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score}, positive_fraction={positive_fraction}")
                 append_records(
                     concept_name=spec['concept_name'], class_name=spec['class_name'],
-                    target_class_index=spec['target_class_index'], stage='before', layer_name=layer_name,
-                    lambda_align=np.nan, sensitivity_scores=scores[:n], file_paths=file_paths[:n],
+                    target_class_index=spec['target_class_index'], stage=stage, layer_name=layer_name,
+                    lambda_align=lambda_align, sensitivity_scores=scores[:n], file_paths=file_paths[:n],
                     concept_folder_path=spec['concept_folder'], random_folder_path=spec['random_folder'],
-                    model_weight_path=os.path.abspath(BASE_MODEL_PATH),
+                    model_weight_path=os.path.abspath(model_weight_path),
                     cav_source_path=cav_lookup[spec['concept_name']][1],
+                    combo_name=combo_name, recalibrated_layers=recalibrated_layers,
                 )
-
+        finally:
             hook_handle.remove()
             activation.clear()  # Clear activations to free memory
             torch.cuda.empty_cache()
+
+    ############## BEFORE: base model, loaded once #################################
+    base_model = None
+    try:
+        base_model = load_model(MODEL_NAME, BASE_MODEL_PATH)
+        base_model.to(device)
+        # Accuracy is computed before any forward hook is attached
+        try:
+            record_model_metrics(base_model, 'before', np.nan, 'base', '', BASE_MODEL_PATH)
+        except Exception as e:
+            print(f"Warning: failed to compute accuracy of the base model: {e}")
+            logger.warning(f"Failed to compute accuracy of the base model: {e}")
+        for layer_name in before_layers:
             try:
+                compute_and_record_sensitivity(base_model, layer_name, 'before', np.nan, 'base', '', BASE_MODEL_PATH)
+                checkpoint(reason=f"before/{layer_name}", rebuild_excel=False)
+            except Exception as e:
+                checkpoint(reason=f"before/{layer_name}/exception", rebuild_excel=False)
+                print(f"Obtained exception while processing Layer{layer_name} (before), Exception details {e}")
+                logger.info(f"Obtained exception while processing Layer{layer_name} (before), Exception details {e}")
+    except Exception as e:
+        print(f"Obtained exception while loading/processing the base model: {e}")
+        logger.info(f"Obtained exception while loading/processing the base model: {e}")
+    finally:
+        del base_model
+        torch.cuda.empty_cache()
+    checkpoint(reason="before/end", rebuild_excel=True)
+
+    ############## AFTER: every combo x every lambda #################################
+    for combo_name, combo_layers in recalibration_scenarios:
+        recalibrated_layers = "|".join(combo_layers)
+        for lambda_val in lambda_val_list:
+            scenario = f"{combo_name}/lambda={lambda_val}"
+            try:
+                if concept_mode == 'multiclass':
+                    modified_model_path = get_model_path_multiclass(MODEL_NAME, combo_name, lambda_val, recal_model_basepath)
+                else:
+                    modified_model_path = get_model_path(MODEL_NAME, combo_name, lambda_val, recal_model_basepath)
+            except FileNotFoundError as e:
+                print(f"WARNING: [{scenario}] recalibrated model not found, skipping: {e}")
+                logger.warning(f"[{scenario}] recalibrated model not found, skipping: {e}")
+                continue
+
+            model_trained = None
+            try:
+                model_trained = load_model_with_trained_weights(BASE_MODEL_PATH, modified_model_path, device=device)
+                try:
+                    record_model_metrics(model_trained, 'after', lambda_val, combo_name, recalibrated_layers,
+                                         modified_model_path)
+                except Exception as e:
+                    print(f"Warning: failed to compute accuracy for {modified_model_path}: {e}")
+                    logger.warning(f"[{scenario}] Failed to compute accuracy for {modified_model_path}: {e}")
+                for layer_name in combo_layers:
+                    try:
+                        compute_and_record_sensitivity(model_trained, layer_name, 'after', lambda_val, combo_name,
+                                                       recalibrated_layers, modified_model_path)
+                    except Exception as e:
+                        print(f"Exception obtained while computing sensitivity score [{scenario}][{layer_name}]: {e}")
+                        logger.info(f"[{scenario}][{layer_name}] Exception obtained while computing sensitivity score {e}")
+            except Exception as e:
+                print(f"Obtained exception while processing {scenario}: {e}")
+                logger.info(f"Obtained exception while processing {scenario}: {e}")
+            finally:
                 del model_trained
                 torch.cuda.empty_cache()
-            except Exception as e:
-                print(f"Model trained variable not yet defined  ")
-
-            if(before_after == True):
-                if recal_model_basepath is not None:
-                    layer_combinations_file = os.path.join(
-                        recal_model_basepath,MODEL_NAME, f"layer_combinations_{MODEL_NAME}.txt")
-                    with open(layer_combinations_file, 'r') as file:
-                        layer_combinations = ast.literal_eval(file.read())
-                count = 0
-                for lambda_val in lambda_val_list:
-                    try:
-                        ###########AFTER######################
-                        file_combo_name = f"combo{count}"
-                        if(recal_model_basepath != None):
-                            if(concept_mode =='multiclass'):
-                                modified_model_path = get_model_path_multiclass(MODEL_NAME, file_combo_name, lambda_val, recal_model_basepath)
-                            else:
-                                modified_model_path = get_model_path(MODEL_NAME, file_combo_name, lambda_val, recal_model_basepath)
-                            
-                            model_trained = load_model_with_trained_weights(BASE_MODEL_PATH, modified_model_path)
-                            hook_handle = model_trained.get_submodule(layer_name).register_forward_hook(get_activation(layer_name))
-                            model_trained.to(device)
-                            logger.info(f"[{layer_name}][lambda={lambda_val}] Computing the sensitivity score (after) using manifest CAVs, can take a while stand by")
-                            try:
-                                sensitivity_scores = [
-                                    util_compute_sensitivity_score(model_trained, layer_name, cav_lookup[spec['concept_name']][0],
-                                                                    spec['class_dataloader'], spec['target_class_index'], activation)
-                                    for spec in active_specs
-                                ]
-                                tcav_after_legacy = util_compute_tcav_score_from_sensitivity(sensitivity_scores)
-                                logger.info(f"[{layer_name}][lambda={lambda_val}] legacy mean-sensitivity 'tcav' (after) per concept is {tcav_after_legacy}")
-                                sensitivity_scores = [cpudata.detach().cpu().numpy() for cpudata in sensitivity_scores]
-
-                                for spec, scores in zip(active_specs, sensitivity_scores):
-                                    file_paths = concept_file_lists[spec['concept_name']]
-                                    n = min(len(file_paths), len(scores))
-                                    positive_fraction = float(np.mean(scores[:n] > 0)) if n else float('nan')
-                                    mean_score = float(np.mean(scores[:n])) if n else float('nan')
-                                    print(f"[{layer_name}][lambda={lambda_val}] AFTER concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score:.4f}, positive_fraction={positive_fraction:.4f}")
-                                    logger.info(f"[{layer_name}][lambda={lambda_val}] AFTER concept={spec['concept_name']}: n={n}, mean_sensitivity={mean_score}, positive_fraction={positive_fraction}")
-                                    append_records(
-                                        concept_name=spec['concept_name'], class_name=spec['class_name'],
-                                        target_class_index=spec['target_class_index'], stage='after', layer_name=layer_name,
-                                        lambda_align=lambda_val, sensitivity_scores=scores[:n], file_paths=file_paths[:n],
-                                        concept_folder_path=spec['concept_folder'], random_folder_path=spec['random_folder'],
-                                        model_weight_path=os.path.abspath(modified_model_path),
-                                        cav_source_path=cav_lookup[spec['concept_name']][1],
-                                    )
-
-                                hook_handle.remove()
-                                activation.clear()  # Clear activations to free memory
-                                torch.cuda.empty_cache()
-                                checkpoint(reason=f"{layer_name}/lambda={lambda_val}", rebuild_excel=False)
-                            except Exception as e:
-                                print(f"Exception obtained while computing sensitivity score {e}")
-                                logger.info(f"[{layer_name}][lambda={lambda_val}] Exception obtained while computing sensitivity score {e}")
-                                #continue
-                    except Exception as e:
-                        checkpoint(reason=f"{layer_name}/lambda={lambda_val}/exception", rebuild_excel=False)
-                        print(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}")
-                        logger.info(f"Obtained exception while processing Layer{layer_name}, with Lambda value {lambda_val}: {e}")
-                        #continue
-                try:
-                    del model_trained
-                except Exception as e:
-                    print(f"Model trained variable not yet defined  ")
-                    continue
-            checkpoint(reason=f"{layer_name}/end_of_layer", rebuild_excel=True)
-        except Exception as e:
-            checkpoint(reason=f"{layer_name}/exception", rebuild_excel=True)
-            print(f"Obtained exception while processing Layer{layer_name} , Exception details {e}")
-            logger.info(f"Obtained exception while processing Layer{layer_name} , Exception details {e}")
-            continue
+                checkpoint(reason=scenario, rebuild_excel=False)
+        checkpoint(reason=f"{combo_name}/end_of_combo", rebuild_excel=True)
 
     checkpoint(reason="final", rebuild_excel=True)
     if os.path.isfile(csv_filename):
