@@ -23,6 +23,8 @@ for model in "${MODELS[@]}"; do
         --store_results "$STORE_RESULTS" \
         --use_layer_groups \
         --max_combo_size 1 \
+        --recalibrate_classes '0,1,2' \
+        --multiclass_recalibration_mode \       
         --manifest_file "$MANIFEST_FILE"/${model}_manifest.json
 
 done
